@@ -1,0 +1,14 @@
+{
+  "name": "fslides",
+  "owner": {
+    "name": "fslides",
+    "url": "https://fslides.dev"
+  },
+  "plugins": [
+    {
+      "name": "fslides",
+      "source": "./plugins/fslides",
+      "description": "Author fslides presentations — decks that live in git repos, slides that are plain HTML, published to GitHub Pages with narration and element-anchored comments."
+    }
+  ]
+}

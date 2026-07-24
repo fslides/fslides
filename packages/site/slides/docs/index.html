@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fslides — docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: rgba(255,255,255,0.85); line-height: 1.7;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(56,189,248,0.04) 1px, transparent 1px);
+      background-size: 30px 30px; pointer-events: none;
+    }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; gap: 18px;
+      padding: 16px 32px; background: rgba(13,15,20,0.92);
+      backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .wordmark { font-weight: 900; font-size: 1.25rem; letter-spacing: -0.04em; text-decoration: none;
+      background: linear-gradient(120deg, #fff 30%, #38BDF8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    header nav { margin-left: auto; display: flex; gap: 20px; }
+    header nav a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    header nav a:hover { color: #38BDF8; }
+
+    main { max-width: 780px; margin: 0 auto; padding: 56px 24px 120px; position: relative; }
+    h1 { font-size: 2.6rem; font-weight: 900; letter-spacing: -0.03em; color: #fff; margin-bottom: 10px; }
+    .sub { color: rgba(255,255,255,0.5); font-size: 1.05rem; font-weight: 300; margin-bottom: 48px; }
+    h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; margin: 52px 0 14px; padding-top: 12px; }
+    h3 { font-size: 1.05rem; font-weight: 700; color: #fff; margin: 28px 0 8px; }
+    p { margin-bottom: 14px; font-weight: 300; }
+    p strong, li strong { font-weight: 700; color: #fff; }
+    ul { margin: 0 0 14px 22px; }
+    li { margin-bottom: 6px; font-weight: 300; }
+    a { color: #38BDF8; }
+    pre {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; line-height: 1.8;
+      background: #16181f; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+      padding: 16px 20px; overflow-x: auto; margin: 0 0 18px;
+    }
+    code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: #7DD3FC; }
+    pre code { color: rgba(255,255,255,0.85); }
+    pre .p { color: #38BDF8; }
+    pre .c { color: rgba(255,255,255,0.3); }
+    kbd { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 5px; padding: 1px 7px; font-family: 'JetBrains Mono', monospace; font-size: 0.82em; color: #fff; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    th { color: rgba(255,255,255,0.45); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    td code { white-space: nowrap; }
+    .callout {
+      border-left: 3px solid #38BDF8; background: rgba(56,189,248,0.06);
+      border-radius: 0 10px 10px 0; padding: 14px 18px; margin-bottom: 18px; font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="wordmark" href="/">fslides</a>
+    <nav>
+      <a href="/">Deck</a>
+      <a href="/agents.md">agents.md</a>
+      <a href="https://github.com/fslides/fslides">GitHub</a>
+      <a href="https://www.npmjs.com/package/fslides">npm</a>
+    </nav>
+  </header>
+  <main>
+    <h1>Documentation</h1>
+    <p class="sub">Everything you need to author, review, narrate, and publish decks that live in git.</p>
+
+    <h2 id="quickstart">Quickstart</h2>
+    <pre><span class="p">$</span> npm install -g fslides
+<span class="p">$</span> fslides scaffold my-deck   <span class="c"># GitHub repo + CI + Pages + comments, one command</span>
+<span class="p">$</span> cd my-deck &amp;&amp; npm install
+<span class="p">$</span> fslides serve              <span class="c"># author with live reload</span></pre>
+    <p><code>scaffold</code> needs the <a href="https://cli.github.com">GitHub CLI</a> authenticated (<code>gh auth login</code>). For a local-only deck without a repo, use <code>fslides create my-deck</code>.</p>
+    <p>Every push to <code>main</code> rebuilds and publishes your deck to GitHub Pages. That's the whole publishing story.</p>
+
+    <h2 id="slides">Writing slides</h2>
+    <p>A slide is a <strong>plain HTML file</strong> in <code>slides/</code>, designed on a fixed 1280×720 canvas. Any CSS, any JS, any library. Add the file, then register it in <code>fuckslides.config.js</code>:</p>
+    <pre>slides: [ 'cover.html', 'my-new-slide.html' ],
+labels: [ 'Cover',      'The Big Idea' ],</pre>
+    <p>The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
+
+    <h2 id="player">The player</h2>
+    <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>F</kbd> present fullscreen.</p>
+    <p>Speaker notes live in <code>notes.json</code> and are editable in the Notes panel — they ship with the deck and feed the teleprompter.</p>
+
+    <h2 id="narration">Narration</h2>
+    <p>Click <strong>Record</strong> in the toolbar: audio or camera per slide, with a pop-out teleprompter reading your notes at eye level, live waveform, device pickers, and virtual backgrounds (blur or custom image — baked into the recording).</p>
+    <ul>
+      <li>Recordings land in <code>slides/recordings/</code> — commit and push like any file (scaffolded decks track them with <strong>Git LFS</strong> so re-takes don't bloat clones)</li>
+      <li>Viewers hit <strong>Play</strong> on the published deck; camera takes render in a draggable bubble, and playback auto-continues across slides</li>
+    </ul>
+
+    <h2 id="comments">Review &amp; comments</h2>
+    <p>Reviewers <strong>right-click any element</strong> on a slide — a headline, a chart, a block — and pin a comment thread to it. Drag-select to comment on a group. The Comments panel is a deck-wide inbox: click any thread to jump to its slide.</p>
+    <p>Underneath, threads are <strong>GitHub issues</strong> on your deck repo (one per slide) — permissioned, notifiable, readable forever without fslides. On published decks, commenting uses a one-popup GitHub sign-in; the <a href="https://github.com/apps/fslides">fslides GitHub App</a> (issues-only permission) is installed on the repos you choose during that popup.</p>
+    <div class="callout">Private repo? Comments work in <code>fslides serve</code> through your local <code>gh</code> auth with zero setup.</div>
+
+    <h2 id="commands">Command reference</h2>
+    <table>
+      <tr><th>Command</th><th>What it does</th></tr>
+      <tr><td><code>fslides serve</code></td><td>Local player: live reload, notes, narration recording, comments</td></tr>
+      <tr><td><code>fslides scaffold &lt;name&gt;</code></td><td>New deck as a GitHub repo — files, CI, Pages, comments wired</td></tr>
+      <tr><td><code>fslides create &lt;name&gt;</code></td><td>New local-only deck</td></tr>
+      <tr><td><code>fslides add-slide &lt;name&gt;</code></td><td>Scaffold one slide file</td></tr>
+      <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder (what CI publishes)</td></tr>
+      <tr><td><code>fslides export [out.html]</code></td><td>Single self-contained HTML file</td></tr>
+      <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports</td></tr>
+    </table>
+
+    <h2 id="contributing">Contributing to a deck</h2>
+    <pre><span class="p">$</span> git clone https://github.com/&lt;owner&gt;/&lt;deck&gt;.git &amp;&amp; cd &lt;deck&gt;
+<span class="p">$</span> npm install &amp;&amp; npm run serve</pre>
+    <ul>
+      <li>Install <code>git-lfs</code> (<code>brew install git-lfs</code>) to fetch narration recordings</li>
+      <li>Edit slides like code; open a PR; CI publishes on merge</li>
+    </ul>
+  </main>
+</body>
+</html>

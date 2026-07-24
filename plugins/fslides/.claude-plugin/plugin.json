@@ -1,0 +1,6 @@
+{
+  "name": "fslides",
+  "description": "Author fslides presentations: scaffold deck repos, write HTML slides, speaker notes, and publish to GitHub Pages.",
+  "version": "0.1.0",
+  "author": { "name": "fslides", "url": "https://fslides.dev" }
+}

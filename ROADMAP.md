@@ -47,7 +47,8 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 ## Phase 2 — fslides.dev front door
 
 - [x] Landing live at **fslides.dev** (2026-07-24) — a 6-slide fslides deck served as Worker static assets (`packages/site`), comments wired to fslides/fslides via the gateway; www works too
-- [ ] Docs + template gallery
+- [x] Docs page live at fslides.dev/docs (quickstart, slides, player, narration, comments, commands, contributing) — 2026-07-24
+- [ ] Template gallery
 - [ ] Signed-in dashboard: list your decks (repos containing `fuckslides.config.js`), link to live Pages
 - [ ] Web scaffold: "New deck" button = browser version of `fslides scaffold` (create repo, enable Pages, first deploy)
 - [ ] Docs: quickstart, recording/narration guide, commenting guide, contributor guide (incl. git-lfs note)
@@ -65,9 +66,9 @@ Candidates, unvalidated:
 
 ## Backlog (not scheduled, don't lose)
 
-**AI-native authoring** *(Bento-inspired analysis, 2026-07-22)*
-- `docs/agents.md` — one-page spec any model can ingest to author decks
-- Claude Code plugin/skill (`fslides-deck`): scaffold → author slides → config/labels/notes → serve/build; installable from the repo's plugin marketplace
+**AI-native authoring** *(Bento-inspired analysis, 2026-07-22)* — SHIPPED 2026-07-24
+- [x] `docs/agents.md` — served at fslides.dev/agents.md
+- [x] Claude Code plugin (`/plugin marketplace add fslides/fslides` → `fslides-deck` skill)
 
 **Player**
 - Morph transitions: elements sharing `data-morph` ids FLIP-animate across slides (the Bento flagship; big visual payoff)
