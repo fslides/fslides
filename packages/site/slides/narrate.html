@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fslides — narrate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { width: 100%; height: 100%; overflow: hidden; background: #0d0f14; }
+    body {
+      width: 1280px; height: 720px; overflow: hidden; position: absolute;
+      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: #fff; display: flex; padding: 56px 72px;
+      gap: 60px; align-items: center;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(56,189,248,0.05) 1px, transparent 1px);
+      background-size: 30px 30px; pointer-events: none;
+    }
+    @keyframes up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+    .f1 { opacity:0; animation: up .5s ease forwards .1s; }
+    .f2 { opacity:0; animation: up .5s ease forwards .35s; }
+
+    .left { flex: 1; }
+    .eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #38BDF8; margin-bottom: 10px; }
+    h1 { font-size: 2.7rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1.12; margin-bottom: 24px; }
+    h1 span { color: #38BDF8; }
+    .lead { font-size: 1.15rem; font-weight: 300; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 28px; }
+    .lead strong { font-weight: 700; color: #fff; }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    li { font-size: 1rem; color: rgba(255,255,255,0.75); display: flex; gap: 12px; align-items: baseline; }
+    li::before { content: '→'; color: #38BDF8; font-weight: 700; }
+
+    /* stylized bubble mock */
+    .stage {
+      width: 460px; height: 470px; flex-shrink: 0; position: relative;
+      background: #16181f; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+      overflow: hidden;
+    }
+    .stage .slide-mock {
+      position: absolute; inset: 18px 18px 90px;
+      background: linear-gradient(140deg, #1c2030, #12141c);
+      border-radius: 10px; padding: 26px;
+    }
+    .slide-mock .t { width: 65%; height: 22px; border-radius: 6px; background: rgba(255,255,255,0.25); margin-bottom: 14px; }
+    .slide-mock .l { width: 85%; height: 10px; border-radius: 5px; background: rgba(255,255,255,0.1); margin-bottom: 9px; }
+    .slide-mock .l.s { width: 60%; }
+    .bubble {
+      position: absolute; left: 34px; bottom: 26px;
+      width: 150px; height: 150px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.85);
+      background: radial-gradient(circle at 35% 30%, #3a4a6b, #17203a);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center; font-size: 3.4rem;
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float { 50% { transform: translateY(-7px); } }
+    .rec {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.6); border-radius: 20px; padding: 3px 12px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; font-weight: 700; color: #fff;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .rec i { width: 8px; height: 8px; border-radius: 50%; background: #EF4444; animation: blink 1.1s infinite; }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    .wave {
+      position: absolute; right: 30px; bottom: 42px; width: 210px; height: 54px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .wave i { flex: 1; background: #34D399; border-radius: 3px; animation: eq 1s ease-in-out infinite; }
+    .wave i:nth-child(1){height:30%;animation-delay:0s}.wave i:nth-child(2){height:70%;animation-delay:.12s}
+    .wave i:nth-child(3){height:45%;animation-delay:.24s}.wave i:nth-child(4){height:85%;animation-delay:.06s}
+    .wave i:nth-child(5){height:55%;animation-delay:.3s}.wave i:nth-child(6){height:75%;animation-delay:.18s}
+    .wave i:nth-child(7){height:35%;animation-delay:.28s}.wave i:nth-child(8){height:65%;animation-delay:.1s}
+    @keyframes eq { 50% { transform: scaleY(0.45); } }
+  </style>
+</head>
+<body>
+  <div class="left f1">
+    <div class="eyebrow">Narration</div>
+    <h1>Your deck presents itself — <span>in your voice, or on camera</span>.</h1>
+    <p class="lead">Hit record in the player: <strong>audio or webcam</strong>, per slide, with a pop-out teleprompter reading your speaker notes. Viewers press play and walk the whole deck narrated.</p>
+    <ul>
+      <li>Virtual backgrounds — blur or any image, baked into the file</li>
+      <li>Device pickers, live waveform, REC indicators</li>
+      <li>Recordings are just files: commit, push, published</li>
+    </ul>
+  </div>
+  <div class="stage f2">
+    <div class="slide-mock"><div class="t"></div><div class="l"></div><div class="l"></div><div class="l s"></div></div>
+    <div class="rec"><i></i>REC 0:42</div>
+    <div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="bubble">🎥</div>
+  </div>
+<script src="/js/fuckslides.js"></script>
+<script>
+(function scaleToFit() {
+  if (window !== window.top) return;
+  const W = 1280, H = 720;
+  function fit() {
+    var s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    document.body.style.transform = 'scale(' + s + ')';
+    document.body.style.transformOrigin = '0 0';
+    document.body.style.left = ((window.innerWidth - W * s) / 2) + 'px';
+    document.body.style.top = ((window.innerHeight - H * s) / 2) + 'px';
+  }
+  fit(); window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>

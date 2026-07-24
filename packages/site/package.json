@@ -1,0 +1,9 @@
+{
+  "name": "fslides-site",
+  "private": true,
+  "scripts": {
+    "serve": "fslides serve",
+    "build": "fslides build _site",
+    "deploy": "fslides build _site && wrangler deploy"
+  }
+}

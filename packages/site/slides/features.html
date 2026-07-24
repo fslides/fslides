@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fslides — features</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { width: 100%; height: 100%; overflow: hidden; background: #0d0f14; }
+    body {
+      width: 1280px; height: 720px; overflow: hidden; position: absolute;
+      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: #fff; display: flex; flex-direction: column;
+      padding: 56px 72px 48px;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(56,189,248,0.05) 1px, transparent 1px);
+      background-size: 30px 30px; pointer-events: none;
+    }
+    @keyframes up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+    .h { opacity:0; animation: up .5s ease forwards .1s; }
+    .grid > div:nth-child(1) { opacity:0; animation: up .45s ease forwards .25s; }
+    .grid > div:nth-child(2) { opacity:0; animation: up .45s ease forwards .35s; }
+    .grid > div:nth-child(3) { opacity:0; animation: up .45s ease forwards .45s; }
+    .grid > div:nth-child(4) { opacity:0; animation: up .45s ease forwards .55s; }
+    .grid > div:nth-child(5) { opacity:0; animation: up .45s ease forwards .65s; }
+    .grid > div:nth-child(6) { opacity:0; animation: up .45s ease forwards .75s; }
+
+    .eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #38BDF8; margin-bottom: 10px; }
+    h1 { font-size: 2.9rem; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 40px; }
+
+    .grid { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card {
+      background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 24px 26px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .card .ico { font-size: 1.7rem; }
+    .card h3 { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.01em; }
+    .card p { font-size: 0.88rem; font-weight: 300; color: rgba(255,255,255,0.6); line-height: 1.55; }
+    .card p strong { color: rgba(255,255,255,0.9); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="h">
+    <div class="eyebrow">Batteries included</div>
+    <h1>Everything a deck needs. Nothing it doesn't.</h1>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="ico">🎙️</div><h3>Narration</h3><p>Record <strong>voice or camera</strong> per slide — teleprompter, waveform, virtual backgrounds. Plays back in a floating bubble on the published deck.</p></div>
+    <div class="card"><div class="ico">💬</div><h3>Anchored comments</h3><p>Reviewers <strong>right-click any element</strong> and pin a thread to it — stored as GitHub issues. A deck-wide inbox navigates straight to each comment.</p></div>
+    <div class="card"><div class="ico">📝</div><h3>Speaker notes</h3><p>Per-slide notes in <strong>plain JSON</strong>, editable in the player, shipped with the deck, teleprompted while you record.</p></div>
+    <div class="card"><div class="ico">⚡</div><h3>Live reload</h3><p>Edit a slide file, the browser refreshes. <strong>Your editor is the slide editor</strong> — or hand the file to an AI agent.</p></div>
+    <div class="card"><div class="ico">📦</div><h3>Build &amp; scaffold</h3><p><code>fslides scaffold</code>: <strong>repo + CI + GitHub Pages in one command</strong>. <code>fslides build</code>: a static folder that deploys anywhere.</p></div>
+    <div class="card"><div class="ico">🖥️</div><h3>Real exports</h3><p>PDF, PPTX, GIF, or a <strong>single self-contained HTML file</strong> that works from a USB stick. Your deck outlives every platform.</p></div>
+  </div>
+<script src="/js/fuckslides.js"></script>
+<script>
+(function scaleToFit() {
+  if (window !== window.top) return;
+  const W = 1280, H = 720;
+  function fit() {
+    var s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    document.body.style.transform = 'scale(' + s + ')';
+    document.body.style.transformOrigin = '0 0';
+    document.body.style.left = ((window.innerWidth - W * s) / 2) + 'px';
+    document.body.style.top = ((window.innerHeight - H * s) / 2) + 'px';
+  }
+  fit(); window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>

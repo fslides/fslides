@@ -1,0 +1,10 @@
+name = "fslides-site"
+compatibility_date = "2026-07-01"
+
+routes = [
+  { pattern = "fslides.dev", custom_domain = true },
+  { pattern = "www.fslides.dev", custom_domain = true }
+]
+
+[assets]
+directory = "_site"

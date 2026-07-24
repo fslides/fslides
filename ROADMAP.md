@@ -46,7 +46,8 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 
 ## Phase 2 — fslides.dev front door
 
-- [ ] Landing + docs + template gallery — **built with fslides** (the site is the demo)
+- [x] Landing live at **fslides.dev** (2026-07-24) — a 6-slide fslides deck served as Worker static assets (`packages/site`), comments wired to fslides/fslides via the gateway; www works too
+- [ ] Docs + template gallery
 - [ ] Signed-in dashboard: list your decks (repos containing `fuckslides.config.js`), link to live Pages
 - [ ] Web scaffold: "New deck" button = browser version of `fslides scaffold` (create repo, enable Pages, first deploy)
 - [ ] Docs: quickstart, recording/narration guide, commenting guide, contributor guide (incl. git-lfs note)

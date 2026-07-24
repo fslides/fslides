@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>fslides — comment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { width: 100%; height: 100%; overflow: hidden; background: #0d0f14; }
+    body {
+      width: 1280px; height: 720px; overflow: hidden; position: absolute;
+      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: #fff; display: flex; padding: 56px 72px;
+      gap: 60px; align-items: center;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(56,189,248,0.05) 1px, transparent 1px);
+      background-size: 30px 30px; pointer-events: none;
+    }
+    @keyframes up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
+    .f1 { opacity:0; animation: up .5s ease forwards .1s; }
+    .f2 { opacity:0; animation: up .5s ease forwards .35s; }
+
+    /* mock: element with selection + pin + thread */
+    .stage {
+      width: 470px; height: 460px; flex-shrink: 0; position: relative;
+      background: #16181f; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden;
+    }
+    .mock { position: absolute; inset: 20px; background: linear-gradient(140deg, #1c2030, #12141c); border-radius: 10px; padding: 30px; }
+    .mock .t { width: 62%; height: 20px; border-radius: 6px; background: rgba(255,255,255,0.28); margin-bottom: 16px; }
+    .sel {
+      position: relative; width: 78%; height: 74px; border-radius: 8px;
+      background: rgba(56,189,248,0.06); border: 2px solid #38BDF8; margin-top: 8px;
+    }
+    .sel::before, .sel::after { content:''; position:absolute; width:9px; height:9px; background:#38BDF8; border-radius:2px; }
+    .sel::before { top:-6px; left:-6px; } .sel::after { bottom:-6px; right:-6px; }
+    .pin {
+      position: absolute; top: -18px; right: -14px;
+      width: 36px; height: 36px; border-radius: 50% 50% 50% 6px;
+      background: #38BDF8; color: #0d0f14; font-weight: 900; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .thread {
+      position: absolute; right: 22px; bottom: 22px; width: 300px;
+      background: rgba(13,15,20,0.98); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+      padding: 14px 16px; box-shadow: 0 16px 44px rgba(0,0,0,0.55);
+    }
+    .thread .who { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-bottom: 5px; }
+    .thread .who b { color: #fff; }
+    .thread .txt { font-size: 0.85rem; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 10px; }
+    .thread .box { border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); border-radius: 7px; padding: 8px 10px; font-size: 0.78rem; color: rgba(255,255,255,0.35); }
+
+    .right { flex: 1; }
+    .eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #38BDF8; margin-bottom: 10px; }
+    h1 { font-size: 2.7rem; font-weight: 900; letter-spacing: -0.03em; line-height: 1.12; margin-bottom: 24px; }
+    h1 span { color: #38BDF8; }
+    .lead { font-size: 1.15rem; font-weight: 300; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 28px; }
+    .lead strong { font-weight: 700; color: #fff; }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    li { font-size: 1rem; color: rgba(255,255,255,0.75); display: flex; gap: 12px; align-items: baseline; }
+    li::before { content: '→'; color: #38BDF8; font-weight: 700; }
+    li code { font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: #38BDF8; }
+  </style>
+</head>
+<body>
+  <div class="stage f2">
+    <div class="mock">
+      <div class="t"></div>
+      <div class="sel"><div class="pin">2</div></div>
+      <div class="thread">
+        <div class="who"><b>sam-reviews</b> · today</div>
+        <div class="txt">This number needs a source — can we cite the 2026 survey?</div>
+        <div class="box">Reply…</div>
+      </div>
+    </div>
+  </div>
+  <div class="right f1">
+    <div class="eyebrow">Review</div>
+    <h1>Comment on <span>any element</span>, like a design tool.</h1>
+    <p class="lead">Right-click a headline, a chart, a block — pin a thread to it. Threads are <strong>GitHub issues underneath</strong>: permissioned, notifiable, and readable outside fslides forever.</p>
+    <ul>
+      <li>Drag-select multiple elements, comment on the group</li>
+      <li>Deck-wide inbox — click a comment, jump to its slide</li>
+      <li>One-popup GitHub sign-in on the published deck</li>
+      <li>Try it here: right-click anything on this slide</li>
+    </ul>
+  </div>
+<script src="/js/fuckslides.js"></script>
+<script>
+(function scaleToFit() {
+  if (window !== window.top) return;
+  const W = 1280, H = 720;
+  function fit() {
+    var s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    document.body.style.transform = 'scale(' + s + ')';
+    document.body.style.transformOrigin = '0 0';
+    document.body.style.left = ((window.innerWidth - W * s) / 2) + 'px';
+    document.body.style.top = ((window.innerHeight - H * s) / 2) + 'px';
+  }
+  fit(); window.addEventListener('resize', fit);
+})();
+</script>
+</body>
+</html>
