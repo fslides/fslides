@@ -127,6 +127,6 @@ export default {
       return new Response(page, { status: 200, headers: HTML_HEADERS });
     }
 
-    return new Response('fslides gateway — see https://github.com/bahaaldine/fuckslides', { status: 404 });
+    return new Response('fslides gateway — see https://github.com/fslides/fslides', { status: 404 });
   },
 };

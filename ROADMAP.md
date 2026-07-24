@@ -26,7 +26,7 @@ Everything merged on main but unpublished:
 ## Phase 0 — Stake the ground
 
 - [x] Buy domain → **fslides.dev** (2026-07-23)
-- [ ] Create GitHub org `fslides`; transfer `bahaaldine/fuckslides` → `fslides/fslides` (GitHub redirects old URLs; npm name already `fslides`)
+- [x] GitHub org `fslides` created; repo transferred and renamed → `fslides/fslides`; GitHub App transferred to the org (2026-07-24) — consent screen now reads "fslides by fslides"
 - [x] Create **GitHub App** "fslides" (2026-07-23) — permissions: `issues: read/write` only, installable per-repo. (GitHub App, not OAuth App: per-repo install, minimal scope, comments post *as the user* via user-to-server tokens.)
 - [x] DNS: fslides.dev zone on Cloudflare; `api.fslides.dev` live (worker custom domain); root + decks. reserved
 

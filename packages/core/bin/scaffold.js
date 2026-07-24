@@ -139,7 +139,7 @@ jobs:
 
   fs.writeFileSync(path.join(dir, 'README.md'), `# ${name}
 
-A [fslides](https://github.com/bahaaldine/fuckslides) presentation. Every slide is an HTML file in \`slides/\` — edit them like code.
+A [fslides](https://github.com/fslides/fslides) presentation. Every slide is an HTML file in \`slides/\` — edit them like code.
 
 **Watch it:** https://${owner}.github.io/${name}/ (deployed automatically on every push to \`main\`)
 
