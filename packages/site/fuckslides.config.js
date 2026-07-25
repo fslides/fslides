@@ -6,7 +6,7 @@ module.exports = {
   selection: false,               // website mode: no element selection on the landing deck
   nav: [
     { label: '+ new deck', title: 'create a deck — click a line to copy', menu: [
-      { cmd: 'npm install -g fslides' },
+      { cmd: 'curl -fsSL https://fslides.dev/install | sh' },
       { cmd: 'fslides scaffold my-deck --template charcoal' },
       { cmd: '/plugin marketplace add fslides/fslides' },
     ]},

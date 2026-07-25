@@ -87,6 +87,11 @@ Candidates, unvalidated:
 **Scaffold**
 - Auto-wire commenting on scaffold via GitHub App device flow: first run prints a one-time code (enable "Device Flow" on the app), token cached in ~/.config/fslides, then `PUT /user/installations/{id}/repositories/{repo_id}` adds each new repo to a selective installation automatically. (gh CLI tokens can't touch installation APIs — 403, verified 2026-07-24.) Not needed for "All repositories" installs, which remain the recommended default.
 
+**Distribution**
+- [x] `curl -fsSL fslides.dev/install | sh` installer (v1 wraps npm) — leads all CTAs (2026-07-24)
+- Standalone binaries (Node SEA or bun-compiled) via GitHub Releases; installer auto-detects and skips the Node prerequisite
+- Homebrew tap once binaries exist
+
 **Housekeeping**
 - [x] Renamed config to `fslides.config.js` (legacy read forever); scaffold/create/templates write the new name (2026-07-24)
 - [x] scaffold sets git identity from the gh account when missing (2026-07-24)

@@ -22,8 +22,8 @@
     menu.className = 'cta-menu';
     menu.innerHTML = `
       <div class="cta-head">create a deck — click a line to copy</div>
-      <div class="cta-row" data-cmd="npm install -g fslides">
-        <span class="cmd">npm install -g fslides</span><span class="lbl">once</span><span class="cpy">copy</span>
+      <div class="cta-row" data-cmd="curl -fsSL https://fslides.dev/install | sh">
+        <span class="cmd">curl -fsSL https://fslides.dev/install | sh</span><span class="lbl">once</span><span class="cpy">copy</span>
       </div>
       <div class="cta-row" id="cta-scaffold">
         <span class="cmd"></span>

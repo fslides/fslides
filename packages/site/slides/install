@@ -1,0 +1,25 @@
+#!/bin/sh
+# fslides installer — https://fslides.dev
+#   curl -fsSL https://fslides.dev/install | sh
+# v1 installs via npm; standalone binaries are on the roadmap.
+set -e
+
+say()  { printf '\033[38;5;202m›\033[0m %s\n' "$1"; }
+fail() { printf '\033[31m✗\033[0m %s\n' "$1" >&2; exit 1; }
+
+command -v node >/dev/null 2>&1 || fail "node not found — install Node 20+ first (https://nodejs.org, or: brew install node)"
+
+NODE_MAJOR=$(node -e 'process.stdout.write(String(process.versions.node.split(".")[0]))')
+[ "$NODE_MAJOR" -ge 18 ] || fail "node >= 18 required (found $(node -v))"
+
+say "installing fslides via npm…"
+npm install -g fslides --silent || fail "npm install failed — try: sudo npm install -g fslides"
+
+VERSION=$(fslides --version 2>/dev/null || npm ls -g fslides --depth=0 2>/dev/null | grep -o 'fslides@[0-9.]*' | head -1)
+say "installed ${VERSION:-fslides}"
+printf '\n'
+say "next:"
+printf '    \033[38;5;202m$\033[0m fslides scaffold my-deck --template charcoal\n'
+printf '    \033[38;5;202m$\033[0m cd my-deck && fslides serve\n'
+printf '\n'
+say "docs: https://fslides.dev/docs · agents: https://fslides.dev/agents.md"
