@@ -20,7 +20,8 @@
 // Secrets (wrangler secret put …): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
 // Optional var: ALLOWED_ORIGIN_SUFFIXES (comma-separated, e.g. ".github.io,localhost")
 
-const HTML_HEADERS = { 'Content-Type': 'text/html; charset=utf-8' };
+const HTML_HEADERS = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' };
+const NO_STORE = { 'Cache-Control': 'no-store' };
 
 function b64url(buf) {
   return btoa(String.fromCharCode(...new Uint8Array(buf)))
@@ -69,7 +70,7 @@ export default {
     if (url.pathname === '/auth/login' || url.pathname === '/auth/install') {
       const origin = url.searchParams.get('origin') || '';
       if (!originAllowed(origin, env)) {
-        return new Response('Origin not allowed', { status: 400 });
+        return new Response('Origin not allowed', { status: 400, headers: NO_STORE });
       }
       const state = await signState({ origin, exp: Date.now() + 10 * 60 * 1000 }, env.GITHUB_CLIENT_SECRET);
       let gh;
@@ -92,7 +93,7 @@ export default {
       const code  = url.searchParams.get('code');
       const state = await verifyState(url.searchParams.get('state'), env.GITHUB_CLIENT_SECRET);
       if (!code || !state) {
-        return new Response('Invalid or expired auth state', { status: 400 });
+        return new Response('Invalid or expired auth state', { status: 400, headers: NO_STORE });
       }
       const r = await fetch('https://github.com/login/oauth/access_token', {
         method: 'POST',
@@ -105,7 +106,7 @@ export default {
       });
       const data = await r.json();
       if (!data.access_token) {
-        return new Response('Token exchange failed: ' + (data.error_description || data.error || 'unknown'), { status: 502 });
+        return new Response('Token exchange failed: ' + (data.error_description || data.error || 'unknown'), { status: 502, headers: NO_STORE });
       }
       const expiresAt = data.expires_in ? Date.now() + data.expires_in * 1000 : Date.now() + 8 * 3600 * 1000;
 
