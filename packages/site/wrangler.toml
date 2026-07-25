@@ -10,6 +10,7 @@ routes = [
 
 [assets]
 directory = "_site"
+binding = "ASSETS"
 
 [vars]
 PUBLISHERS = "bahaaldine,fslides"

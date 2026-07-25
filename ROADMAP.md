@@ -82,6 +82,13 @@ after Baha asked why storage was needed at all. Nothing is stored:
       objects; public repos only (issues-only app can't read private contents)
 - E2E-verified in headless Chrome against bahaaldine/test-deck: player boots,
   slides render, arrows navigate, recording probe finds cover.webm
+- [x] Public profiles (2026-07-25): `fslides.dev/{login}` mirrors the GitHub
+      profile UX — avatar/bio/meta + live deck thumbnails (topic:fslides via
+      GitHub search, fetched client-side so rate limits are per-viewer).
+      Light/dark follows the viewer's clock (7–19h → light) with a remembered
+      toggle. `fslides.dev/owner/repo` 301s to decks.fslides.dev (pretty
+      shareable URLs; decks still execute on the isolated origin). Real assets
+      always win over profile routes — profiles fill the 404 space
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 

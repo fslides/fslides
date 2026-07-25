@@ -15,6 +15,7 @@ import JSON5 from 'json5';
 import PLAYER from './vendor/player.html';
 import RUNTIME from './vendor/fuckslides.js.txt';
 import LOGO from './vendor/logo.png';
+import PROFILE from './profile.html';
 
 const TYPES = {
   html: 'text/html; charset=utf-8', js: 'application/javascript', css: 'text/css',
@@ -37,7 +38,24 @@ export default {
       return Response.redirect('https://decks.fslides.dev/' + url.pathname.slice(2) + url.search, 301);
     }
 
-    return env.ASSETS.fetch(request);
+    // app origin: real assets win; profiles and pretty deck URLs fill the
+    // 404 space, GitHub-style (fslides.dev/owner → profile,
+    // fslides.dev/owner/repo → the deck, redirected to its own origin)
+    const asset = await env.ASSETS.fetch(request);
+    if (asset.status !== 404) return asset;
+
+    const seg = url.pathname.slice(1).split('/').filter(Boolean);
+    if (seg.length && /^[A-Za-z0-9-]+$/.test(seg[0])) {
+      if (seg.length === 1) {
+        return new Response(PROFILE, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
+        });
+      }
+      return Response.redirect('https://decks.fslides.dev/' + seg.join('/') +
+        (url.pathname.endsWith('/') ? '/' : '') + url.search, 301);
+    }
+
+    return asset;
   },
 };
 
