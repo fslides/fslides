@@ -146,17 +146,36 @@
       border: 1px solid var(--acc); padding: 16px; box-shadow: 0 14px 40px rgba(0,0,0,0.35);
       font-family: 'JetBrains Mono', monospace;
     }
-    #share-pop h4 { font-size: 0.85rem; margin-bottom: 12px; }
+    #share-pop h4 { font-size: 0.9rem; margin-bottom: 12px; }
     #share-pop h4::before { content: '## '; color: var(--acc); }
     #share-pop .linkrow { display: flex; gap: 6px; margin-bottom: 12px; }
-    #share-pop input { flex: 1; min-width: 0; font-family: inherit; font-size: 0.78rem; color: var(--fg);
+    #share-pop input { flex: 1; min-width: 0; font-family: inherit; font-size: 0.85rem; color: var(--fg);
       background: var(--panel2); border: 1px solid var(--line); padding: 7px 9px; outline: none; }
-    #share-pop button.copy { font-family: inherit; font-size: 0.78rem; color: var(--acc); background: none;
+    #share-pop button.copy { font-family: inherit; font-size: 0.85rem; color: var(--acc); background: none;
       border: 1px solid var(--line); padding: 7px 11px; cursor: pointer; white-space: nowrap; }
     #share-pop button.copy:hover { border-color: var(--acc); }
-    #share-pop .hint { font-size: 0.78rem; color: var(--dim); line-height: 1.55; margin-bottom: 10px; }
+    #share-pop .hint { font-size: 0.85rem; color: var(--dim); line-height: 1.55; margin-bottom: 10px; }
     #share-pop .hint b { color: var(--fg); }
-    #share-pop a { color: var(--acc); font-size: 0.78rem; }
+    #share-pop a { color: var(--acc); font-size: 0.85rem; }
+    #share-pop .people { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 220px; overflow-y: auto; }
+    #share-pop .person { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--fg); }
+    #share-pop .person img { width: 20px; height: 20px; border: 1px solid var(--line); }
+    #share-pop .person .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #share-pop .person .pending { color: var(--faint); font-size: 0.75rem; }
+    #share-pop .person select, #share-pop .inviterow select {
+      font-family: inherit; font-size: 0.8rem; color: var(--fg); background: var(--panel2);
+      border: 1px solid var(--line); padding: 3px 6px; appearance: none; -webkit-appearance: none; border-radius: 0;
+    }
+    #share-pop .person .rm { color: var(--faint); background: none; border: none; cursor: pointer; font-size: 0.95rem; padding: 0 3px; }
+    #share-pop .person .rm:hover { color: var(--acc); }
+    #share-pop .inviterow { display: flex; gap: 6px; margin-bottom: 12px; }
+    #share-pop .inviterow input { flex: 1; min-width: 0; font-family: inherit; font-size: 0.85rem; color: var(--fg);
+      background: var(--panel2); border: 1px solid var(--line); padding: 6px 9px; outline: none; }
+    #share-pop .inviterow input:focus { border-color: var(--acc); }
+    #share-pop .inviterow button { font-family: inherit; font-size: 0.85rem; color: var(--acc); background: none;
+      border: 1px solid var(--line); padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+    #share-pop .inviterow button:hover { border-color: var(--acc); }
+    #share-pop .err { font-size: 0.8rem; color: #e5534b; margin-bottom: 8px; }
     .state { font-family: 'JetBrains Mono', monospace; font-size: 1rem; color: var(--dim); padding: 40px 0; text-align: center; }
     .state a { color: var(--acc); }
     .state .big { font-size: 1.1rem; color: var(--fg); margin-bottom: 10px; }
@@ -319,7 +338,7 @@
   });
 
   // ── decks state + render (search / filter / sort / grid|list) ──
-  var allDecks = [], ownerMode = false;
+  var allDecks = [], ownerMode = false, ownerTok = '';
   var view = 'grid'; try { view = localStorage.getItem('fs-dash-view') || 'grid'; } catch (_) {}
 
   function setView(v) {
@@ -457,6 +476,7 @@
       if (me.login.toLowerCase() !== profileLogin.toLowerCase()) return;
 
       ownerMode = true;
+      ownerTok = tok;
       $('visibility').hidden = false;
       $('newdeck').style.display = 'block';
       loadOwnerDecks(tok);
@@ -473,20 +493,32 @@
     return Promise.all(tries).then(function (ok) { return ok[0] || ok[1]; });
   }
 
-  // ── share: copy the link; access itself is GitHub's ACL ──
+  // ── share: copy the link; invite/remove people — GitHub's ACL underneath.
+  // view = pull, edit = push. Managing people needs the app's
+  // Administration permission; without it the list gracefully degrades to
+  // the manage-on-GitHub link.
+  function ghApi(method, path, tok, body) {
+    return fetch('https://api.github.com' + path, {
+      method: method,
+      headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
   function openShare(r, anchor) {
     var pop = $('share-pop');
     var url = 'https://decks.fslides.dev/' + r.owner.login + '/' + r.name + '/';
-    var shared = r._collabs != null
-      ? 'shared with <b>' + r._collabs + '</b> ' + (r._collabs === 1 ? 'person' : 'people') + ' · '
-      : '';
     pop.innerHTML = '<h4>share ' + esc(r.name) + '</h4>' +
       '<div class="linkrow"><input readonly value="' + esc(url) + '"><button class="copy">copy</button></div>' +
       (r.private
-        ? '<div class="hint">' + shared + 'this deck is <b>private</b> — anyone with access to the GitHub repo can view it here after signing in. To share with someone new, add them on GitHub:</div>' +
-          '<a href="https://github.com/' + esc(r.full_name) + '/settings/access" target="_blank" rel="noopener">manage access on GitHub ↗</a>'
-        : '<div class="hint">' + shared + 'this deck is <b>public</b> — anyone with the link can view it. Fork access and edit invites live on GitHub:</div>' +
-          '<a href="https://github.com/' + esc(r.full_name) + '/settings/access" target="_blank" rel="noopener">manage access on GitHub ↗</a>');
+        ? '<div class="hint">this deck is <b>private</b> — people below can view it here after a GitHub sign-in.</div>'
+        : '<div class="hint">this deck is <b>public</b> — anyone with the link can view. Invites below grant <b>edit</b>-level access too.</div>') +
+      '<div class="people"><div class="hint">loading people…</div></div>' +
+      '<div class="inviterow"><input placeholder="github username" spellcheck="false">' +
+      '<select><option value="pull">view</option><option value="push">edit</option></select>' +
+      '<button class="inv">invite</button></div>' +
+      '<div class="err" hidden></div>' +
+      '<a href="https://github.com/' + esc(r.full_name) + '/settings/access" target="_blank" rel="noopener">manage on GitHub ↗</a>';
     pop.hidden = false;
     var rect = anchor.getBoundingClientRect();
     pop.style.left = Math.max(10, Math.min(window.innerWidth - 360, rect.left + window.scrollX - 300)) + 'px';
@@ -495,7 +527,84 @@
       navigator.clipboard.writeText(url);
       pop.querySelector('.copy').textContent = 'copied ✓';
     });
-    pop.querySelector('input').select();
+
+    var errEl = pop.querySelector('.err');
+    function fail(msg) { errEl.textContent = msg; errEl.hidden = false; }
+
+    function loadPeople() {
+      errEl.hidden = true;
+      Promise.all([
+        ghApi('GET', '/repos/' + r.full_name + '/collaborators?affiliation=direct&per_page=100', ownerTok)
+          .then(function (x) { return x.ok ? x.json() : null; }),
+        ghApi('GET', '/repos/' + r.full_name + '/invitations?per_page=100', ownerTok)
+          .then(function (x) { return x.ok ? x.json() : []; }).catch(function () { return []; }),
+      ]).then(function (res) {
+        var box = pop.querySelector('.people');
+        if (!res[0]) {
+          box.innerHTML = '<div class="hint">people management needs the app\u2019s <b>Administration</b> permission \u2014 use the GitHub link below meanwhile.</div>';
+          return;
+        }
+        var collabs = res[0].filter(function (c) { return c.login !== r.owner.login; });
+        var invites = res[1] || [];
+        r._collabs = collabs.length + invites.length;
+        box.innerHTML = '';
+        if (!collabs.length && !invites.length) {
+          box.innerHTML = '<div class="hint">not shared with anyone yet</div>';
+        }
+        collabs.forEach(function (c) {
+          var row = document.createElement('div');
+          row.className = 'person';
+          row.innerHTML = '<img src="' + esc(c.avatar_url) + '"><span class="who">' + esc(c.login) + '</span>' +
+            '<select><option value="pull">view</option><option value="push">edit</option></select>' +
+            '<button class="rm" title="remove">×</button>';
+          row.querySelector('select').value = (c.permissions && c.permissions.push) ? 'push' : 'pull';
+          row.querySelector('select').addEventListener('change', function (e) {
+            ghApi('PUT', '/repos/' + r.full_name + '/collaborators/' + c.login, ownerTok, { permission: e.target.value })
+              .then(function (x) { if (!x.ok) fail('could not change role (' + x.status + ')'); });
+          });
+          row.querySelector('.rm').addEventListener('click', function () {
+            ghApi('DELETE', '/repos/' + r.full_name + '/collaborators/' + c.login, ownerTok)
+              .then(function (x) { x.ok ? loadPeople() : fail('could not remove (' + x.status + ')'); });
+          });
+          box.appendChild(row);
+        });
+        invites.forEach(function (inv) {
+          var row = document.createElement('div');
+          row.className = 'person';
+          row.innerHTML = '<img src="' + esc(inv.invitee && inv.invitee.avatar_url || '') + '">' +
+            '<span class="who">' + esc(inv.invitee && inv.invitee.login || '?') + '</span>' +
+            '<span class="pending">invited · pending</span>' +
+            '<button class="rm" title="cancel invite">×</button>';
+          row.querySelector('.rm').addEventListener('click', function () {
+            ghApi('DELETE', '/repos/' + r.full_name + '/invitations/' + inv.id, ownerTok)
+              .then(function (x) { x.ok ? loadPeople() : fail('could not cancel (' + x.status + ')'); });
+          });
+          box.appendChild(row);
+        });
+        render();
+      });
+    }
+    loadPeople();
+
+    var invBtn = pop.querySelector('.inv');
+    var invInp = pop.querySelector('.inviterow input');
+    function doInvite() {
+      var who = invInp.value.trim().replace(/^@/, '');
+      if (!who) return;
+      invBtn.textContent = '…';
+      ghApi('PUT', '/repos/' + r.full_name + '/collaborators/' + encodeURIComponent(who), ownerTok,
+        { permission: pop.querySelector('.inviterow select').value })
+        .then(function (x) {
+          invBtn.textContent = 'invite';
+          if (x.status === 201 || x.status === 204) { invInp.value = ''; loadPeople(); }
+          else if (x.status === 404) fail('no such GitHub user: ' + who);
+          else if (x.status === 403) fail('not allowed — the app needs the Administration permission');
+          else fail('invite failed (' + x.status + ')');
+        });
+    }
+    invBtn.addEventListener('click', doInvite);
+    invInp.addEventListener('keydown', function (e) { if (e.key === 'Enter') doInvite(); });
+    invInp.focus();
   }
   document.addEventListener('click', function (e) {
     var pop = $('share-pop');

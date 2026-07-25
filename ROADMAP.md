@@ -104,9 +104,16 @@ after Baha asked why storage was needed at all. Nothing is stored:
         Private responses are Cache-Control: private, never edge-cached; LFS
         resolves via media CDN with auth. ⚠ REQUIRES Baha to add
         Contents: Read-only to the GitHub App and approve on installations
-      · Share: popover per deck in owner mode — copy link; access management
-        deep-links to GitHub settings/access (in-app invites + edit-sharing
-        need administration:write — backlog)
+      · Share v2 (same day): full people management in the popover — invite
+        by username with view (pull) / edit (push) role, change roles, remove
+        collaborators, see/cancel pending invitations. ⚠ Needs the app's
+        Administration: Read & write permission (Baha action); degrades to
+        the manage-on-GitHub link without it. Contents:read added & approved;
+        private viewing E2E-verified against bahaaldine/secret-deck (gate,
+        player via API, Cache-Control: private, bogus token 404)
+      · Player transition blink fixed: the fade veil now holds until the new
+        slide's load event (700ms fallback) instead of dropping after 2 rAFs;
+        iframe + veil backgrounds set to #0d0f14 so nothing white can flash
       · Numbers on cards/rows: ⑂ forks, ★ stars, 💬 open comment threads;
         owner mode adds 👥 shared-with (collaborators via Link-header count)
       · Thumbnails zoom-crop to the slide's central region (~1.6×) so

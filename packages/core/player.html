@@ -10,8 +10,8 @@
     html, body { width: 100%; height: 100vh; overflow: hidden; background: #22242C; }
 
     #slide-wrapper { position: absolute; width: 1280px; height: 720px; transform-origin: top left; }
-    #slide-frame { position: absolute; inset: 0; width: 1280px; height: 720px; border: none; display: block; }
-    #transition-fade { position: absolute; inset: 0; background: #22242C; opacity: 0; transition: opacity 0.18s ease; pointer-events: none; z-index: 6; }
+    #slide-frame { position: absolute; inset: 0; width: 1280px; height: 720px; border: none; display: block; background: #0d0f14; }
+    #transition-fade { position: absolute; inset: 0; background: #0d0f14; opacity: 0; transition: opacity 0.18s ease; pointer-events: none; z-index: 6; }
     #interaction-overlay { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
     #interaction-overlay.active { pointer-events: auto; cursor: crosshair; }
     #laser-dot { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle, rgba(255,40,40,0.95) 0%, rgba(255,40,40,0.4) 55%, transparent 75%); box-shadow: 0 0 24px rgba(255,40,40,0.55); display: none; pointer-events: none; z-index: 10; transform: translate(-50%,-50%); }
@@ -999,7 +999,17 @@ function go(newIdx) {
     transitionFade.style.opacity = '1';
     setTimeout(() => {
       loadSlide();
-      requestAnimationFrame(() => requestAnimationFrame(() => { transitionFade.style.opacity = '0'; }));
+      // reveal only once the new document has painted — dropping the veil
+      // after a fixed 2-rAF delay flashed the iframe's blank frame while
+      // the slide was still loading (visible as a blink before the fade)
+      let revealed = false;
+      const reveal = () => {
+        if (revealed) return;
+        revealed = true;
+        requestAnimationFrame(() => requestAnimationFrame(() => { transitionFade.style.opacity = '0'; }));
+      };
+      frame.addEventListener('load', reveal, { once: true });
+      setTimeout(reveal, 700);
     }, 160);
   } else {
     loadSlide();
