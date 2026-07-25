@@ -14,9 +14,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    if (url.pathname.startsWith('/@')) {
-      // /@owner/repo[/path] → R2 key owner/repo/path
-      const parts = url.pathname.slice(2).split('/').filter(Boolean);
+    // hosted decks live on their own origin — user JS must never share
+    // the app origin (dashboard tokens live in fslides.dev localStorage)
+    if (url.hostname === 'decks.fslides.dev') {
+      const parts = url.pathname.slice(1).split('/').filter(Boolean);
       if (parts.length < 2) return new Response('Deck not found', { status: 404 });
       const owner = parts.shift(), repo = parts.shift();
       let key = parts.join('/');
@@ -36,6 +37,11 @@ export default {
       headers.set('Cache-Control', ext === 'html' ? 'public, max-age=30' : 'public, max-age=300');
       headers.set('ETag', obj.httpEtag);
       return new Response(obj.body, { headers });
+    }
+
+    // legacy /@owner/repo on the app origin → redirect to the deck origin
+    if (url.pathname.startsWith('/@')) {
+      return Response.redirect('https://decks.fslides.dev/' + url.pathname.slice(2) + url.search, 301);
     }
 
     return env.ASSETS.fetch(request);

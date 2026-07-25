@@ -72,7 +72,7 @@ module.exports = async function deploy(config) {
   require('./build')(config, outDir);
 
   const files = walk(outDir, outDir, []);
-  console.log(`  Deploying ${files.length} file(s) to fslides.dev/@${repo} …`);
+  console.log(`  Deploying ${files.length} file(s) to decks.fslides.dev/${repo} …`);
 
   let done = 0, failed = 0;
   const queue = files.slice();
@@ -102,5 +102,5 @@ module.exports = async function deploy(config) {
     console.error(`\n  ❌  ${failed} file(s) failed — deck may be partially deployed.\n`);
     process.exit(1);
   }
-  console.log(`\n  ✓  Live: https://fslides.dev/@${repo}/\n`);
+  console.log(`\n  ✓  Live: https://decks.fslides.dev/${repo}/\n`);
 };

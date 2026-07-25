@@ -142,6 +142,19 @@ export default {
       const auth = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
       if (!auth) return new Response('Missing token', { status: 401, headers: NO_STORE });
 
+      // launch posture: hosted decks are allowlist-only (env PUBLISHERS,
+      // comma-separated owners; '*' opens it up — pair with quotas first)
+      const publishers = (env.PUBLISHERS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+      if (!publishers.includes('*') && !publishers.includes(owner.toLowerCase())) {
+        return new Response('Hosted decks are invite-only for now — ask at https://github.com/fslides/fslides/issues', { status: 403, headers: NO_STORE });
+      }
+
+      // per-file cap: fits narration video, blocks bulk dumping
+      const len = parseInt(request.headers.get('Content-Length') || '0', 10);
+      if (!len || len > 100 * 1024 * 1024) {
+        return new Response('File too large (100MB max per file)', { status: 413, headers: NO_STORE });
+      }
+
       const allowed = await canPublish(auth, owner, repo);
       if (!allowed) return new Response('Not authorized for ' + owner + '/' + repo, { status: 403, headers: NO_STORE });
 
@@ -149,7 +162,7 @@ export default {
       await env.DECKS.put(`${owner}/${repo}/${key}`.toLowerCase(), request.body, {
         httpMetadata: { contentType: ct, cacheControl: 'public, max-age=60' },
       });
-      return new Response(JSON.stringify({ ok: true, url: `https://fslides.dev/@${owner}/${repo}/${key}` }), {
+      return new Response(JSON.stringify({ ok: true, url: `https://decks.fslides.dev/${owner}/${repo}/${key}` }), {
         status: 200, headers: { 'Content-Type': 'application/json', ...NO_STORE },
       });
     }

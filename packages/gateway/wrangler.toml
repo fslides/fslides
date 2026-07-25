@@ -10,6 +10,7 @@ routes = [
 # Non-secret config
 [vars]
 ALLOWED_ORIGIN_SUFFIXES = ".github.io,fslides.dev,localhost,127.0.0.1"
+PUBLISHERS = "bahaaldine,fslides"
 
 # Secrets (set with `wrangler secret put <NAME>`):
 #   GITHUB_CLIENT_ID      — from the "fslides" GitHub App

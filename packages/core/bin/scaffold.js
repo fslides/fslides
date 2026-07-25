@@ -127,7 +127,7 @@ jobs:
 
 A [fslides](https://github.com/fslides/fslides) presentation. Every slide is an HTML file in \`slides/\` — edit them like code.
 
-**Watch it:** https://fslides.dev/@${repo}/ (deployed automatically on every push to \`main\`)
+**Watch it:** https://decks.fslides.dev/${repo}/ (deployed automatically on every push to \`main\`)
 
 ## Contribute
 
@@ -181,7 +181,7 @@ Send a PR when you're happy.
   ✓  ${repo} is live.
 
      Repo:     https://github.com/${repo}
-     Live:     https://fslides.dev/@${repo}/   (first deploy running now)
+     Live:     https://decks.fslides.dev/${repo}/   (first deploy running now)
      Comments: press K in the player → issues on the repo
 
      One-time (skip if the fslides app is installed with "All repositories"):
