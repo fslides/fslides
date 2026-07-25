@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deck — Cover</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{width:100%;height:100%;overflow:hidden;background:#22242C}
+body{width:1280px;height:720px;overflow:hidden;position:absolute;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;background:#22242C;color:#fff;display:flex;flex-direction:column;justify-content:center;padding:0 90px}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,0.04) 1px,transparent 1px);background-size:28px 28px;pointer-events:none}
+.bar{position:fixed;top:0;left:0;width:5px;height:100%;background:#00BFB3}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.f1{opacity:0;animation:up .5s ease forwards .1s}.f2{opacity:0;animation:up .5s ease forwards .3s}.f3{opacity:0;animation:up .5s ease forwards .5s}
+.eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#00BFB3;margin-bottom:22px}
+h1{font-size:4.6rem;font-weight:900;letter-spacing:-.035em;line-height:1.05;margin-bottom:24px}
+.sub{font-size:1.3rem;font-weight:300;color:rgba(255,255,255,.55);max-width:640px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<div class="eyebrow f1">Team · Topic · Date</div>
+<h1 class="f1">A confident title<br>that takes a stance.</h1>
+<p class="sub f2">One sentence that tells the room why the next twenty minutes matter.</p>
+<script src="/js/fuckslides.js"></script>
+<script>
+(function(){if(window!==window.top)return;const W=1280,H=720;function f(){var s=Math.min(innerWidth/W,innerHeight/H);document.body.style.transform='scale('+s+')';document.body.style.transformOrigin='0 0';document.body.style.left=((innerWidth-W*s)/2)+'px';document.body.style.top=((innerHeight-H*s)/2)+'px'}f();addEventListener('resize',f)})();
+</script>
+</body>
+</html>

@@ -48,7 +48,7 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 
 - [x] Landing live at **fslides.dev** (2026-07-24) — a 6-slide fslides deck served as Worker static assets (`packages/site`), comments wired to fslides/fslides via the gateway; www works too
 - [x] Docs page live at fslides.dev/docs (quickstart, slides, player, narration, comments, commands, contributing) — 2026-07-24
-- [ ] Template gallery
+- [x] Template gallery live at fslides.dev/templates — `charcoal` + `paper` designed starters, `--template` flag on create/scaffold (2026-07-24)
 - [ ] Signed-in dashboard: list your decks (repos containing `fuckslides.config.js`), link to live Pages
 - [ ] Web scaffold: "New deck" button = browser version of `fslides scaffold` (create repo, enable Pages, first deploy)
 - [ ] Docs: quickstart, recording/narration guide, commenting guide, contributor guide (incl. git-lfs note)
@@ -76,9 +76,6 @@ Candidates, unvalidated:
 - Rebuild a proper speaker view (the old Presenter was removed 2026-07-23 — unclear + broken; teleprompter covers recording, Notes covers presenting, but a dual-screen view has real value)
 - Comment thread states: resolve / reopen (map to issue close/reopen or a label)
 - Live comment updates (gateway webhook → SSE) — after Phase 1
-
-**Templates**
-- Designed starter templates for `create`/`scaffold` (incl. the dark-charcoal/teal "analyst deck" system)
 
 **Recording**
 - Safari records mp4; Chrome webm — consider optional transcode for maximum compat

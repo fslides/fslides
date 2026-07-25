@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deck — The Point</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{width:100%;height:100%;overflow:hidden;background:#FAF7F2}
+body{width:1280px;height:720px;overflow:hidden;position:absolute;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;background:#FAF7F2;color:#1c1917;display:flex;align-items:center;gap:80px;padding:0 100px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.f1{opacity:0;animation:up .6s ease forwards .1s}.f2{opacity:0;animation:up .6s ease forwards .35s}
+.left{width:420px;flex-shrink:0}
+.left blockquote{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:600;font-style:italic;line-height:1.3;color:#C2410C}
+.left cite{display:block;margin-top:20px;font-style:normal;font-size:.9rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(28,25,23,.4)}
+.right{flex:1}
+h2{font-family:'Fraunces',serif;font-size:2.3rem;font-weight:900;letter-spacing:-.01em;margin-bottom:22px}
+p{font-size:1.12rem;font-weight:300;line-height:1.75;color:rgba(28,25,23,.75);margin-bottom:16px}
+p strong{font-weight:600;color:#1c1917}
+</style>
+</head>
+<body>
+<div class="left f1">
+<blockquote>"A pull-quote that carries the emotional weight of the argument."</blockquote>
+<cite>— Attribution, context</cite>
+</div>
+<div class="right f2">
+<h2>Make one point per slide.</h2>
+<p>Two or three sentences of actual prose — this template treats slides like <strong>pages of an essay</strong>, not containers for bullets.</p>
+<p>Let the pull-quote and the paragraph argue with each other a little. That tension is what the audience remembers.</p>
+</div>
+<script src="/js/fuckslides.js"></script>
+<script>
+(function(){if(window!==window.top)return;const W=1280,H=720;function f(){var s=Math.min(innerWidth/W,innerHeight/H);document.body.style.transform='scale('+s+')';document.body.style.transformOrigin='0 0';document.body.style.left=((innerWidth-W*s)/2)+'px';document.body.style.top=((innerHeight-H*s)/2)+'px'}f();addEventListener('resize',f)})();
+</script>
+</body>
+</html>

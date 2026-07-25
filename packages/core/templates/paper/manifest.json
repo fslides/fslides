@@ -1,0 +1,6 @@
+{
+  "label": "Paper",
+  "description": "Light editorial — warm paper, serif display type, one burnt-orange accent. For narrative talks.",
+  "slides": ["cover.html", "point.html", "closing.html"],
+  "labels": ["Cover", "The Point", "Thank You"]
+}

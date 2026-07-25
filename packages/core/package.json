@@ -12,6 +12,7 @@
     "logo.png",
     "js/",
     "template/",
+    "templates/",
     "index.js"
   ],
   "scripts": {

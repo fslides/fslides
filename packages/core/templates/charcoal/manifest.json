@@ -1,0 +1,6 @@
+{
+  "label": "Charcoal",
+  "description": "Dark, confident, data-forward — dot-grid charcoal with a teal accent. Built for numbers.",
+  "slides": ["cover.html", "stat.html", "closing.html"],
+  "labels": ["Cover", "The Number", "Thank You"]
+}

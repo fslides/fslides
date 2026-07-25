@@ -161,6 +161,11 @@ npm run serve        # opens the deck locally with the full player
 Send a PR when you're happy.
 `, 'utf8');
 
+  // designed starter?
+  if (opts.template) {
+    require('./create').applyTemplate(dir, opts.template, 'slides');
+  }
+
   // ── 2. git + GitHub repo ──
   const vis = opts.private ? '--private' : '--public';
   try {
