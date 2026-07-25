@@ -62,6 +62,22 @@ export default {
 async function serveDeck(request, url, env) {
   const { pathname } = url;
 
+  // viewer session for private decks — HttpOnly so deck JS (user code)
+  // can never read the token; requests carry it silently
+  if (pathname === '/-/session' && request.method === 'POST') {
+    const body = await request.json().catch(() => ({}));
+    const t = body && body.token;
+    if (!t || !/^[A-Za-z0-9_.\-\/+=]+$/.test(t)) return new Response('bad token', { status: 400, headers: NO_STORE });
+    const maxAge = Math.max(60, Math.min(28800, Math.floor(((body.expiresAt || 0) - Date.now()) / 1000) || 28800));
+    return new Response('ok', {
+      headers: {
+        'Set-Cookie': `fs_t=${t}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`,
+        ...NO_STORE,
+      },
+    });
+  }
+  const viewerToken = ((request.headers.get('Cookie') || '').match(/(?:^|;\s*)fs_t=([^;]+)/) || [])[1] || '';
+
   // player + slides reference these absolutely; serve them origin-wide so
   // every deck runs the latest runtime without any per-deck copies
   if (pathname === '/js/fuckslides.js') {
@@ -93,20 +109,30 @@ async function serveDeck(request, url, env) {
     return Response.redirect(url.origin + pathname + '/', 301);
   }
 
-  const config = await loadConfig(owner, repo);
-  if (config instanceof Response) return config;
+  const loaded = await loadConfig(owner, repo, viewerToken);
+  if (!loaded) {
+    // maybe private: offer sign-in (GitHub is the ACL — access follows the
+    // repo). With a token and still nothing: truly missing or no access.
+    if (!viewerToken) return interstitial(owner, repo);
+    return new Response('Not found — or your GitHub account has no access to ' + owner + '/' + repo + '.',
+      { status: 404, headers: NO_STORE });
+  }
+  if (loaded instanceof Response) return loaded;
+  const { config, deckPrivate } = loaded;
+  // per-viewer content must never sit in a shared cache
+  const cc = (pub) => deckPrivate ? 'private, max-age=30' : pub;
 
   const playerName = (config.name || repo) + '.html';
   const isPlayer = !key || key === playerName ||
     (key === 'index.html' && !(config.slides || []).includes('index.html'));
 
   if (isPlayer) {
-    const nr = await raw(owner, repo, 'notes.json', 60);
+    const nf = await fetchFile(owner, repo, 'notes.json', 60, viewerToken);
     let notes = '{}';
-    if (nr.ok) { const t = await nr.text(); try { JSON.parse(t); notes = t; } catch (_) {} }
+    if (nf.resp.ok) { const t = await nf.resp.text(); try { JSON.parse(t); notes = t; } catch (_) {} }
     const html = renderPlayer(owner, repo, config, notes);
     if (request.method === 'HEAD') return new Response(null, { headers: { 'Content-Type': TYPES.html } });
-    return new Response(html, { headers: { 'Content-Type': TYPES.html, 'Cache-Control': 'public, max-age=60' } });
+    return new Response(html, { headers: { 'Content-Type': TYPES.html, 'Cache-Control': cc('public, max-age=60') } });
   }
 
   // slides / assets / recordings — the deck's slides dir is the URL root,
@@ -114,14 +140,14 @@ async function serveDeck(request, url, env) {
   const repoPath = (config.slidesDir || 'slides') + '/' + key;
   const ext = key.split('.').pop().toLowerCase();
 
-  if (request.method === 'HEAD') {
+  if (request.method === 'HEAD' && !deckPrivate) {
     // existence check (the player probes recordings this way) — an LFS
     // pointer at the path means the real file exists on the media CDN
     const r = await raw(owner, repo, repoPath, 300, 'HEAD');
     return new Response(null, { status: r.ok ? 200 : 404, headers: { 'Content-Type': TYPES[ext] || 'application/octet-stream' } });
   }
 
-  let r = await raw(owner, repo, repoPath, 300);
+  let { resp: r, private: viaApi } = await fetchFile(owner, repo, repoPath, 300, deckPrivate ? viewerToken : '');
   if (!r.ok) return new Response('Not found', { status: r.status === 404 ? 404 : 502, headers: NO_STORE });
 
   // Git LFS: raw serves a small text pointer — fetch the real bytes from
@@ -131,17 +157,59 @@ async function serveDeck(request, url, env) {
     const peek = await r.clone().text();
     if (peek.startsWith('version https://git-lfs')) {
       r = await fetch(`https://media.githubusercontent.com/media/${owner}/${repo}/HEAD/${repoPath}`,
-        { cf: { cacheTtl: 3600, cacheEverything: true } });
+        viaApi
+          ? { headers: { Authorization: 'Bearer ' + viewerToken } }
+          : { cf: { cacheTtl: 3600, cacheEverything: true } });
       if (!r.ok) return new Response('Not found', { status: 404, headers: NO_STORE });
     }
   }
 
-  return new Response(r.body, {
+  const out = new Response(request.method === 'HEAD' ? null : r.body, {
+    status: 200,
     headers: {
       'Content-Type': TYPES[ext] || 'application/octet-stream',
-      'Cache-Control': ext === 'html' ? 'public, max-age=60' : 'public, max-age=300',
+      'Cache-Control': cc(ext === 'html' ? 'public, max-age=60' : 'public, max-age=300'),
     },
   });
+  return out;
+}
+
+// fslides-styled sign-in gate for possibly-private decks: the popup auth
+// posts back, the page stores the token as an HttpOnly cookie via
+// /-/session, then reloads — after that GitHub decides what the viewer sees
+function interstitial(owner, repo) {
+  const who = (owner + '/' + repo).replace(/[&<>"]/g, '');
+  return new Response(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${who} — fslides</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { background:#0d0f14; color:rgba(232,234,240,0.75); min-height:100vh; margin:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    font-family:'JetBrains Mono',monospace; font-size:1rem; text-align:center; padding:20px; }
+  .big { color:#e8eaf0; font-size:1.15rem; font-weight:700; }
+  .big b { color:#F05000; }
+  button { font-family:inherit; font-size:1rem; color:#F05000; background:none;
+    border:1px solid rgba(255,255,255,0.15); padding:11px 20px; cursor:pointer; }
+  button:hover { border-color:#F05000; }
+  .note { font-size:0.85rem; color:rgba(232,234,240,0.4); }
+</style></head><body>
+  <div class="big"><b>${who}</b> — this deck may be private</div>
+  <button id="b">[ sign in with github to view ]</button>
+  <div class="note">access follows the GitHub repo — if you can see it there, you can see it here</div>
+<script>
+  var G='https://api.fslides.dev';
+  document.getElementById('b').addEventListener('click',function(){
+    var w=640,h=780,x=(screen.width-w)/2,y=(screen.height-h)/2;
+    window.open(G+'/auth/login?origin='+encodeURIComponent(location.origin),'fslides-auth',
+      'width='+w+',height='+h+',left='+x+',top='+y);
+  });
+  window.addEventListener('message',function(e){
+    if(e.origin!==new URL(G).origin||!e.data||e.data.type!=='fslides-auth')return;
+    fetch('/-/session',{method:'POST',body:JSON.stringify({token:e.data.token,expiresAt:e.data.expiresAt})})
+      .then(function(){location.reload();});
+  });
+</script></body></html>`, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', ...NO_STORE } });
 }
 
 function raw(owner, repo, path, ttl, method) {
@@ -152,21 +220,40 @@ function raw(owner, repo, path, ttl, method) {
   });
 }
 
+// private fallback: the GitHub contents API with the viewer's own token —
+// GitHub is the ACL. Never edge-cached (per-viewer content).
+function apiRaw(owner, repo, path, token) {
+  return fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`, {
+    headers: {
+      Authorization: 'Bearer ' + token,
+      Accept: 'application/vnd.github.raw+json',
+      'User-Agent': 'fslides-decks',
+    },
+  });
+}
+
+// raw first (fast, cached); if the repo is private and a viewer is signed
+// in, retry through the API. Returns { resp, private }.
+async function fetchFile(owner, repo, path, ttl, token) {
+  const r = await raw(owner, repo, path, ttl);
+  if (r.ok || !token) return { resp: r, private: false };
+  if (r.status !== 404) return { resp: r, private: false };
+  return { resp: await apiRaw(owner, repo, path, token), private: true };
+}
+
 // deck configs are literal objects (`module.exports = { … }`) — parsed with
 // JSON5, never executed. Computed configs work locally but can't be hosted.
-async function loadConfig(owner, repo) {
+async function loadConfig(owner, repo, token) {
   let found = null;
   for (const name of ['fslides.config.js', 'fuckslides.config.js']) {
-    const r = await raw(owner, repo, name, 60);
-    if (r.ok) { found = { name, src: await r.text() }; break; }
+    const f = await fetchFile(owner, repo, name, 60, token);
+    if (f.resp.ok) { found = { name, src: await f.resp.text(), deckPrivate: f.private }; break; }
   }
-  if (!found) {
-    return new Response('Not an fslides deck — no fslides.config.js found (public repos only).', { status: 404, headers: NO_STORE });
-  }
+  if (!found) return null;
   const m = found.src.match(/module\.exports\s*=\s*([\s\S]*)$/);
   const body = m && m[1].trim().replace(/;\s*$/, '');
   try {
-    return JSON5.parse(body);
+    return { config: JSON5.parse(body), deckPrivate: found.deckPrivate };
   } catch (e) {
     return new Response(
       `Could not render ${found.name}: hosted configs must be a literal object (module.exports = { … }) — no requires, no computed values.\n\n${e.message}`,

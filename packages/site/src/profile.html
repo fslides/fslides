@@ -131,6 +131,32 @@
     .row .when { color: var(--faint); font-size: 0.82rem; flex-shrink: 0; }
     .row::after { content: '↗'; color: var(--acc); }
 
+    .stats { display: flex; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--faint); }
+    .stats span { display: inline-flex; gap: 4px; align-items: center; }
+    .stats .k { color: var(--acc); }
+    .thumb.lock { display: flex; align-items: center; justify-content: center; padding-bottom: 0; aspect-ratio: 16/9;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--faint); }
+    .sharebtn {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--dim);
+      background: none; border: 1px solid var(--line); padding: 3px 9px; cursor: pointer; margin-left: auto;
+    }
+    .sharebtn:hover { color: var(--acc); border-color: var(--acc); }
+    #share-pop {
+      position: absolute; z-index: 40; width: 340px; background: var(--panel);
+      border: 1px solid var(--acc); padding: 16px; box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #share-pop h4 { font-size: 0.85rem; margin-bottom: 12px; }
+    #share-pop h4::before { content: '## '; color: var(--acc); }
+    #share-pop .linkrow { display: flex; gap: 6px; margin-bottom: 12px; }
+    #share-pop input { flex: 1; min-width: 0; font-family: inherit; font-size: 0.78rem; color: var(--fg);
+      background: var(--panel2); border: 1px solid var(--line); padding: 7px 9px; outline: none; }
+    #share-pop button.copy { font-family: inherit; font-size: 0.78rem; color: var(--acc); background: none;
+      border: 1px solid var(--line); padding: 7px 11px; cursor: pointer; white-space: nowrap; }
+    #share-pop button.copy:hover { border-color: var(--acc); }
+    #share-pop .hint { font-size: 0.78rem; color: var(--dim); line-height: 1.55; margin-bottom: 10px; }
+    #share-pop .hint b { color: var(--fg); }
+    #share-pop a { color: var(--acc); font-size: 0.78rem; }
     .state { font-family: 'JetBrains Mono', monospace; font-size: 1rem; color: var(--dim); padding: 40px 0; text-align: center; }
     .state a { color: var(--acc); }
     .state .big { font-size: 1.1rem; color: var(--fg); margin-bottom: 10px; }
@@ -225,6 +251,8 @@
     <div><a href="/">← fslides.dev</a></div>
   </div>
 
+  <div id="share-pop" hidden></div>
+
   <footer class="statusline">
     <span class="mode">PROFILE</span>
     <span id="status-user"></span>
@@ -310,10 +338,18 @@
     if (e.key === 'Escape' && document.activeElement === $('search')) $('search').blur();
   });
 
+  // a full 1280px slide shrunk to card width makes 48px titles ~12px —
+  // instead crop to the slide's central region so preview text stays readable
+  var THUMB_VIRT = 780;
   function scaleThumbs() {
     document.querySelectorAll('.thumb').forEach(function (t) {
       var f = t.querySelector('iframe');
-      if (f) f.style.transform = 'scale(' + (t.offsetWidth / 1280) + ')';
+      if (!f) return;
+      var w = t.offsetWidth, h = t.offsetHeight || w * 0.5625;
+      var sc = w / THUMB_VIRT;
+      f.style.transform = 'scale(' + sc + ')';
+      f.style.left = (-(1280 * sc - w) / 2) + 'px';
+      f.style.top = (-(720 * sc - h) / 2) + 'px';
     });
   }
   window.addEventListener('resize', scaleThumbs);
@@ -345,22 +381,33 @@
       var a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.rel = 'noopener';
       var priv = r.private ? '<span class="chip">private</span>' : '';
+      var stats = '<span class="stats">' +
+        '<span title="forks"><span class="k">⑂</span>' + (r.forks_count || 0) + '</span>' +
+        '<span title="stars"><span class="k">★</span>' + (r.stargazers_count || 0) + '</span>' +
+        '<span title="open comment threads"><span class="k">💬</span>' + (r.open_issues_count || 0) + '</span>' +
+        (r._collabs != null ? '<span title="shared with"><span class="k">👥</span>' + r._collabs + '</span>' : '') +
+        '</span>';
+      var share = ownerMode ? '<button class="sharebtn" data-repo="' + esc(r.full_name) + '">share</button>' : '';
       if (view === 'grid') {
         a.className = 'card';
-        a.innerHTML = '<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1"></iframe></div>' +
+        var thumb = r.private
+          ? '<div class="thumb lock">🔒 private — opens with GitHub sign-in</div>'
+          : '<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1"></iframe></div>';
+        a.innerHTML = thumb +
           '<div class="info"><div class="name"></div>' +
           '<div class="desc">' + esc(r.description || '') + '</div>' +
-          '<div class="when">' + priv + '<span>pushed ' + ago(r.pushed_at) + '</span></div></div>';
-        // private decks can't render on the public deck origin — skip the live thumb
+          '<div class="when">' + priv + stats + '<span>pushed ' + ago(r.pushed_at) + '</span>' + share + '</div></div>';
         if (!r.private) a.querySelector('iframe').src = url + '#0';
       } else {
         a.className = 'row';
-        a.innerHTML = '<span class="name"></span>' + priv + '<span class="when">' + ago(r.pushed_at) + '</span>';
+        a.innerHTML = '<span class="name"></span>' + priv + stats + '<span class="when">' + ago(r.pushed_at) + '</span>' + share;
       }
       a.querySelector('.name').textContent = r.name;
+      var sb = a.querySelector('.sharebtn');
+      if (sb) sb.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); openShare(r, sb); });
       box.appendChild(a);
     });
-    if (view === 'grid') requestAnimationFrame(scaleThumbs);
+    if (view === 'grid') { scaleThumbs(); setTimeout(scaleThumbs, 300); }
   }
 
   function setDecks(decks) {
@@ -426,6 +473,50 @@
     return Promise.all(tries).then(function (ok) { return ok[0] || ok[1]; });
   }
 
+  // ── share: copy the link; access itself is GitHub's ACL ──
+  function openShare(r, anchor) {
+    var pop = $('share-pop');
+    var url = 'https://decks.fslides.dev/' + r.owner.login + '/' + r.name + '/';
+    var shared = r._collabs != null
+      ? 'shared with <b>' + r._collabs + '</b> ' + (r._collabs === 1 ? 'person' : 'people') + ' · '
+      : '';
+    pop.innerHTML = '<h4>share ' + esc(r.name) + '</h4>' +
+      '<div class="linkrow"><input readonly value="' + esc(url) + '"><button class="copy">copy</button></div>' +
+      (r.private
+        ? '<div class="hint">' + shared + 'this deck is <b>private</b> — anyone with access to the GitHub repo can view it here after signing in. To share with someone new, add them on GitHub:</div>' +
+          '<a href="https://github.com/' + esc(r.full_name) + '/settings/access" target="_blank" rel="noopener">manage access on GitHub ↗</a>'
+        : '<div class="hint">' + shared + 'this deck is <b>public</b> — anyone with the link can view it. Fork access and edit invites live on GitHub:</div>' +
+          '<a href="https://github.com/' + esc(r.full_name) + '/settings/access" target="_blank" rel="noopener">manage access on GitHub ↗</a>');
+    pop.hidden = false;
+    var rect = anchor.getBoundingClientRect();
+    pop.style.left = Math.max(10, Math.min(window.innerWidth - 360, rect.left + window.scrollX - 300)) + 'px';
+    pop.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    pop.querySelector('.copy').addEventListener('click', function () {
+      navigator.clipboard.writeText(url);
+      pop.querySelector('.copy').textContent = 'copied ✓';
+    });
+    pop.querySelector('input').select();
+  }
+  document.addEventListener('click', function (e) {
+    var pop = $('share-pop');
+    if (!pop.hidden && !pop.contains(e.target) && !e.target.classList.contains('sharebtn')) pop.hidden = true;
+  });
+
+  // shared-with counts: collaborator totals from the Link header (1 call/deck)
+  function loadCollabCounts(decks, tok) {
+    decks.forEach(function (r) {
+      fetch('https://api.github.com/repos/' + r.full_name + '/collaborators?per_page=1', {
+        headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' },
+      }).then(function (resp) {
+        if (!resp.ok) return;
+        var m = (resp.headers.get('Link') || '').match(/page=(\d+)>; rel="last"/);
+        var total = m ? parseInt(m[1], 10) : 1;
+        r._collabs = Math.max(0, total - 1); // minus yourself
+        render();
+      }).catch(function () {});
+    });
+  }
+
   // owner view: app installations see private repos too (issues-only grant)
   function loadOwnerDecks(tok) {
     gh('/user/installations', tok).then(function (insts) {
@@ -449,6 +540,7 @@
     }).then(function (decks) {
       // owner list supersedes the public one (it includes private decks)
       if (decks.length || allDecks.length === 0) setDecks(decks);
+      loadCollabCounts(decks, tok);
     }).catch(function () { /* public view stays */ });
   }
 })();

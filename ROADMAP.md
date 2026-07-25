@@ -96,6 +96,21 @@ after Baha asked why storage was needed at all. Nothing is stored:
       toggle. /dashboard/ now just signs you in and redirects to /{login}.
       Type scale raised ~20% after Baha flagged small fonts (second time —
       keep mono UI text ≥0.88rem)
+- [x] Private decks + share + numbers (2026-07-25):
+      · Private viewing: deck worker falls back to the GitHub contents API
+        with the viewer's token when raw 404s — GitHub IS the ACL. Token is
+        an HttpOnly cookie on the deck origin (set via POST /-/session after
+        a one-popup sign-in interstitial), so deck JS can never read it.
+        Private responses are Cache-Control: private, never edge-cached; LFS
+        resolves via media CDN with auth. ⚠ REQUIRES Baha to add
+        Contents: Read-only to the GitHub App and approve on installations
+      · Share: popover per deck in owner mode — copy link; access management
+        deep-links to GitHub settings/access (in-app invites + edit-sharing
+        need administration:write — backlog)
+      · Numbers on cards/rows: ⑂ forks, ★ stars, 💬 open comment threads;
+        owner mode adds 👥 shared-with (collaborators via Link-header count)
+      · Thumbnails zoom-crop to the slide's central region (~1.6×) so
+        preview text is readable instead of a 4×-shrunk full slide
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
