@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fslides — your decks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: rgba(255,255,255,0.85); line-height: 1.7;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: radial-gradient(rgba(56,189,248,0.04) 1px, transparent 1px);
+      background-size: 30px 30px; pointer-events: none;
+    }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; gap: 18px;
+      padding: 16px 32px; background: rgba(13,15,20,0.92);
+      backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .wordmark { font-weight: 900; font-size: 1.25rem; letter-spacing: -0.04em; text-decoration: none;
+      background: linear-gradient(120deg, #fff 30%, #38BDF8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    header nav { margin-left: auto; display: flex; gap: 20px; align-items: center; }
+    header nav a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+    header nav a:hover { color: #38BDF8; }
+    #whoami { display: none; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+    #whoami img { width: 24px; height: 24px; border-radius: 50%; }
+
+    main { max-width: 900px; margin: 0 auto; padding: 56px 24px 120px; position: relative; }
+    h1 { font-size: 2.6rem; font-weight: 900; letter-spacing: -0.03em; color: #fff; margin-bottom: 10px; }
+    .sub { color: rgba(255,255,255,0.5); font-size: 1.05rem; font-weight: 300; margin-bottom: 40px; }
+
+    .signin {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #38BDF8; color: #0d0f14; border: none; border-radius: 10px;
+      padding: 13px 26px; font-size: 1rem; font-weight: 700; cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .muted { color: rgba(255,255,255,0.35); font-size: 0.85rem; margin-top: 14px; }
+
+    .decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .deck {
+      background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 12px; padding: 18px 20px; text-decoration: none; color: inherit;
+      transition: border-color 0.15s, transform 0.15s; display: block;
+    }
+    .deck:hover { border-color: rgba(56,189,248,0.5); transform: translateY(-2px); }
+    .deck .name { font-weight: 800; color: #fff; font-size: 1.02rem; margin-bottom: 2px; word-break: break-word; }
+    .deck .meta { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+    .deck .links { display: flex; gap: 12px; font-size: 0.8rem; font-weight: 600; }
+    .deck .links span { color: #38BDF8; }
+    .badge { display: inline-block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: #34D399; border: 1px solid rgba(52,211,153,0.4); border-radius: 20px; padding: 1px 8px; margin-left: 8px; vertical-align: 2px; }
+
+    .newdeck {
+      margin-top: 48px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 36px;
+    }
+    .newdeck h2 { font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .newdeck p { font-weight: 300; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+    .newdeck p strong { color: #fff; font-weight: 700; }
+    pre {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.9;
+      background: #16181f; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+      padding: 14px 20px; margin-bottom: 14px; overflow-x: auto;
+    }
+    pre .p { color: #38BDF8; }
+    pre .c { color: rgba(255,255,255,0.3); }
+    code { font-family: 'JetBrains Mono', monospace; color: #7DD3FC; font-size: 0.92em; }
+    #loading, #empty { color: rgba(255,255,255,0.35); font-style: italic; }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="wordmark" href="/">fslides</a>
+    <nav>
+      <a href="/">Deck</a>
+      <a href="/docs/">Docs</a>
+      <a href="/templates/">Templates</a>
+      <span id="whoami"><img id="avatar" alt=""><span id="login"></span></span>
+    </nav>
+  </header>
+  <main>
+    <h1>Your decks</h1>
+    <p class="sub">Every repo where the fslides app is installed — commenting enabled, publishable to Pages.</p>
+
+    <div id="signed-out">
+      <button class="signin" id="btn-signin">Sign in with GitHub</button>
+      <p class="muted">One popup. The fslides app can only ever touch issues — that's the whole grant.</p>
+    </div>
+
+    <div id="signed-in" style="display:none">
+      <div id="loading">loading your decks…</div>
+      <div id="empty" style="display:none">No repos have the fslides app yet — create a deck below, or <a href="https://github.com/apps/fslides/installations/new" style="color:#38BDF8">enable it on an existing repo</a>.</div>
+      <div class="decks" id="decks"></div>
+    </div>
+
+    <div class="newdeck">
+      <h2>New deck</h2>
+      <p>Deck creation lives in the terminal, on purpose — it's one command, and it's what your <strong>AI agent</strong> runs too:</p>
+      <pre><span class="p">$</span> npm install -g fslides
+<span class="p">$</span> fslides scaffold my-deck --template charcoal   <span class="c"># repo + CI + Pages + comments</span></pre>
+      <p>Working with Claude Code? <code>/plugin marketplace add fslides/fslides</code> — then just describe the deck you want. The spec your agent reads: <a href="/agents.md" style="color:#38BDF8">agents.md</a>.</p>
+    </div>
+  </main>
+
+  <script>
+    const GATEWAY = 'https://api.fslides.dev';
+    const $ = id => document.getElementById(id);
+
+    function token() {
+      try {
+        const exp = parseInt(localStorage.getItem('fs-gh-token-exp') || '0', 10);
+        if (exp && Date.now() > exp) return '';
+        return localStorage.getItem('fs-gh-token') || '';
+      } catch (_) { return ''; }
+    }
+    const gh = (path, tok) => fetch('https://api.github.com' + path, {
+      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + tok },
+    }).then(r => { if (!r.ok) throw new Error('gh ' + r.status); return r.json(); });
+
+    $('btn-signin').addEventListener('click', () => {
+      const w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
+      window.open(GATEWAY + '/auth/install?origin=' + encodeURIComponent(location.origin),
+        'fslides-auth', `width=${w},height=${h},left=${x},top=${y}`);
+    });
+    window.addEventListener('message', e => {
+      if (e.origin !== new URL(GATEWAY).origin || !e.data || e.data.type !== 'fslides-auth') return;
+      try {
+        localStorage.setItem('fs-gh-token', e.data.token);
+        localStorage.setItem('fs-gh-token-exp', String(e.data.expiresAt || 0));
+      } catch (_) {}
+      boot();
+    });
+
+    async function isDeck(owner, repo) {
+      // public probe — raw.githubusercontent sends CORS
+      for (const f of ['fslides.config.js', 'fuckslides.config.js']) {
+        try {
+          const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${f}`, { method: 'HEAD' });
+          if (r.ok) return true;
+        } catch (_) {}
+      }
+      return false;
+    }
+
+    async function boot() {
+      const tok = token();
+      if (!tok) return;
+      $('signed-out').style.display = 'none';
+      $('signed-in').style.display = 'block';
+      try {
+        const me = await gh('/user', tok);
+        $('avatar').src = me.avatar_url;
+        $('login').textContent = me.login;
+        $('whoami').style.display = 'inline-flex';
+
+        const insts = await gh('/user/installations', tok);
+        let repos = [];
+        for (const inst of insts.installations || []) {
+          const rs = await gh(`/user/installations/${inst.id}/repositories?per_page=100`, tok);
+          repos = repos.concat(rs.repositories || []);
+        }
+        $('loading').style.display = 'none';
+        if (!repos.length) { $('empty').style.display = 'block'; return; }
+
+        // confirm decks in parallel (public probe; private repos show unbadged)
+        const flags = await Promise.all(repos.map(r => isDeck(r.owner.login, r.name)));
+        repos.forEach((r, i) => { r._deck = flags[i]; });
+        repos.sort((a, b) => (b._deck - a._deck) || (new Date(b.pushed_at) - new Date(a.pushed_at)));
+
+        for (const r of repos) {
+          const card = document.createElement('a');
+          card.className = 'deck';
+          card.href = `https://${r.owner.login}.github.io/${r.name}/`;
+          card.target = '_blank'; card.rel = 'noopener';
+          const pushed = new Date(r.pushed_at).toLocaleDateString();
+          card.innerHTML = `
+            <div class="name"></div>
+            <div class="meta"></div>
+            <div class="links"><span>View deck ↗</span></div>`;
+          card.querySelector('.name').textContent = r.full_name;
+          if (r._deck) card.querySelector('.name').insertAdjacentHTML('beforeend', '<span class="badge">deck</span>');
+          card.querySelector('.meta').textContent = (r.private ? 'private · ' : '') + 'updated ' + pushed;
+          $('decks').appendChild(card);
+        }
+      } catch (e) {
+        $('loading').textContent = 'Couldn’t load (' + e.message + ') — try signing in again.';
+        $('signed-out').style.display = 'block';
+      }
+    }
+    boot();
+  </script>
+</body>
+</html>

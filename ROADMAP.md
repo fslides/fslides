@@ -1,8 +1,10 @@
 # fslides — Roadmap
 
-> **Vision.** Slides-as-code for developers. Decks are git repos; slides are HTML;
-> publishing is a static folder on GitHub Pages. The SaaS layer (fslides.dev) sells
-> identity and convenience — never lock-in. The engine stays open source.
+> **Vision.** Slides-as-code for developers — and **the slide tool for agents**.
+> Decks are git repos; slides are HTML; publishing is a static folder on GitHub
+> Pages. The CLI is the primary creation interface for humans and agents alike;
+> the web is for viewing, reviewing, and discovering. The SaaS layer (fslides.dev)
+> sells identity and convenience — never lock-in. The engine stays open source.
 >
 > **Architecture principle.** Decks stay static and self-sufficient. Server-side
 > capability lives in one small authenticated **gateway**, not in deck hosting.
@@ -50,7 +52,6 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 - [x] Docs page live at fslides.dev/docs (quickstart, slides, player, narration, comments, commands, contributing) — 2026-07-24
 - [x] Template gallery live at fslides.dev/templates — `charcoal` + `paper` designed starters, `--template` flag on create/scaffold (2026-07-24)
 - [ ] Signed-in dashboard: list your decks (repos containing `fuckslides.config.js`), link to live Pages
-- [ ] Web scaffold: "New deck" button = browser version of `fslides scaffold` (create repo, enable Pages, first deploy)
 - [ ] Docs: quickstart, recording/narration guide, commenting guide, contributor guide (incl. git-lfs note)
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
