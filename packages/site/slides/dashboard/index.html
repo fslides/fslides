@@ -4,238 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>~/decks — fslides</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/ui.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    #decks.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-    #decks.grid .info { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-family: var(--mono); font-size: 12px; }
-    #decks.grid .name { color: var(--fg); font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #decks.grid .meta { color: var(--faint); font-size: 11px; flex-shrink: 0; }
-    #decks.list .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); font-weight: 700; }
-    #decks.list .meta { color: var(--faint); font-size: 11.5px; flex-shrink: 0; }
-    #decks.list .row::after { content: '↗'; color: var(--acc); }
-    .toolbar { display: none; align-items: center; gap: 8px; margin: 0 0 18px; flex-wrap: wrap; }
-    #search { flex: 1; min-width: 220px; max-width: 380px; }
-    #whoami { display: none; align-items: center; gap: 7px; color: var(--dim); }
-    #whoami img { width: 18px; height: 18px; border-radius: 3px; }
-    .state { font-family: var(--mono); font-size: 12.5px; color: var(--faint); }
-    .state a { color: var(--acc); text-decoration: none; }
-    .newdeck { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 24px; max-width: 640px; }
-    .newdeck h2 { font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 10px; }
-    .newdeck p { font-size: 13px; color: var(--dim); margin-bottom: 10px; }
-    .newdeck p strong { color: var(--txt); }
-    .newdeck a { color: var(--acc); text-decoration: none; }
+    body {
+      background: #0d0f14; color: rgba(232,234,240,0.7); min-height: 100vh; margin: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+      font-family: 'JetBrains Mono', monospace; font-size: 1rem;
+    }
+    a, button {
+      font-family: inherit; font-size: 1rem; color: #F05000; background: none;
+      border: 1px solid rgba(255,255,255,0.15); padding: 10px 18px; cursor: pointer;
+    }
+    button:hover { border-color: #F05000; }
   </style>
 </head>
 <body>
-  <header class="bar">
-    <a class="wordmark" href="/">fslides</a>
-    <nav>
-      <a href="/">deck</a>
-      <a href="/docs/">docs</a>
-      <a href="/templates/">templates</a>
-      <a href="/dashboard/" class="here">~/decks</a>
-      <span id="whoami" class="mono"><img id="avatar" alt=""><span id="login"></span></span>
-    </nav>
-  </header>
-  <main>
-    <div class="page-head"><h1>decks</h1><span class="state" id="count"></span></div>
-    <p class="page-sub">Repos tagged <span class="chip acc">fslides</span> or carrying a deck config — commenting wired, published on Pages.</p>
-
-    <div id="signed-out">
-      <button class="btn primary" id="btn-signin">Sign in with GitHub</button>
-      <p class="state" style="margin-top:12px">one popup · the app can only touch issues — that's the entire grant</p>
-    </div>
-
-    <div class="toolbar" id="toolbar">
-      <input id="search" type="search" placeholder="/ search decks" autocomplete="off">
-      <select id="visibility">
-        <option value="all">all</option>
-        <option value="public">public</option>
-        <option value="private">private</option>
-      </select>
-      <select id="sort">
-        <option value="updated">recent</option>
-        <option value="name">a→z</option>
-      </select>
-      <div class="seg">
-        <button id="view-grid"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="1" width="5.5" height="5.5" rx="1"/><rect x="1" y="9.5" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1"/></svg>grid</button>
-        <button id="view-list"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>list</button>
-      </div>
-    </div>
-
-    <div id="signed-in" style="display:none">
-      <div id="loading" class="state">loading decks…</div>
-      <div id="empty" class="state" style="display:none">no decks yet — scaffold one below, or <a href="https://github.com/apps/fslides/installations/new">enable the app on a deck repo</a></div>
-      <div id="nomatch" class="state" style="display:none">no match</div>
-      <div id="decks" class="grid"></div>
-    </div>
-
-    <div class="newdeck">
-      <h2>new deck</h2>
-      <p>Creation lives in the terminal — one command, same for you and your <strong>agent</strong>:</p>
-      <pre><span class="p">$</span> fslides scaffold my-deck --template charcoal   <span class="c"># repo + CI + Pages + comments</span></pre>
-      <p>Claude Code: <code>/plugin marketplace add fslides/fslides</code> · spec: <a href="/agents.md">agents.md</a></p>
-    </div>
-  </main>
-
-  <script>
-    const GATEWAY = 'https://api.fslides.dev';
-    const $ = id => document.getElementById(id);
-    let allDecks = [];
-
-    function token() {
-      try {
-        const exp = parseInt(localStorage.getItem('fs-gh-token-exp') || '0', 10);
-        if (exp && Date.now() > exp) return '';
-        return localStorage.getItem('fs-gh-token') || '';
-      } catch (_) { return ''; }
-    }
-    const gh = (path, tok) => fetch('https://api.github.com' + path, {
-      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + tok },
-    }).then(r => { if (!r.ok) throw new Error('gh ' + r.status); return r.json(); });
-
-    $('btn-signin').addEventListener('click', () => {
-      const w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
-      window.open(GATEWAY + '/auth/login?origin=' + encodeURIComponent(location.origin),
-        'fslides-auth', `width=${w},height=${h},left=${x},top=${y}`);
-    });
-    window.addEventListener('message', e => {
-      if (e.origin !== new URL(GATEWAY).origin || !e.data || e.data.type !== 'fslides-auth') return;
-      try {
-        localStorage.setItem('fs-gh-token', e.data.token);
-        localStorage.setItem('fs-gh-token-exp', String(e.data.expiresAt || 0));
-      } catch (_) {}
-      boot();
-    });
-
-    async function isDeck(r) {
-      if ((r.topics || []).includes('fslides')) return true;
-      if (r.private) return false;
-      for (const f of ['fslides.config.js', 'fuckslides.config.js']) {
-        try {
-          const resp = await fetch(`https://raw.githubusercontent.com/${r.owner.login}/${r.name}/HEAD/${f}`, { method: 'HEAD' });
-          if (resp.ok) return true;
-        } catch (_) {}
-      }
-      return false;
-    }
-
-    const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch (_) { return d; } };
-    const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
-    let view = pref('fs-dash-view', 'grid');
-
-    function setView(v) {
-      view = v; setPref('fs-dash-view', v);
-      $('view-grid').classList.toggle('active', v === 'grid');
-      $('view-list').classList.toggle('active', v === 'list');
-      render();
-    }
-    $('view-grid').addEventListener('click', () => setView('grid'));
-    $('view-list').addEventListener('click', () => setView('list'));
-    $('search').addEventListener('input', render);
-    $('visibility').addEventListener('change', render);
-    $('sort').addEventListener('change', render);
-    document.addEventListener('keydown', e => {
-      if (e.key === '/' && document.activeElement !== $('search')) { e.preventDefault(); $('search').focus(); }
-    });
-
-    function scaleThumbs() {
-      document.querySelectorAll('.thumb').forEach(t => {
-        const f = t.querySelector('iframe');
-        if (f) f.style.transform = 'scale(' + (t.offsetWidth / 1280) + ')';
-      });
-    }
-    window.addEventListener('resize', scaleThumbs);
-
-    function render() {
-      const q = $('search').value.trim().toLowerCase();
-      const vis = $('visibility').value;
-      const sort = $('sort').value;
-      let decks = allDecks.filter(r =>
-        (!q || r.name.toLowerCase().includes(q) || r.full_name.toLowerCase().includes(q)) &&
-        (vis === 'all' || (vis === 'private') === !!r.private));
-      decks.sort(sort === 'name'
-        ? (a, b) => a.name.localeCompare(b.name)
-        : (a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
-
-      $('count').textContent = allDecks.length
-        ? (decks.length === allDecks.length ? '· ' + allDecks.length : '· ' + decks.length + '/' + allDecks.length)
-        : '';
-      $('nomatch').style.display = allDecks.length && !decks.length ? 'block' : 'none';
-
-      const box = $('decks');
-      box.className = view === 'list' ? 'rows list' : 'grid';
-      box.innerHTML = '';
-      for (const r of decks) {
-        const url = `https://decks.fslides.dev/${r.owner.login}/${r.name}/`;
-        const card = document.createElement('a');
-        card.href = url; card.target = '_blank'; card.rel = 'noopener';
-        const meta = new Date(r.pushed_at).toLocaleDateString();
-        const priv = r.private ? '<span class="chip">private</span>' : '';
-        if (view === 'grid') {
-          card.className = 'card';
-          card.innerHTML = `<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
-            <div class="info"><span class="name"></span>${priv}<span class="meta">${meta}</span></div>`;
-          card.querySelector('iframe').src = url + '#0';
-        } else {
-          card.className = 'row';
-          card.innerHTML = `<span class="name"></span>${priv}<span class="meta">${meta}</span>`;
-        }
-        card.querySelector('.name').textContent = r.name;
-        box.appendChild(card);
-      }
-      if (view === 'grid') requestAnimationFrame(scaleThumbs);
-    }
-
-    async function boot() {
-      const tok = token();
-      if (!tok) return;
-      $('signed-out').style.display = 'none';
-      $('signed-in').style.display = 'block';
-      try {
-        const me = await gh('/user', tok);
-        $('avatar').src = me.avatar_url;
-        $('login').textContent = me.login;
-        $('whoami').style.display = 'inline-flex';
-
-        const insts = await gh('/user/installations', tok);
-        let repos = [];
-        for (const inst of insts.installations || []) {
-          for (let page = 1; page <= 10; page++) {
-            const rs = await gh(`/user/installations/${inst.id}/repositories?per_page=100&page=${page}`, tok);
-            repos = repos.concat(rs.repositories || []);
-            if (!rs.repositories || rs.repositories.length < 100) break;
-          }
-        }
-        const flags = await Promise.all(repos.map(isDeck));
-        allDecks = repos.filter((r, i) => flags[i]);
-        $('loading').style.display = 'none';
-        if (!allDecks.length) { $('empty').style.display = 'block'; return; }
-        $('toolbar').style.display = 'flex';
-        setView(view);
-      } catch (e) {
-        $('loading').textContent = 'couldn’t load (' + e.message + ') — sign in again';
-        $('signed-out').style.display = 'block';
-      }
-    }
-    boot();
-  </script>
-  <footer class="statusline">
-    <span class="mode">FSLIDES</span>
-    <span class="seg-item"><a href="https://github.com/fslides/fslides">github</a></span>
-    <span class="seg-item"><a href="https://www.npmjs.com/package/fslides">npm</a></span>
-    <span class="grow"></span>
-    <span class="seg-item">api <span id="sl-api" class="faint">…</span></span>
-    <span class="seg-item faint">v0.5</span>
-  </footer>
-  <script>
-    fetch('https://api.fslides.dev/healthz').then(r => {
-      document.getElementById('sl-api').textContent = r.ok ? 'ok' : 'down';
-      document.getElementById('sl-api').className = r.ok ? 'ok' : '';
-    }).catch(() => { document.getElementById('sl-api').textContent = 'down'; });
-  </script>
-<script src="/new-deck.js" defer></script>
+  <!-- your profile is your dashboard now: fslides.dev/you -->
+  <div id="msg">taking you to your profile…</div>
+  <button id="btn" hidden>[ sign in with github ]</button>
+<script>
+  var GATEWAY = 'https://api.fslides.dev';
+  function token() {
+    try {
+      var exp = parseInt(localStorage.getItem('fs-gh-token-exp') || '0', 10);
+      if (exp && Date.now() > exp) return '';
+      return localStorage.getItem('fs-gh-token') || '';
+    } catch (_) { return ''; }
+  }
+  function go(tok) {
+    fetch('https://api.github.com/user', { headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' } })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (me) { location.replace('/' + me.login); })
+      .catch(ask);
+  }
+  function ask() {
+    document.getElementById('msg').textContent = 'your profile is your dashboard — sign in to get there';
+    document.getElementById('btn').hidden = false;
+  }
+  document.getElementById('btn').addEventListener('click', function () {
+    var w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
+    window.open(GATEWAY + '/auth/login?origin=' + encodeURIComponent(location.origin),
+      'fslides-auth', 'width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
+  });
+  window.addEventListener('message', function (e) {
+    if (e.origin !== new URL(GATEWAY).origin || !e.data || e.data.type !== 'fslides-auth') return;
+    try {
+      localStorage.setItem('fs-gh-token', e.data.token);
+      localStorage.setItem('fs-gh-token-exp', String(e.data.expiresAt || 0));
+    } catch (_) {}
+    go(e.data.token);
+  });
+  var t = token();
+  if (t) go(t); else ask();
+</script>
 </body>
 </html>

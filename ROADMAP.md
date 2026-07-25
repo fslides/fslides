@@ -89,6 +89,13 @@ after Baha asked why storage was needed at all. Nothing is stored:
       toggle. `fslides.dev/owner/repo` 301s to decks.fslides.dev (pretty
       shareable URLs; decks still execute on the isolated origin). Real assets
       always win over profile routes — profiles fill the 404 space
+- [x] Profile IS the dashboard (2026-07-25, Baha's call): one page — visitors
+      see public decks; the signed-in owner sees private decks too (via app
+      installations), visibility filter, and the new-deck section. Ported from
+      the old dashboard: search ('/' shortcut), recent/a→z sort, grid/list
+      toggle. /dashboard/ now just signs you in and redirects to /{login}.
+      Type scale raised ~20% after Baha flagged small fonts (second time —
+      keep mono UI text ≥0.88rem)
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
