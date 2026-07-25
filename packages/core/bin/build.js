@@ -104,6 +104,8 @@ window.FUCKSLIDES_NOTES      = ${notesDat};
 window.FUCKSLIDES_RECORDINGS = ${JSON.stringify(recordings)};
 window.FUCKSLIDES_REPO       = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY    = ${JSON.stringify(config.gateway || null)};
+window.FUCKSLIDES_NAV        = ${JSON.stringify(config.nav || [])};
+window.FUCKSLIDES_SELECTION  = ${JSON.stringify(config.selection !== false)};
 </script>`;
 
   const fsJs = fs.readFileSync(path.join(pkgDir, 'js', 'fuckslides.js'), 'utf8');

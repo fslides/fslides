@@ -222,5 +222,19 @@
     }
     boot();
   </script>
+  <footer class="statusline">
+    <span class="mode">FSLIDES</span>
+    <span class="seg-item"><a href="https://github.com/fslides/fslides">github</a></span>
+    <span class="seg-item"><a href="https://www.npmjs.com/package/fslides">npm</a></span>
+    <span class="grow"></span>
+    <span class="seg-item">api <span id="sl-api" class="faint">…</span></span>
+    <span class="seg-item faint">v0.5</span>
+  </footer>
+  <script>
+    fetch('https://api.fslides.dev/healthz').then(r => {
+      document.getElementById('sl-api').textContent = r.ok ? 'ok' : 'down';
+      document.getElementById('sl-api').className = r.ok ? 'ok' : '';
+    }).catch(() => { document.getElementById('sl-api').textContent = 'down'; });
+  </script>
 </body>
 </html>

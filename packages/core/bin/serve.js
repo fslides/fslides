@@ -43,6 +43,8 @@ window.FUCKSLIDES_TITLE     = ${titleJson};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
 window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
+window.FUCKSLIDES_NAV       = ${JSON.stringify(config.nav || [])};
+window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
 </script>`;
 
   const playerTemplate = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');

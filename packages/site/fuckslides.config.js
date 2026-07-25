@@ -3,6 +3,13 @@ module.exports = {
   title: 'fslides — slides are code',
   repo: 'fslides/fslides',                 // comments on the homepage land on the framework repo
   gateway: 'https://api.fslides.dev',
+  selection: false,               // website mode: no element selection on the landing deck
+  nav: [
+    { label: 'docs',      href: '/docs/' },
+    { label: 'templates', href: '/templates/' },
+    { label: '~/decks',   href: '/dashboard/' },
+    { label: 'github',    href: 'https://github.com/fslides/fslides' },
+  ],
   slidesDir: 'slides',
   port: 3080,
 

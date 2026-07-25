@@ -45,6 +45,13 @@
     .nav-btn:disabled { opacity: 0.2; cursor: default; }
     .nav-btn:disabled:hover { background: transparent; color: rgba(255,255,255,0.7); }
     .nav-label { line-height: 1; }
+    #nav-site-links { display: inline-flex; gap: 2px; margin-left: 6px; }
+    #nav-site-links a {
+      font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.72rem;
+      color: rgba(255,255,255,0.45); text-decoration: none;
+      padding: 4px 8px; border-radius: 4px;
+    }
+    #nav-site-links a:hover { color: #F05000; background: rgba(255,255,255,0.06); }
     .nav-btn { position: relative; }
     .nav-btn[data-tip]:hover::after, .nav-timer[data-tip]:hover::after {
       content: attr(data-tip);
@@ -731,6 +738,7 @@
 <nav class="preso-nav" id="preso-nav">
   <img class="nav-logo" src="/logo.png" alt="" onerror="this.style.display='none'">
   <span class="nav-title" id="nav-title"></span>
+  <span id="nav-site-links"></span>
   <div class="nav-sep"></div>
   <span class="nav-timer" id="nav-timer" data-tip="Talk timer — C start/pause · R reset">00:00</span>
   <div class="nav-spacer"></div>
@@ -2354,6 +2362,7 @@ function openCtxMenu(x, y) {
 }
 
 function attachSlideInteractions() {
+  if (window.FUCKSLIDES_SELECTION === false) return;   // website mode: no element selection
   let doc;
   try { doc = frame.contentDocument; } catch (_) { return; }
   if (!doc || doc._fsSelAttached) return;
@@ -3222,6 +3231,17 @@ go(idx);
 const navTitle = document.getElementById('nav-title');
 const presoNav = document.getElementById('preso-nav');
 const presoDisplayTitle = window.FUCKSLIDES_TITLE || window.FUCKSLIDES_NAME || '';
+// site links (config.nav) — lets a deck double as a website landing page
+(function () {
+  const links = window.FUCKSLIDES_NAV || [];
+  const box = document.getElementById('nav-site-links');
+  for (const l of links) {
+    const a = document.createElement('a');
+    a.textContent = l.label; a.href = l.href;
+    if (/^https?:/.test(l.href)) { a.target = '_blank'; a.rel = 'noopener'; }
+    box.appendChild(a);
+  }
+})();
 if (presoDisplayTitle) navTitle.textContent = presoDisplayTitle;
 else navTitle.parentNode.removeChild(navTitle.nextSibling); // remove sep if no title
 
