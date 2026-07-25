@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>fslides — slides are code</title>
+  <title>fslides — slides-as-code</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -13,50 +13,163 @@
       font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
       background: #0d0f14; color: #fff;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 0 90px;
     }
+
+    /* ── ambient: breathing orange glow + drifting embers + masked grid ── */
+    .glow {
+      position: absolute; left: 50%; top: 62%; width: 1100px; height: 700px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(ellipse at center, rgba(240,80,0,0.16) 0%, rgba(240,80,0,0.05) 40%, transparent 70%);
+      animation: breathe 6s ease-in-out infinite; pointer-events: none;
+    }
+    @keyframes breathe { 50% { opacity: 0.55; transform: translate(-50%, -50%) scale(1.08); } }
     body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: radial-gradient(rgba(240,80,0,0.05) 1px, transparent 1px);
-      background-size: 30px 30px; pointer-events: none;
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: radial-gradient(rgba(240,80,0,0.07) 1px, transparent 1px);
+      background-size: 30px 30px;
+      mask-image: radial-gradient(ellipse at 50% 60%, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 60%, black 30%, transparent 75%);
     }
-    @keyframes up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:none; } }
-    .f1 { opacity:0; animation: up .5s ease forwards .1s; }
-    .f2 { opacity:0; animation: up .5s ease forwards .25s; }
-    .f3 { opacity:0; animation: up .5s ease forwards .45s; }
-    .f4 { opacity:0; animation: up .5s ease forwards .65s; }
+    .ember {
+      position: absolute; bottom: -8px; border-radius: 50%;
+      background: #FF6A1A; pointer-events: none; opacity: 0;
+      animation: rise linear infinite;
+    }
+    @keyframes rise {
+      0%   { opacity: 0; transform: translateY(0) translateX(0) scale(1); }
+      12%  { opacity: 0.8; }
+      100% { opacity: 0; transform: translateY(-560px) translateX(var(--dx)) scale(0.4); }
+    }
+
+    @keyframes up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .f1 { opacity: 0; animation: up 0.6s ease forwards 0.1s; }
+    .f2 { opacity: 0; animation: up 0.6s ease forwards 0.3s; }
+    .f3 { opacity: 0; animation: up 0.6s ease forwards 0.55s; }
+    .f4 { opacity: 0; animation: up 0.6s ease forwards 2.2s; }
 
     .wordmark {
-      font-size: 6.5rem; font-weight: 900; letter-spacing: -0.05em; line-height: 1;
-      background: linear-gradient(120deg, #fff 30%, #F05000);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      margin-bottom: 18px;
+      font-family: 'JetBrains Mono', monospace; font-size: 4.6rem; font-weight: 700;
+      letter-spacing: -0.03em; margin-bottom: 12px; z-index: 2;
     }
-    .tagline { font-size: 1.6rem; font-weight: 300; color: rgba(255,255,255,0.75); letter-spacing: -0.01em; margin-bottom: 40px; }
+    .wordmark .p { color: #F05000; }
+    .wordmark .caret {
+      display: inline-block; width: 0.45em; height: 0.95em; background: #F05000;
+      vertical-align: -0.08em; margin-left: 6px; animation: blink 1.1s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .tagline { font-size: 1.7rem; font-weight: 300; color: rgba(255,255,255,0.78); letter-spacing: -0.01em; margin-bottom: 40px; z-index: 2; }
     .tagline strong { font-weight: 800; color: #fff; }
+    .tagline .acc { color: #FF6A1A; font-weight: 800; }
 
+    /* ── the terminal that types itself ── */
     .term {
-      font-family: 'JetBrains Mono', monospace; font-size: 1.05rem;
-      background: #16181f; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
-      padding: 18px 30px; color: rgba(255,255,255,0.85);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      text-align: left; line-height: 2;
+      width: 780px; font-family: 'JetBrains Mono', monospace; font-size: 1.02rem;
+      background: rgba(18,21,28,0.92); border: 1px solid rgba(255,255,255,0.13); border-radius: 12px;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(240,80,0,0.08);
+      text-align: left; z-index: 2; overflow: hidden;
     }
+    .term .chrome {
+      display: flex; align-items: center; gap: 7px; padding: 11px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
+    }
+    .term .chrome i { width: 11px; height: 11px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+    .term .chrome i:first-child { background: rgba(240,80,0,0.7); }
+    .term .chrome span { margin-left: auto; font-size: 0.72rem; color: rgba(255,255,255,0.3); }
+    .term .screen { padding: 18px 24px 20px; line-height: 1.95; min-height: 178px; }
     .term .p { color: #F05000; }
-    .term .c { color: rgba(255,255,255,0.3); }
+    .term .ok { color: #34D399; }
+    .term .url { color: #FF6A1A; }
+    .term .cursor {
+      display: inline-block; width: 9px; height: 1.15em; background: #F05000;
+      vertical-align: -0.2em; animation: blink 1s steps(1) infinite;
+    }
+    .term .out { display: block; opacity: 0; }
+    .term .out.show { opacity: 1; transition: opacity 0.18s ease; }
 
-    .hint { margin-top: 44px; font-size: 0.85rem; color: rgba(255,255,255,0.3); }
+    .hint { margin-top: 40px; font-size: 0.9rem; color: rgba(255,255,255,0.35); z-index: 2; }
     .hint kbd {
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 5px; padding: 2px 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+      border-radius: 5px; padding: 2px 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
-  <div class="wordmark f1">fslides</div>
-  <div class="tagline f2">The presentation framework that <strong>lives in your repo</strong>.</div>
-  <div class="term f3"><span class="p">$</span> curl -fsSL fslides.dev/new | sh -s -- my-deck<br><span class="c"># installs fslides · creates the repo · live URL. one line.</span></div>
-  <div class="hint f4">this site is an fslides deck — press <kbd>→</kbd> to see what that means</div>
+  <div class="glow"></div>
+
+  <div class="wordmark f1"><span class="p">$</span> fslides<span class="caret"></span></div>
+  <div class="tagline f2"><strong>Slides-as-code.</strong> Decks are repos, pushes are deploys, <span class="acc">agents are welcome</span>.</div>
+
+  <div class="term f3">
+    <div class="chrome"><i></i><i></i><i></i><span>~/dev</span></div>
+    <div class="screen" id="screen"></div>
+  </div>
+
+  <div class="hint f4">this site is itself an fslides deck — press <kbd>→</kbd> to see what that means</div>
+
 <script src="/js/fuckslides.js"></script>
+<script>
+// ── the demo runs itself: type the one-liner, ship a deck, loop ──
+(function () {
+  var screen = document.getElementById('screen');
+  var CMD = 'curl -fsSL fslides.dev/new | sh -s -- my-deck';
+  var OUT = [
+    ['ok', '✓', ' fslides installed'],
+    ['ok', '✓', ' repo created — you/my-deck · charcoal template'],
+    ['ok', '✓', ' pushed. no CI. no build. no deploy step.'],
+    ['url', '▶', ' live — decks.fslides.dev/you/my-deck'],
+  ];
+
+  function line(cls, mark, text) {
+    var el = document.createElement('span');
+    el.className = 'out';
+    el.innerHTML = '<span class="' + (cls === 'url' ? 'url' : 'ok') + '">' + mark + '</span>' +
+      '<span class="' + (cls === 'url' ? 'url' : '') + '"></span>';
+    el.lastChild.textContent = text;
+    return el;
+  }
+
+  function run() {
+    screen.innerHTML = '<span class="p">$ </span><span id="cmd"></span><span class="cursor"></span>';
+    var cmdEl = document.getElementById('cmd');
+    var i = 0;
+    var typer = setInterval(function () {
+      cmdEl.textContent = CMD.slice(0, ++i);
+      if (i >= CMD.length) {
+        clearInterval(typer);
+        setTimeout(function () {
+          var outs = OUT.map(function (o) { var el = line(o[0], o[1], o[2]); screen.appendChild(el); return el; });
+          outs.forEach(function (el, k) {
+            setTimeout(function () { el.classList.add('show'); }, 380 * (k + 1));
+          });
+          setTimeout(function () {
+            var done = document.createElement('span');
+            done.className = 'out show';
+            done.innerHTML = '<span class="p">$ </span><span class="cursor"></span>';
+            screen.appendChild(done);
+          }, 380 * (OUT.length + 1));
+          setTimeout(run, 380 * OUT.length + 4600);
+        }, 450);
+      }
+    }, 42);
+  }
+  setTimeout(run, 900);
+
+  // drifting embers
+  for (var e = 0; e < 14; e++) {
+    var s = document.createElement('i');
+    s.className = 'ember';
+    var size = 2 + Math.random() * 3;
+    s.style.width = s.style.height = size + 'px';
+    s.style.left = (6 + Math.random() * 88) + '%';
+    s.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+    s.style.animationDuration = (7 + Math.random() * 9) + 's';
+    s.style.animationDelay = (Math.random() * 10) + 's';
+    document.body.appendChild(s);
+  }
+})();
+</script>
 <script>
 (function scaleToFit() {
   if (window !== window.top) return;

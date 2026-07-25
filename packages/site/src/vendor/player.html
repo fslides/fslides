@@ -58,6 +58,29 @@
       font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.72rem; padding: 4px 10px;
     }
     #nav-site-links .nav-cta:hover { background: rgba(240,80,0,0.18); color: #fff; }
+    .nav-account { display: inline-flex; align-items: center; margin-left: 8px; }
+    .nav-account button { background: none; border: none; cursor: pointer; padding: 2px; display: flex; }
+    .nav-account img { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.25); }
+    .nav-account img:hover { border-color: #F05000; }
+    .nav-account .signin {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 12px;
+    }
+    .nav-account .signin:hover { color: #F05000; border-color: #F05000; }
+    .nav-account-menu {
+      position: fixed; top: 46px; z-index: 300; min-width: 210px;
+      background: #12151c; border: 1px solid rgba(255,255,255,0.14); border-radius: 8px;
+      box-shadow: 0 16px 44px rgba(0,0,0,0.55); overflow: hidden;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.88rem;
+    }
+    .nav-account-menu .who { padding: 10px 14px; color: rgba(255,255,255,0.5); border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .nav-account-menu .who b { color: #fff; display: block; }
+    .nav-account-menu a, .nav-account-menu button.item {
+      display: block; width: 100%; text-align: left; padding: 9px 14px; color: rgba(255,255,255,0.8);
+      background: none; border: none; cursor: pointer; text-decoration: none;
+      font-family: inherit; font-size: inherit;
+    }
+    .nav-account-menu a:hover, .nav-account-menu button.item:hover { background: rgba(240,80,0,0.15); color: #fff; }
     .nav-cta-menu {
       position: fixed; top: 50px; z-index: 10001; width: 460px;
       background: rgba(12,12,14,0.98); border: 1px solid rgba(255,255,255,0.16);
@@ -3338,6 +3361,93 @@ const presoDisplayTitle = window.FUCKSLIDES_TITLE || window.FUCKSLIDES_NAME || '
       if (/^https?:/.test(l.href)) { a.target = '_blank'; a.rel = 'noopener'; }
       box.appendChild(a);
     }
+  }
+
+  // ── account widget (website mode only): GitHub-style avatar menu ──
+  if (links.length) {
+    const wrap = document.createElement('span');
+    wrap.className = 'nav-account';
+    box.appendChild(wrap);
+    const GW = window.FUCKSLIDES_GATEWAY || 'https://api.fslides.dev';
+    let acctMenu = null;
+    const closeAcct = () => { if (acctMenu) { acctMenu.remove(); acctMenu = null; } };
+    document.addEventListener('click', e => {
+      if (acctMenu && !acctMenu.contains(e.target) && !wrap.contains(e.target)) closeAcct();
+    });
+    function siteToken() {
+      try {
+        const exp = parseInt(localStorage.getItem('fs-gh-token-exp') || '0', 10);
+        if (exp && Date.now() > exp) return '';
+        return localStorage.getItem('fs-gh-token') || '';
+      } catch (_) { return ''; }
+    }
+    function renderAccount() {
+      wrap.innerHTML = '';
+      closeAcct();
+      const tok = siteToken();
+      if (!tok) {
+        const b = document.createElement('button');
+        b.className = 'signin';
+        b.textContent = 'sign in';
+        b.addEventListener('click', () => {
+          const w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
+          window.open(GW + '/auth/login?origin=' + encodeURIComponent(location.origin),
+            'fslides-auth', `width=${w},height=${h},left=${x},top=${y}`);
+        });
+        wrap.appendChild(b);
+        return;
+      }
+      fetch('https://api.github.com/user', {
+        headers: { Authorization: 'Bearer ' + tok, Accept: 'application/vnd.github+json' },
+      }).then(r => { if (!r.ok) throw 0; return r.json(); }).then(me => {
+        const b = document.createElement('button');
+        b.title = me.login;
+        const img = document.createElement('img');
+        img.src = me.avatar_url; img.alt = me.login;
+        b.appendChild(img);
+        b.addEventListener('click', () => {
+          if (acctMenu) { closeAcct(); return; }
+          const m = document.createElement('div');
+          m.className = 'nav-account-menu';
+          m.style.right = Math.max(8, innerWidth - b.getBoundingClientRect().right) + 'px';
+          m.innerHTML = '<div class="who">signed in as <b></b></div>' +
+            '<a class="mine">~/decks — your profile</a>' +
+            '<a class="gh" target="_blank" rel="noopener">github ↗</a>' +
+            '<button class="item out">sign out</button>';
+          m.querySelector('.who b').textContent = '@' + me.login;
+          m.querySelector('.mine').href = '/' + me.login;
+          m.querySelector('.gh').href = me.html_url;
+          m.querySelector('.out').addEventListener('click', () => {
+            try { localStorage.removeItem('fs-gh-token'); localStorage.removeItem('fs-gh-token-exp'); } catch (_) {}
+            renderAccount();
+          });
+          document.body.appendChild(m);
+          acctMenu = m;
+        });
+        wrap.appendChild(b);
+      }).catch(renderAccount0 => {
+        try { localStorage.removeItem('fs-gh-token'); localStorage.removeItem('fs-gh-token-exp'); } catch (_) {}
+        wrap.innerHTML = '';
+        const b = document.createElement('button');
+        b.className = 'signin';
+        b.textContent = 'sign in';
+        b.addEventListener('click', () => {
+          const w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
+          window.open(GW + '/auth/login?origin=' + encodeURIComponent(location.origin),
+            'fslides-auth', `width=${w},height=${h},left=${x},top=${y}`);
+        });
+        wrap.appendChild(b);
+      });
+    }
+    window.addEventListener('message', e => {
+      try {
+        if (e.origin !== new URL(GW).origin || !e.data || e.data.type !== 'fslides-auth') return;
+        localStorage.setItem('fs-gh-token', e.data.token);
+        localStorage.setItem('fs-gh-token-exp', String(e.data.expiresAt || 0));
+        renderAccount();
+      } catch (_) {}
+    });
+    renderAccount();
   }
 })();
 if (presoDisplayTitle) navTitle.textContent = presoDisplayTitle;

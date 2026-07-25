@@ -59,6 +59,7 @@
     }
     #theme-btn:hover { color: var(--acc); border-color: var(--acc); }
 
+    [hidden] { display: none !important; }
     .wrap { flex: 1; width: 100%; max-width: 1400px; margin: 0 auto; padding: 40px 34px 70px; display: flex; gap: 44px; align-items: flex-start; }
 
     /* left column — the human */
@@ -265,9 +266,36 @@
     </section>
   </main>
   <div class="state" id="loading">loading profile…</div>
-  <div class="state" id="notfound" hidden>
-    <div class="big">404 — no such GitHub user</div>
-    <div><a href="/">← fslides.dev</a></div>
+  <div id="notfound" hidden style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; position:relative; overflow:hidden; padding:20px;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:clamp(4rem,14vw,9rem); font-weight:700; line-height:1; z-index:2;">4<span style="display:inline-block; color:var(--acc); transform:rotate(14deg) translate(4px,0); transform-origin:50% 92%;">0</span>4</div>
+    <svg viewBox="0 0 560 180" style="position:absolute; width:min(38vw,440px); right:max(10vw,calc(50% - 380px)); bottom:47%; transform:rotate(-42deg); transform-origin:8% 92%; z-index:1;" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="wood2" x1="0" y1="60" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#b05a1e"/><stop offset="0.45" stop-color="#8a4318"/><stop offset="1" stop-color="#5f2c0e"/>
+        </linearGradient>
+      </defs>
+      <ellipse cx="30" cy="90" rx="14" ry="26" fill="#7a3a12"/>
+      <path d="M38 82 L200 78 C300 72 430 58 522 62 C544 63 552 74 552 90 C552 106 544 117 522 118 C430 122 300 108 200 102 L38 98 Z" fill="url(#wood2)"/>
+      <g stroke="#6d6f76" stroke-width="3.4" stroke-linecap="round" fill="none">
+        <path d="M318 62 C306 82 310 100 326 112"/><path d="M326 112 C344 96 344 76 330 61"/>
+        <path d="M368 60 C356 80 360 100 376 114"/><path d="M376 114 C394 98 394 76 380 59"/>
+        <path d="M420 58 C408 78 412 100 428 116"/><path d="M428 116 C446 100 446 76 432 58"/>
+        <path d="M472 58 C460 78 464 100 480 116"/><path d="M480 116 C498 100 498 78 484 58"/>
+        <path d="M310 70 C370 62 460 60 540 70"/><path d="M316 104 C380 114 470 116 544 104"/>
+      </g>
+      <g stroke="#84868e" stroke-width="2.6" stroke-linecap="round">
+        <path d="M322 58 l-7 -9 M322 58 l9 -7"/><path d="M424 54 l-7 -9 M424 54 l9 -7"/>
+        <path d="M330 116 l-8 8 M330 116 l8 8"/><path d="M434 120 l-8 8 M434 120 l8 8"/>
+      </g>
+    </svg>
+    <div style="font-family:'JetBrains Mono',monospace; font-size:clamp(0.9rem,2vw,1.05rem); line-height:1.9; color:var(--dim); z-index:2; text-align:left;">
+      <div><span style="color:var(--acc)">$</span> fslides who <span id="nf-login"></span></div>
+      <div><span style="color:var(--acc-hi)">error 404:</span> no GitHub account by that name — so no decks to swing at.</div>
+      <div style="color:var(--faint)"># check the spelling, or claim it: github.com/signup</div>
+    </div>
+    <div style="display:flex; gap:14px; z-index:2; font-family:'JetBrains Mono',monospace;">
+      <a href="/" style="font-size:0.95rem; color:var(--dim); border:1px solid var(--line); padding:10px 18px;"><span style="color:var(--acc)">[</span> ← home <span style="color:var(--acc)">]</span></a>
+    </div>
   </div>
 
   <div id="share-pop" hidden></div>
@@ -444,7 +472,12 @@
   ]).then(function (res) {
     var user = res[0], pub = (res[1].items || []).filter(function (r) { return !r.private; });
     $('loading').hidden = true;
-    if (!user) { $('notfound').hidden = false; return; }
+    if (!user) {
+      $('nf-login').textContent = '@' + profileLogin;
+      document.title = '404 — fslides';
+      $('notfound').hidden = false;
+      return;
+    }
 
     $('main').hidden = false;
     $('avatar').src = user.avatar_url;
@@ -469,10 +502,31 @@
       $('btn-signin').hidden = true;
       $('me-avatar').src = me.avatar_url;
       $('me-login').textContent = me.login;
-      $('me-login').parentElement.style.display = 'inline-flex';
-      // signing in anywhere routes you home: your profile is your dashboard
-      $('me-login').parentElement.style.cursor = 'pointer';
-      $('me-login').parentElement.onclick = function () { location.href = '/' + me.login; };
+      var chip = $('me-login').parentElement;
+      chip.style.display = 'inline-flex';
+      chip.style.cursor = 'pointer';
+      chip.onclick = function (e) {
+        e.stopPropagation();
+        var m = $('acct-menu');
+        if (m) { m.remove(); return; }
+        m = document.createElement('div');
+        m.id = 'acct-menu';
+        m.style.cssText = 'position:fixed; top:46px; right:14px; z-index:300; min-width:210px;' +
+          'background:var(--panel); border:1px solid var(--line); box-shadow:0 16px 44px rgba(0,0,0,0.35);' +
+          "font-family:'JetBrains Mono',monospace; font-size:0.88rem;";
+        m.innerHTML = '<div style="padding:10px 14px; color:var(--faint); border-bottom:1px solid var(--line);">signed in as <b style="color:var(--fg); display:block;">@' + esc(me.login) + '</b></div>' +
+          '<a href="/' + esc(me.login) + '" style="display:block; padding:9px 14px; color:var(--fg);">~/decks — your profile</a>' +
+          '<a href="' + esc(me.html_url) + '" target="_blank" rel="noopener" style="display:block; padding:9px 14px; color:var(--fg);">github ↗</a>' +
+          '<button id="acct-out" style="display:block; width:100%; text-align:left; padding:9px 14px; color:var(--fg); background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">sign out</button>';
+        document.body.appendChild(m);
+        m.querySelector('#acct-out').addEventListener('click', function () {
+          try { localStorage.removeItem('fs-gh-token'); localStorage.removeItem('fs-gh-token-exp'); } catch (_) {}
+          location.reload();
+        });
+        document.addEventListener('click', function closer(ev) {
+          if (!m.contains(ev.target) && !chip.contains(ev.target)) { m.remove(); document.removeEventListener('click', closer); }
+        });
+      };
       if (me.login.toLowerCase() !== profileLogin.toLowerCase()) return;
 
       ownerMode = true;

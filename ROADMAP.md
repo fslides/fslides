@@ -121,7 +121,17 @@ after Baha asked why storage was needed at all. Nothing is stored:
       · 404 page (Baha's ask): the logo is the top of a barbed-wire bat —
         the bat swings in and bonks the zero crooked; "swing and a miss"
         terminal copy, MISS statusline. Served for HTML requests that fall
-        through profiles/redirects on fslides.dev (status 404, no-store)
+        through profiles/redirects on fslides.dev (status 404, no-store);
+        unknown-GitHub-user profiles get their own bat page ("no decks to
+        swing at") — and fixed the [hidden]-vs-display:flex bug that left
+        the empty profile skeleton visible behind the 404 text
+      · GitHub-parity account UX (2026-07-25): avatar in the nav everywhere —
+        player website-mode nav (landing + all deck-site pages) and profile —
+        with a dropdown: your profile (~/decks), github, sign out; "sign in"
+        button when logged out
+      · Landing hero v3: self-typing terminal demo (curl one-liner → ✓ repo
+        → ▶ live URL, looping), breathing orange glow, drifting embers,
+        $-wordmark with caret
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
