@@ -6,8 +6,12 @@
 > the web is for viewing, reviewing, and discovering. The SaaS layer (fslides.dev)
 > sells identity and convenience — never lock-in. The engine stays open source.
 >
-> **Architecture principle.** Decks stay static and self-sufficient. Server-side
-> capability lives in one small authenticated **gateway**, not in deck hosting.
+> **Architecture principle (rev. 2026-07-24).** Git is the source of truth;
+> **fslides.dev is the stage**: decks render at `fslides.dev/@owner/repo`,
+> served from R2, deployed by `fslides deploy` (local: gh token with push
+> verified; CI: GitHub Actions OIDC). GitHub Pages remains possible via
+> `fslides build`, but is no longer the default path. The gateway stays the
+> single server-side component.
 
 **Domain:** `fslides.dev` — purchased 2026-07-23. (`fslides.com` optional later.)
 
@@ -55,6 +59,12 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 - [ ] Docs: quickstart, recording/narration guide, commenting guide, contributor guide (incl. git-lfs note)
 
 **Design system:** `packages/site/slides/ui.css` ("terminal precision": mono-forward, 12-14px, hairline borders, dense rows) — applied to dashboard/docs/templates 2026-07-24 after Baha rejected the first-pass look as too big/crude/not dev-likable. Landing deck slides keep large type (correct for slides); align them to this identity in a future pass.
+
+## Phase 2.5 — Hosted decks (fslides.dev/@owner/repo) — DECIDED 2026-07-24
+- [ ] R2 bucket + site-worker serving of `/@owner/repo/*`
+- [ ] Gateway `PUT /publish` — auth: local gh token (push verified) or Actions OIDC (repository claim)
+- [ ] `fslides deploy` command (build + upload); scaffold workflow deploys here instead of Pages
+- [ ] Dashboard links to fslides.dev URLs
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
