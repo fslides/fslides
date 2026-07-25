@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>404 — fslides</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: #0d0f14; }
+    body {
+      font-family: 'JetBrains Mono', monospace; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: #e8eaf0; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: radial-gradient(rgba(240,80,0,0.06) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+    ::selection { background: #F05000; color: #fff; }
+    a { color: inherit; text-decoration: none; }
+
+    .bar {
+      display: flex; align-items: center; padding: 0 22px; height: 52px;
+      border-bottom: 1px solid rgba(255,255,255,0.09); background: #12151c;
+    }
+    .wordmark { font-weight: 700; font-size: 1.05rem; }
+    .wordmark .p { color: #F05000; }
+    .wordmark .caret { display: inline-block; width: 8px; height: 15px; background: #F05000; vertical-align: -2px; margin-left: 2px; animation: blink 1.1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .stage {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 34px; padding: 40px 20px; position: relative; overflow: hidden;
+    }
+
+    .num {
+      font-size: clamp(6rem, 22vw, 15rem); font-weight: 700; letter-spacing: 0.02em;
+      line-height: 1; display: flex; align-items: baseline; position: relative; z-index: 2;
+      user-select: none;
+    }
+    .num .zero {
+      display: inline-block; color: #F05000; position: relative;
+      transform-origin: 50% 92%;
+      animation: bonk 0.55s cubic-bezier(.3,1.6,.5,1) 0.62s both;
+    }
+    @keyframes bonk {
+      0%   { transform: none; }
+      35%  { transform: translate(10px, -26px) rotate(11deg); }
+      100% { transform: translate(6px, 0) rotate(14deg); }
+    }
+    .num .zero::after {
+      /* impact flash */
+      content: '✶'; position: absolute; top: -0.08em; right: -0.25em;
+      font-size: 0.28em; color: #FF6A1A; opacity: 0;
+      animation: spark 0.5s ease 0.62s both;
+    }
+    @keyframes spark { 0% { opacity: 0; transform: scale(0.4); } 30% { opacity: 1; transform: scale(1.25); } 100% { opacity: 0; transform: scale(0.8) rotate(40deg); } }
+
+    /* ── the bat — wood, taper, knob, barbed wire ── */
+    .bat-wrap {
+      position: absolute; z-index: 1; width: min(42vw, 520px); pointer-events: none;
+      right: max(4vw, calc(50% - 500px)); bottom: 30%;
+    }
+    .bat {
+      width: 100%; display: block;
+      transform-origin: 8% 92%;
+      animation: swing 0.85s cubic-bezier(.25,0,.3,1) both;
+    }
+    @keyframes swing {
+      0%   { transform: rotate(-116deg); }
+      55%  { transform: rotate(-30deg); }  /* CRACK — the zero takes it at ~0.62s */
+      75%  { transform: rotate(-48deg); }
+      100% { transform: rotate(-42deg); }
+    }
+
+    .term {
+      z-index: 4; text-shadow: 0 2px 10px rgba(13,15,20,0.9); font-size: clamp(0.85rem, 2vw, 1.05rem); line-height: 1.9;
+      color: rgba(232,234,240,0.75); text-align: left; max-width: 92vw;
+    }
+    .term .p { color: #F05000; }
+    .term .err { color: #FF6A1A; }
+    .term .dim { color: rgba(232,234,240,0.4); }
+
+    .actions { display: flex; gap: 14px; z-index: 4; }
+    .actions a { background: rgba(13,15,20,0.85); }
+    .actions a {
+      font-size: 0.95rem; color: rgba(232,234,240,0.75);
+      border: 1px solid rgba(255,255,255,0.15); padding: 10px 18px;
+    }
+    .actions a:hover { color: #F05000; border-color: #F05000; }
+    .actions a b { color: #F05000; font-weight: 400; }
+
+    .statusline {
+      display: flex; align-items: center; height: 30px; border-top: 1px solid rgba(255,255,255,0.09);
+      background: #12151c; font-size: 0.82rem; color: rgba(232,234,240,0.55);
+      padding: 0 14px; gap: 14px;
+    }
+    .statusline .mode { background: #F05000; color: #fff; font-weight: 700; padding: 2px 8px; }
+    .statusline .right { margin-left: auto; }
+
+    @media (max-width: 700px) {
+      .bat-wrap { width: 72vw; right: -6vw; bottom: 30%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a class="wordmark" href="/"><span class="p">$</span> fslides<span class="caret"></span></a>
+  </header>
+
+  <main class="stage">
+    <div class="num">4<span class="zero">0</span>4</div>
+
+    <div class="bat-wrap">
+      <svg class="bat" viewBox="0 0 560 180" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="wood" x1="0" y1="60" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#b05a1e"/>
+            <stop offset="0.45" stop-color="#8a4318"/>
+            <stop offset="1" stop-color="#5f2c0e"/>
+          </linearGradient>
+          <linearGradient id="knob" x1="0" y1="55" x2="0" y2="125" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#9c4d1a"/>
+            <stop offset="1" stop-color="#552809"/>
+          </linearGradient>
+        </defs>
+        <!-- knob -->
+        <ellipse cx="30" cy="90" rx="14" ry="26" fill="url(#knob)"/>
+        <!-- tapered body: thin handle → fat barrel -->
+        <path d="M38 82 L200 78 C300 72 430 58 522 62 C544 63 552 74 552 90
+                 C552 106 544 117 522 118 C430 122 300 108 200 102 L38 98 Z"
+              fill="url(#wood)"/>
+        <!-- grain highlights -->
+        <path d="M120 84 C260 78 420 66 520 68" stroke="rgba(255,190,120,0.28)" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M160 96 C300 100 430 112 512 112" stroke="rgba(40,16,4,0.5)" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- barbed wire wraps on the barrel -->
+        <g stroke="#6d6f76" stroke-width="3.4" stroke-linecap="round" fill="none">
+          <path d="M318 62 C306 82 310 100 326 112"/>
+          <path d="M326 112 C344 96 344 76 330 61"/>
+          <path d="M368 60 C356 80 360 100 376 114"/>
+          <path d="M376 114 C394 98 394 76 380 59"/>
+          <path d="M420 58 C408 78 412 100 428 116"/>
+          <path d="M428 116 C446 100 446 76 432 58"/>
+          <path d="M472 58 C460 78 464 100 480 116"/>
+          <path d="M480 116 C498 100 498 78 484 58"/>
+          <path d="M310 70 C370 62 460 60 540 70"/>
+          <path d="M316 104 C380 114 470 116 544 104"/>
+        </g>
+        <!-- barbs -->
+        <g stroke="#84868e" stroke-width="2.6" stroke-linecap="round">
+          <path d="M322 58 l-7 -9 M322 58 l9 -7"/>
+          <path d="M372 56 l-7 -9 M372 56 l9 -7"/>
+          <path d="M424 54 l-7 -9 M424 54 l9 -7"/>
+          <path d="M476 54 l-7 -9 M476 54 l9 -7"/>
+          <path d="M330 116 l-8 8 M330 116 l8 8"/>
+          <path d="M382 118 l-8 8 M382 118 l8 8"/>
+          <path d="M434 120 l-8 8 M434 120 l8 8"/>
+          <path d="M486 118 l-8 8 M486 118 l8 8"/>
+        </g>
+        <!-- wire glints -->
+        <g fill="#c9ccd4">
+          <circle cx="326" cy="63" r="1.8"/><circle cx="378" cy="61" r="1.8"/>
+          <circle cx="430" cy="60" r="1.8"/><circle cx="482" cy="60" r="1.8"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="term">
+      <div><span class="p">$</span> fslides open <span id="path">/…</span></div>
+      <div><span class="err">error 404:</span> swing and a miss — nothing lives at this path.</div>
+      <div class="dim"># the deck you're after moved, was struck out, or never stepped up to the plate</div>
+    </div>
+
+    <div class="actions">
+      <a href="/"><b>[</b> ← home <b>]</b></a>
+      <a href="/docs/"><b>[</b> docs <b>]</b></a>
+    </div>
+  </main>
+
+  <footer class="statusline">
+    <span class="mode">MISS</span>
+    <span>0 for 1 at the plate</span>
+    <span class="right">decks render live from GitHub</span>
+  </footer>
+
+<script>
+  document.getElementById('path').textContent = location.pathname + location.search;
+</script>
+</body>
+</html>

@@ -16,6 +16,7 @@ import PLAYER from './vendor/player.html';
 import RUNTIME from './vendor/fuckslides.js.txt';
 import LOGO from './vendor/logo.png';
 import PROFILE from './profile.html';
+import NOTFOUND from './notfound.html';
 
 const TYPES = {
   html: 'text/html; charset=utf-8', js: 'application/javascript', css: 'text/css',
@@ -55,6 +56,13 @@ export default {
         (url.pathname.endsWith('/') ? '/' : '') + url.search, 301);
     }
 
+    // everything else struck out — swing the bat
+    if ((request.headers.get('Accept') || '').includes('text/html')) {
+      return new Response(NOTFOUND, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
     return asset;
   },
 };

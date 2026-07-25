@@ -118,6 +118,10 @@ after Baha asked why storage was needed at all. Nothing is stored:
         owner mode adds 👥 shared-with (collaborators via Link-header count)
       · Thumbnails zoom-crop to the slide's central region (~1.6×) so
         preview text is readable instead of a 4×-shrunk full slide
+      · 404 page (Baha's ask): the logo is the top of a barbed-wire bat —
+        the bat swings in and bonks the zero crooked; "swing and a miss"
+        terminal copy, MISS statusline. Served for HTML requests that fall
+        through profiles/redirects on fslides.dev (status 404, no-store)
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
