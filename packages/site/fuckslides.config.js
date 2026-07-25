@@ -5,8 +5,8 @@ module.exports = {
   gateway: 'https://api.fslides.dev',
   selection: false,               // website mode: no element selection on the landing deck
   nav: [
-    { label: '+ new deck', title: 'create a deck — click a line to copy', menu: [
-      { cmd: 'curl -fsSL https://fslides.dev/install | sh' },
+    { label: '+ new deck', title: 'nothing → live deck, one line — click to copy', menu: [
+      { cmd: 'curl -fsSL fslides.dev/new | sh -s -- my-deck --template charcoal' },
       { cmd: 'fslides scaffold my-deck --template charcoal' },
       { cmd: '/plugin marketplace add fslides/fslides' },
     ]},

@@ -1,0 +1,25 @@
+#!/bin/sh
+# fslides one-liner — nothing → live deck on GitHub Pages
+#   curl -fsSL https://fslides.dev/new | sh -s -- my-deck --template charcoal
+# Installs fslides if missing, then scaffolds: repo + CI + Pages + comments.
+set -e
+
+say()  { printf '\033[38;5;202m›\033[0m %s\n' "$1"; }
+fail() { printf '\033[31m✗\033[0m %s\n' "$1" >&2; exit 1; }
+
+[ -n "$1" ] || fail "usage: curl -fsSL fslides.dev/new | sh -s -- <deck-name> [--template charcoal|paper] [--private]"
+
+command -v node >/dev/null 2>&1 || fail "node not found — install Node 20+ first (https://nodejs.org)"
+command -v gh >/dev/null 2>&1 || fail "GitHub CLI not found — https://cli.github.com then: gh auth login"
+gh auth status >/dev/null 2>&1 || fail "GitHub CLI not authenticated — run: gh auth login"
+
+if ! command -v fslides >/dev/null 2>&1; then
+  say "installing fslides…"
+  npm install -g fslides --silent || fail "npm install failed — try: sudo npm install -g fslides"
+fi
+
+say "scaffolding $1…"
+fslides scaffold "$@"
+
+say "authoring next:"
+printf '    \033[38;5;202m$\033[0m cd %s && npm install && fslides serve\n' "$1"

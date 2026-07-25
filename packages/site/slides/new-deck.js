@@ -21,10 +21,7 @@
     menu = document.createElement('div');
     menu.className = 'cta-menu';
     menu.innerHTML = `
-      <div class="cta-head">create a deck — click a line to copy</div>
-      <div class="cta-row" data-cmd="curl -fsSL https://fslides.dev/install | sh">
-        <span class="cmd">curl -fsSL https://fslides.dev/install | sh</span><span class="lbl">once</span><span class="cpy">copy</span>
-      </div>
+      <div class="cta-head">nothing → live deck, one line — click to copy</div>
       <div class="cta-row" id="cta-scaffold">
         <span class="cmd"></span>
         <select id="cta-tpl" onclick="event.stopPropagation()">
@@ -47,7 +44,7 @@
     const tplSel = menu.querySelector('#cta-tpl');
     function scaffoldCmd() {
       const t = tplSel.value;
-      return 'fslides scaffold my-deck' + (t ? ' --template ' + t : '');
+      return 'curl -fsSL fslides.dev/new | sh -s -- my-deck' + (t ? ' --template ' + t : '');
     }
     function syncScaffold() { scaffoldRow.querySelector('.cmd').textContent = scaffoldCmd(); }
     tplSel.addEventListener('change', syncScaffold);
