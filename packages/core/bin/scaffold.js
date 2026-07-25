@@ -97,37 +97,11 @@ slides/recordings/*.mp3  filter=lfs diff=lfs merge=lfs -text
 `, 'utf8');
   }
 
-  fs.mkdirSync(path.join(dir, '.github', 'workflows'), { recursive: true });
-  fs.writeFileSync(path.join(dir, '.github', 'workflows', 'deploy.yml'), `name: Deploy deck to fslides.dev
-
-on:
-  push:
-    branches: ["main"]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  id-token: write   # OIDC — the gateway verifies the repository claim
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install
-      - run: npx fslides deploy
-`, 'utf8');
-
   fs.writeFileSync(path.join(dir, 'README.md'), `# ${name}
 
 A [fslides](https://github.com/fslides/fslides) presentation. Every slide is an HTML file in \`slides/\` — edit them like code.
 
-**Watch it:** https://decks.fslides.dev/${repo}/ (deployed automatically on every push to \`main\`)
+**Watch it:** https://decks.fslides.dev/${repo}/ — renders straight from this repo; every push to \`main\` is live within a minute.
 
 ## Contribute
 
@@ -181,7 +155,7 @@ Send a PR when you're happy.
   ✓  ${repo} is live.
 
      Repo:     https://github.com/${repo}
-     Live:     https://decks.fslides.dev/${repo}/   (first deploy running now)
+     Live:     https://decks.fslides.dev/${repo}/   (renders straight from the repo — no CI, no build)
      Comments: press K in the player → issues on the repo
 
      One-time (skip if the fslides app is installed with "All repositories"):

@@ -4,6 +4,10 @@
   "scripts": {
     "serve": "fslides serve",
     "build": "fslides build _site",
-    "deploy": "fslides build _site && wrangler deploy"
+    "deploy": "npm run sync-vendor && fslides build _site && wrangler deploy",
+    "sync-vendor": "mkdir -p src/vendor && cp ../core/player.html src/vendor/player.html && cp ../core/js/fuckslides.js src/vendor/fuckslides.js.txt && cp ../core/logo.png src/vendor/logo.png"
+  },
+  "dependencies": {
+    "json5": "^2.2.3"
   }
 }

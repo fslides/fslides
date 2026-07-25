@@ -6,12 +6,14 @@
 > the web is for viewing, reviewing, and discovering. The SaaS layer (fslides.dev)
 > sells identity and convenience — never lock-in. The engine stays open source.
 >
-> **Architecture principle (rev. 2026-07-24).** Git is the source of truth;
-> **fslides.dev is the stage**: decks render at `fslides.dev/@owner/repo`,
-> served from R2, deployed by `fslides deploy` (local: gh token with push
-> verified; CI: GitHub Actions OIDC). GitHub Pages remains possible via
+> **Architecture principle (rev. 2026-07-24).** Git is the source of truth —
+> and the only storage. **decks.fslides.dev is the stage**: decks render on
+> the fly at `decks.fslides.dev/owner/repo`, assembled at the edge straight
+> from the repo on every request. `git push` is publishing; there is no
+> deploy step, no CI, no bucket. GitHub Pages remains possible via
 > `fslides build`, but is no longer the default path. The gateway stays the
-> single server-side component.
+> single server-side component; decks live on their own origin, isolated
+> from app tokens.
 
 **Domain:** `fslides.dev` — purchased 2026-07-23. (`fslides.com` optional later.)
 
@@ -60,11 +62,26 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 
 **Design system:** `packages/site/slides/ui.css` ("terminal precision": mono-forward, 12-14px, hairline borders, dense rows) — applied to dashboard/docs/templates 2026-07-24 after Baha rejected the first-pass look as too big/crude/not dev-likable. Landing deck slides keep large type (correct for slides); align them to this identity in a future pass.
 
-## Phase 2.5 — Hosted decks (fslides.dev/@owner/repo) — DECIDED 2026-07-24
-- [ ] R2 bucket + site-worker serving of `/@owner/repo/*`
-- [ ] Gateway `PUT /publish` — auth: local gh token (push verified) or Actions OIDC (repository claim)
-- [ ] `fslides deploy` command (build + upload); scaffold workflow deploys here instead of Pages
-- [ ] Dashboard links to fslides.dev URLs
+## Phase 2.5 — Hosted decks (decks.fslides.dev/owner/repo) — SHIPPED 2026-07-24
+Decided 2026-07-24; re-architected same day from R2 storage to render-on-the-fly
+after Baha asked why storage was needed at all. Nothing is stored:
+- [x] Site worker renders decks from GitHub at request time — fetches the config
+      (JSON5-parsed literal, never executed) + notes.json from raw.githubusercontent,
+      assembles the player at the edge, proxies slides/assets/recordings (LFS
+      pointers resolved via media.githubusercontent). `git push` IS publishing —
+      no CI, no build, no storage, live ≤60s (404s cached 15s)
+- [x] Player hosted mode: server injects `RECORDINGS = null`, player discovers
+      recordings via HEAD probes (.webm/.mp4/.m4a per slide)
+- [x] Own origin decks.fslides.dev — user JS can never read fslides.dev
+      localStorage (dashboard tokens); /@owner/repo on the app origin 301s over
+- [x] Abuse posture: PUBLISHERS owner allowlist (env, currently bahaaldine+fslides;
+      `*` + per-owner quotas is the path to opening up). No storage = no storage abuse
+- [x] Scaffold: no workflow at all anymore (repo is live on first push); summary,
+      README, dashboard, site copy all point at decks.fslides.dev
+- [x] Constraint (documented in the 422 error): hosted configs must be literal
+      objects; public repos only (issues-only app can't read private contents)
+- E2E-verified in headless Chrome against bahaaldine/test-deck: player boots,
+  slides render, arrows navigate, recording probe finds cover.webm
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 

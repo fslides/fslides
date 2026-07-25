@@ -1,5 +1,5 @@
 #!/bin/sh
-# fslides one-liner — nothing → live deck on GitHub Pages
+# fslides one-liner — nothing → live deck at decks.fslides.dev
 #   curl -fsSL https://fslides.dev/new | sh -s -- my-deck --template charcoal
 # Installs fslides if missing, then scaffolds: repo + CI + Pages + comments.
 set -e

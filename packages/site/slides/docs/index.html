@@ -33,7 +33,7 @@
 <span class="p">$</span> cd my-deck &amp;&amp; npm install
 <span class="p">$</span> fslides serve              <span class="c"># author with live reload</span></pre>
     <p><code>scaffold</code> needs the <a href="https://cli.github.com">GitHub CLI</a> authenticated (<code>gh auth login</code>). For a local-only deck without a repo, use <code>fslides create my-deck</code>.</p>
-    <p>Every push to <code>main</code> rebuilds and publishes your deck to GitHub Pages. That's the whole publishing story.</p>
+    <p>Every push to <code>main</code> is live at <code>decks.fslides.dev/you/your-deck</code> within a minute — rendered straight from the repo, no CI, no build step. That's the whole publishing story.</p>
 
     <h2 id="slides">Writing slides</h2>
     <p>A slide is a <strong>plain HTML file</strong> in <code>slides/</code>, designed on a fixed 1280×720 canvas. Any CSS, any JS, any library. Add the file, then register it in <code>fslides.config.js</code>:</p>

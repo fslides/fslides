@@ -11,6 +11,16 @@ routes = [
 [assets]
 directory = "_site"
 
-[[r2_buckets]]
-binding = "DECKS"
-bucket_name = "fslides-decks"
+[vars]
+PUBLISHERS = "bahaaldine,fslides"
+
+# player/runtime/logo vendored from packages/core (npm run sync-vendor)
+[[rules]]
+type = "Text"
+globs = ["**/*.html", "**/*.txt"]
+fallthrough = true
+
+[[rules]]
+type = "Data"
+globs = ["**/*.png"]
+fallthrough = true
