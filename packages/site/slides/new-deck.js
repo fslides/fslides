@@ -1,5 +1,4 @@
-// [+ new deck] — the primary CTA in every top bar. Opens a contextual menu
-// of copyable commands; template select rewrites the scaffold line.
+// [+ new deck] — the primary CTA in every top bar. Two lines, two drivers.
 (function () {
   const bar = document.querySelector('.bar nav');
   if (!bar) return;
@@ -21,39 +20,22 @@
     menu = document.createElement('div');
     menu.className = 'cta-menu';
     menu.innerHTML = `
-      <div class="cta-head">nothing → live deck, one line — click to copy</div>
-      <div class="cta-row" id="cta-scaffold">
-        <span class="cmd"></span>
-        <select id="cta-tpl" onclick="event.stopPropagation()">
-          <option value="charcoal">charcoal</option>
-          <option value="paper">paper</option>
-          <option value="">minimal</option>
-        </select>
-        <span class="cpy">copy</span>
+      <div class="cta-head">nothing → live deck — pick your driver</div>
+      <div class="cta-row" data-cmd="curl -fsSL fslides.dev/new | sh -s -- my-deck">
+        <span class="cmd">curl -fsSL fslides.dev/new | sh -s -- my-deck</span><span class="lbl">you drive</span><span class="cpy">copy</span>
       </div>
-      <div class="cta-head" style="margin-top:4px">or let your agent do it</div>
       <div class="cta-row" data-cmd="/plugin marketplace add fslides/fslides">
-        <span class="cmd nodollar">/plugin marketplace add fslides/fslides</span><span class="lbl">claude code</span><span class="cpy">copy</span>
-      </div>`;
+        <span class="cmd nodollar">/plugin marketplace add fslides/fslides</span><span class="lbl">your agent drives</span><span class="cpy">copy</span>
+      </div>
+      <div class="cta-head" style="padding-top:6px">ships with the charcoal template · <a href="/templates/" style="color:var(--acc-hi);text-decoration:none">more →</a></div>`;
     const r = btn.getBoundingClientRect();
     menu.style.left = Math.min(r.left, innerWidth - 500) + 'px';
     menu.style.top = (r.bottom + 8) + 'px';
     document.body.appendChild(menu);
 
-    const scaffoldRow = menu.querySelector('#cta-scaffold');
-    const tplSel = menu.querySelector('#cta-tpl');
-    function scaffoldCmd() {
-      const t = tplSel.value;
-      return 'curl -fsSL fslides.dev/new | sh -s -- my-deck' + (t ? ' --template ' + t : '');
-    }
-    function syncScaffold() { scaffoldRow.querySelector('.cmd').textContent = scaffoldCmd(); }
-    tplSel.addEventListener('change', syncScaffold);
-    syncScaffold();
-
     menu.querySelectorAll('.cta-row').forEach(row => {
       row.addEventListener('click', () => {
-        const cmd = row.dataset.cmd || scaffoldCmd();
-        navigator.clipboard.writeText(cmd).then(() => {
+        navigator.clipboard.writeText(row.dataset.cmd).then(() => {
           row.classList.add('copied');
           row.querySelector('.cpy').textContent = 'copied ✓';
           setTimeout(() => { row.classList.remove('copied'); row.querySelector('.cpy').textContent = 'copy'; }, 1600);

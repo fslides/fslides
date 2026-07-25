@@ -161,9 +161,10 @@ npm run serve        # opens the deck locally with the full player
 Send a PR when you're happy.
 `, 'utf8');
 
-  // designed starter?
-  if (opts.template) {
-    require('./create').applyTemplate(dir, opts.template, 'slides');
+  // designed by default — 'minimal' gives the bare canvas
+  const tpl = opts.template === 'minimal' ? null : (opts.template || 'charcoal');
+  if (tpl) {
+    require('./create').applyTemplate(dir, tpl, 'slides');
   }
 
   // ── 2. git + GitHub repo ──

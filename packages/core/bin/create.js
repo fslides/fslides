@@ -31,7 +31,9 @@ function applyTemplate(destDir, templateName, slidesSubdir) {
 }
 
 module.exports = function create(name, templateName) {
-  if (!name) { console.error('Usage: fuckslides create <name> [--template charcoal|paper]'); process.exit(1); }
+  if (!name) { console.error('Usage: fuckslides create <name> [--template charcoal|paper|minimal]'); process.exit(1); }
+  // designed by default — 'minimal' gives the bare canvas
+  templateName = templateName === 'minimal' ? null : (templateName || 'charcoal');
 
   const dest = path.resolve(process.cwd(), name);
   if (fs.existsSync(dest)) { console.error(`❌  Directory "${name}" already exists.`); process.exit(1); }

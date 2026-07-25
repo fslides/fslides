@@ -72,6 +72,8 @@
     .cta-row:hover { background: rgba(240,80,0,0.1); }
     .cta-row .cmd { flex: 1; color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cta-row .cmd::before { content: '$ '; color: #FF6A1A; }
+    .cta-row .cmd.nodollar::before { content: ''; }
+    .cta-row .lbl { font-size: 0.6rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.07em; flex-shrink: 0; }
     .cta-row .cpy { color: rgba(255,255,255,0.3); font-size: 0.66rem; flex-shrink: 0; }
     .cta-row.copied .cpy { color: #4ade80; }
     .nav-btn { position: relative; }
@@ -3279,8 +3281,10 @@ const presoDisplayTitle = window.FUCKSLIDES_TITLE || window.FUCKSLIDES_NAME || '
         for (const item of l.menu) {
           const row = document.createElement('div');
           row.className = 'cta-row';
-          row.innerHTML = '<span class="cmd"></span><span class="cpy">copy</span>';
+          row.innerHTML = '<span class="cmd"></span><span class="lbl"></span><span class="cpy">copy</span>';
           row.querySelector('.cmd').textContent = item.cmd;
+          if (item.cmd.charAt(0) === '/') row.querySelector('.cmd').classList.add('nodollar');
+          row.querySelector('.lbl').textContent = item.note || '';
           row.addEventListener('click', () => {
             navigator.clipboard.writeText(item.cmd).then(() => {
               row.classList.add('copied');
