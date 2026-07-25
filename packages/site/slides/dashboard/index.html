@@ -3,175 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>fslides — your decks</title>
+  <title>~/decks — fslides</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ui.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
-      background: #0d0f14; color: rgba(255,255,255,0.85); line-height: 1.6; min-height: 100vh;
-    }
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: radial-gradient(rgba(56,189,248,0.04) 1px, transparent 1px);
-      background-size: 30px 30px; pointer-events: none;
-    }
-    header {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; gap: 18px;
-      padding: 14px 36px; background: rgba(13,15,20,0.92);
-      backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .wordmark { font-weight: 900; font-size: 1.25rem; letter-spacing: -0.04em; text-decoration: none;
-      background: linear-gradient(120deg, #fff 30%, #38BDF8); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    header nav { margin-left: auto; display: flex; gap: 20px; align-items: center; }
-    header nav a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
-    header nav a:hover { color: #38BDF8; }
-    #whoami { display: none; align-items: center; gap: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
-    #whoami img { width: 24px; height: 24px; border-radius: 50%; }
-
-    main { padding: 36px 36px 100px; position: relative; }
-    .page-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-    h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.03em; color: #fff; }
-    #count { color: rgba(255,255,255,0.35); font-size: 0.95rem; font-weight: 300; }
-
-    /* toolbar */
-    .toolbar { display: none; align-items: center; gap: 12px; margin-bottom: 26px; flex-wrap: wrap; }
-    #search {
-      flex: 1; min-width: 240px; max-width: 460px;
-      background: #16181f; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
-      padding: 11px 16px; color: #fff; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none;
-    }
-    #search:focus { border-color: rgba(56,189,248,0.5); }
-    #search::placeholder { color: rgba(255,255,255,0.25); }
-    select {
-      background: #16181f; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
-      padding: 11px 12px; color: rgba(255,255,255,0.75); font-family: 'Inter', sans-serif; font-size: 0.88rem; outline: none; cursor: pointer;
-    }
-    .view-toggle { display: inline-flex; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; }
-    .view-toggle button {
-      background: #16181f; border: none; color: rgba(255,255,255,0.45);
-      padding: 11px 14px; cursor: pointer; display: flex; align-items: center; gap: 7px;
-      font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600;
-    }
-    .view-toggle button.active { background: rgba(56,189,248,0.15); color: #38BDF8; }
-    .view-toggle svg { width: 14px; height: 14px; }
-
-    .signin {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: #38BDF8; color: #0d0f14; border: none; border-radius: 10px;
-      padding: 13px 26px; font-size: 1rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;
-    }
-    .muted { color: rgba(255,255,255,0.35); font-size: 0.85rem; margin-top: 14px; }
-    #loading, #empty, #nomatch { color: rgba(255,255,255,0.35); font-style: italic; }
-    #empty a, #nomatch a { color: #38BDF8; }
-
-    /* grid view */
-    #decks.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
-    #decks.grid .deck {
-      background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit;
-      transition: border-color 0.15s, transform 0.15s; display: block;
-    }
-    #decks.grid .deck:hover { border-color: rgba(56,189,248,0.5); transform: translateY(-3px); }
-    .thumb { position: relative; width: 100%; padding-bottom: 56.25%; background: #16181f; overflow: hidden; }
-    .thumb iframe {
-      position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
-      border: none; transform-origin: top left; pointer-events: none;
-    }
-    #decks.grid .info { padding: 13px 17px 15px; }
-    #decks.grid .name { font-weight: 800; color: #fff; font-size: 0.96rem; margin-bottom: 2px; word-break: break-word; }
-    #decks.grid .meta { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
-
-    /* list view */
-    #decks.list { display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.09); border-radius: 12px; overflow: hidden; }
-    #decks.list .deck {
-      display: flex; align-items: center; gap: 18px; text-decoration: none; color: inherit;
-      padding: 13px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.015); transition: background 0.12s;
-    }
-    #decks.list .deck:last-child { border-bottom: none; }
-    #decks.list .deck:hover { background: rgba(56,189,248,0.07); }
-    #decks.list .thumb { display: none; }
-    #decks.list .info { display: flex; align-items: center; gap: 18px; flex: 1; min-width: 0; padding: 0; }
-    #decks.list .name { font-weight: 700; color: #fff; font-size: 0.95rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    #decks.list .meta { font-size: 0.78rem; color: rgba(255,255,255,0.4); flex-shrink: 0; }
-    #decks.list .deck::after { content: '↗'; color: #38BDF8; font-weight: 700; flex-shrink: 0; }
-
-    .lock { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-      color: rgba(255,255,255,0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 1px 8px; margin-left: 8px; vertical-align: 2px; }
-
-    .newdeck { margin-top: 56px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 34px; max-width: 780px; }
-    .newdeck h2 { font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
-    .newdeck p { font-weight: 300; color: rgba(255,255,255,0.6); margin-bottom: 14px; }
-    .newdeck p strong { color: #fff; font-weight: 700; }
-    pre {
-      font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; line-height: 1.9;
-      background: #16181f; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-      padding: 13px 18px; margin-bottom: 12px; overflow-x: auto;
-    }
-    pre .p { color: #38BDF8; }
-    pre .c { color: rgba(255,255,255,0.3); }
-    code { font-family: 'JetBrains Mono', monospace; color: #7DD3FC; font-size: 0.92em; }
+    #decks.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    #decks.grid .info { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-family: var(--mono); font-size: 12px; }
+    #decks.grid .name { color: var(--fg); font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #decks.grid .meta { color: var(--faint); font-size: 11px; flex-shrink: 0; }
+    #decks.list .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); font-weight: 700; }
+    #decks.list .meta { color: var(--faint); font-size: 11.5px; flex-shrink: 0; }
+    #decks.list .row::after { content: '↗'; color: var(--acc); }
+    .toolbar { display: none; align-items: center; gap: 8px; margin: 0 0 18px; flex-wrap: wrap; }
+    #search { flex: 1; min-width: 220px; max-width: 380px; }
+    #whoami { display: none; align-items: center; gap: 7px; color: var(--dim); }
+    #whoami img { width: 18px; height: 18px; border-radius: 3px; }
+    .state { font-family: var(--mono); font-size: 12.5px; color: var(--faint); }
+    .state a { color: var(--acc); text-decoration: none; }
+    .newdeck { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 24px; max-width: 640px; }
+    .newdeck h2 { font-family: var(--mono); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 10px; }
+    .newdeck p { font-size: 13px; color: var(--dim); margin-bottom: 10px; }
+    .newdeck p strong { color: var(--txt); }
+    .newdeck a { color: var(--acc); text-decoration: none; }
   </style>
 </head>
 <body>
-  <header>
+  <header class="bar">
     <a class="wordmark" href="/">fslides</a>
     <nav>
-      <a href="/">Deck</a>
-      <a href="/docs/">Docs</a>
-      <a href="/templates/">Templates</a>
-      <span id="whoami"><img id="avatar" alt=""><span id="login"></span></span>
+      <a href="/">deck</a>
+      <a href="/docs/">docs</a>
+      <a href="/templates/">templates</a>
+      <a href="/dashboard/" class="here">~/decks</a>
+      <span id="whoami" class="mono"><img id="avatar" alt=""><span id="login"></span></span>
     </nav>
   </header>
   <main>
-    <div class="page-head">
-      <h1>Your decks</h1>
-      <span id="count"></span>
-    </div>
+    <div class="page-head"><h1>decks</h1><span class="state" id="count"></span></div>
+    <p class="page-sub">Repos tagged <span class="chip acc">fslides</span> or carrying a deck config — commenting wired, published on Pages.</p>
 
     <div id="signed-out">
-      <button class="signin" id="btn-signin">Sign in with GitHub</button>
-      <p class="muted">One popup. The fslides app can only ever touch issues — that's the whole grant.</p>
+      <button class="btn primary" id="btn-signin">Sign in with GitHub</button>
+      <p class="state" style="margin-top:12px">one popup · the app can only touch issues — that's the entire grant</p>
     </div>
 
     <div class="toolbar" id="toolbar">
-      <input id="search" type="search" placeholder="Search decks…" autocomplete="off">
+      <input id="search" type="search" placeholder="/ search decks" autocomplete="off">
       <select id="visibility">
-        <option value="all">All decks</option>
-        <option value="public">Public</option>
-        <option value="private">Private</option>
+        <option value="all">all</option>
+        <option value="public">public</option>
+        <option value="private">private</option>
       </select>
       <select id="sort">
-        <option value="updated">Recently updated</option>
-        <option value="name">Name A→Z</option>
+        <option value="updated">recent</option>
+        <option value="name">a→z</option>
       </select>
-      <div class="view-toggle">
-        <button id="view-grid" title="Grid">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="1" width="5.5" height="5.5" rx="1"/><rect x="1" y="9.5" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1"/></svg>
-          Grid
-        </button>
-        <button id="view-list" title="List">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-          List
-        </button>
+      <div class="seg">
+        <button id="view-grid"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="1" width="5.5" height="5.5" rx="1"/><rect x="1" y="9.5" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1"/></svg>grid</button>
+        <button id="view-list"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>list</button>
       </div>
     </div>
 
     <div id="signed-in" style="display:none">
-      <div id="loading">loading your decks…</div>
-      <div id="empty" style="display:none">No decks yet — create one below, or <a href="https://github.com/apps/fslides/installations/new">enable the app on an existing deck repo</a>.</div>
-      <div id="nomatch" style="display:none">No decks match.</div>
+      <div id="loading" class="state">loading decks…</div>
+      <div id="empty" class="state" style="display:none">no decks yet — scaffold one below, or <a href="https://github.com/apps/fslides/installations/new">enable the app on a deck repo</a></div>
+      <div id="nomatch" class="state" style="display:none">no match</div>
       <div id="decks" class="grid"></div>
     </div>
 
     <div class="newdeck">
-      <h2>New deck</h2>
-      <p>Deck creation lives in the terminal, on purpose — it's one command, and it's what your <strong>AI agent</strong> runs too:</p>
+      <h2>new deck</h2>
+      <p>Creation lives in the terminal — one command, same for you and your <strong>agent</strong>:</p>
       <pre><span class="p">$</span> fslides scaffold my-deck --template charcoal   <span class="c"># repo + CI + Pages + comments</span></pre>
-      <p>Claude Code: <code>/plugin marketplace add fslides/fslides</code> — then describe the deck. Spec: <a href="/agents.md" style="color:#38BDF8">agents.md</a>.</p>
+      <p>Claude Code: <code>/plugin marketplace add fslides/fslides</code> · spec: <a href="/agents.md">agents.md</a></p>
     </div>
   </main>
 
@@ -217,14 +122,12 @@
       return false;
     }
 
-    // ── view / filter / sort state ──
     const pref = (k, d) => { try { return localStorage.getItem(k) || d; } catch (_) { return d; } };
     const setPref = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
     let view = pref('fs-dash-view', 'grid');
 
     function setView(v) {
       view = v; setPref('fs-dash-view', v);
-      $('decks').className = v;
       $('view-grid').classList.toggle('active', v === 'grid');
       $('view-list').classList.toggle('active', v === 'list');
       render();
@@ -234,6 +137,9 @@
     $('search').addEventListener('input', render);
     $('visibility').addEventListener('change', render);
     $('sort').addEventListener('change', render);
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && document.activeElement !== $('search')) { e.preventDefault(); $('search').focus(); }
+    });
 
     function scaleThumbs() {
       document.querySelectorAll('.thumb').forEach(t => {
@@ -255,31 +161,29 @@
         : (a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
 
       $('count').textContent = allDecks.length
-        ? (decks.length === allDecks.length ? allDecks.length + ' deck' + (allDecks.length > 1 ? 's' : '')
-           : decks.length + ' of ' + allDecks.length)
+        ? (decks.length === allDecks.length ? '· ' + allDecks.length : '· ' + decks.length + '/' + allDecks.length)
         : '';
       $('nomatch').style.display = allDecks.length && !decks.length ? 'block' : 'none';
 
       const box = $('decks');
+      box.className = view === 'list' ? 'rows list' : 'grid';
       box.innerHTML = '';
       for (const r of decks) {
         const url = `https://${r.owner.login}.github.io/${r.name}/`;
         const card = document.createElement('a');
-        card.className = 'deck';
         card.href = url; card.target = '_blank'; card.rel = 'noopener';
-        const priv = r.private ? '<span class="lock">private</span>' : '';
-        const meta = 'updated ' + new Date(r.pushed_at).toLocaleDateString();
+        const meta = new Date(r.pushed_at).toLocaleDateString();
+        const priv = r.private ? '<span class="chip">private</span>' : '';
         if (view === 'grid') {
+          card.className = 'card';
           card.innerHTML = `<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
-            <div class="info"><div class="name"></div><div class="meta">${meta}</div></div>`;
+            <div class="info"><span class="name"></span>${priv}<span class="meta">${meta}</span></div>`;
           card.querySelector('iframe').src = url + '#0';
-          card.querySelector('.name').innerHTML = priv;
-          card.querySelector('.name').insertAdjacentText('afterbegin', r.name);
         } else {
-          card.innerHTML = `<div class="info"><div class="name"></div><div class="meta">${meta}</div></div>`;
-          card.querySelector('.name').innerHTML = priv;
-          card.querySelector('.name').insertAdjacentText('afterbegin', r.name);
+          card.className = 'row';
+          card.innerHTML = `<span class="name"></span>${priv}<span class="meta">${meta}</span>`;
         }
+        card.querySelector('.name').textContent = r.name;
         box.appendChild(card);
       }
       if (view === 'grid') requestAnimationFrame(scaleThumbs);
@@ -312,7 +216,7 @@
         $('toolbar').style.display = 'flex';
         setView(view);
       } catch (e) {
-        $('loading').textContent = 'Couldn’t load (' + e.message + ') — try signing in again.';
+        $('loading').textContent = 'couldn’t load (' + e.message + ') — sign in again';
         $('signed-out').style.display = 'block';
       }
     }

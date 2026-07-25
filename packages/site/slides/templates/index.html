@@ -6,69 +6,35 @@
   <title>fslides — templates</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ui.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
-      background: #0d0f14; color: rgba(255,255,255,0.85); line-height: 1.7;
-    }
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: radial-gradient(rgba(56,189,248,0.04) 1px, transparent 1px);
-      background-size: 30px 30px; pointer-events: none;
-    }
-    header {
-      position: sticky; top: 0; z-index: 10;
-      display: flex; align-items: center; gap: 18px;
-      padding: 16px 32px; background: rgba(13,15,20,0.92);
-      backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-    .wordmark { font-weight: 900; font-size: 1.25rem; letter-spacing: -0.04em; text-decoration: none;
-      background: linear-gradient(120deg, #fff 30%, #38BDF8); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    header nav { margin-left: auto; display: flex; gap: 20px; }
-    header nav a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.9rem; font-weight: 600; }
-    header nav a:hover { color: #38BDF8; }
-
-    main { max-width: 1080px; margin: 0 auto; padding: 56px 24px 120px; position: relative; }
-    h1 { font-size: 2.6rem; font-weight: 900; letter-spacing: -0.03em; color: #fff; margin-bottom: 10px; }
-    .sub { color: rgba(255,255,255,0.5); font-size: 1.05rem; font-weight: 300; margin-bottom: 48px; }
-    .sub code { font-family: 'JetBrains Mono', monospace; color: #7DD3FC; font-size: 0.92em; }
-
-    .tpl { margin-bottom: 64px; }
-    .tpl h2 { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
-    .tpl .desc { color: rgba(255,255,255,0.55); font-weight: 300; margin-bottom: 8px; }
-    .tpl pre {
-      display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
-      background: #16181f; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-      padding: 8px 16px; margin-bottom: 20px;
-    }
-    .tpl pre .p { color: #38BDF8; }
-    .previews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .shot {
-      position: relative; width: 100%; padding-bottom: 56.25%;
-      border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-      background: #16181f;
-    }
-    .shot iframe {
-      position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
-      border: none; transform-origin: top left; pointer-events: none;
-    }
+    main { max-width: 1100px; margin: 0 auto; }
+    .tpl { margin-bottom: 48px; }
+    .tpl h2 { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--fg); margin-bottom: 3px; }
+    .tpl h2::before { content: '## '; color: var(--acc); font-weight: 400; }
+    .tpl .desc { color: var(--dim); font-size: 13px; margin-bottom: 10px; }
+    .tpl pre { display: inline-block; padding: 7px 14px; margin-bottom: 14px; }
+    .previews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .shot { position: relative; width: 100%; padding-bottom: 56.25%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+    .shot:hover { border-color: var(--line2); }
+    .shot iframe { position: absolute; top: 0; left: 0; width: 1280px; height: 720px; border: none; transform-origin: top left; pointer-events: none; }
     @media (max-width: 800px) { .previews { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-  <header>
+  <header class="bar">
     <a class="wordmark" href="/">fslides</a>
     <nav>
-      <a href="/">Deck</a>
-      <a href="/docs/">Docs</a>
-      <a href="/dashboard/">Your decks</a>
-      <a href="https://github.com/fslides/fslides">GitHub</a>
+      <a href="/">deck</a>
+      <a href="/docs/">docs</a>
+      <a href="/templates/" class="here">templates</a>
+      <a href="/dashboard/">~/decks</a>
+      <a href="https://github.com/fslides/fslides">github</a>
     </nav>
   </header>
   <main>
-    <h1>Templates</h1>
-    <p class="sub">Designed starting points for <code>fslides create</code> and <code>fslides scaffold</code>. Every slide below is live — the real HTML, scaled down.</p>
+    <div class="page-head"><h1>templates</h1></div>
+    <p class="page-sub">Designed starting points for <code>create</code> / <code>scaffold</code>. Every preview is live — real HTML, scaled down.</p>
 
     <div class="tpl">
       <h2>Charcoal</h2>
