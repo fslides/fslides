@@ -86,8 +86,7 @@
     <p>A slide is a <strong>plain HTML file</strong> in <code>slides/</code>, designed on a fixed 1280×720 canvas. Any CSS, any JS, any library. Add the file, then register it in <code>fuckslides.config.js</code>:</p>
     <pre>slides: [ 'cover.html', 'my-new-slide.html' ],
 labels: [ 'Cover',      'The Big Idea' ],</pre>
-    <p>The full slide skeleton and hard rules live in <a href="/templates/">Templates</a>
-      <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
+    <p>Start from a designed <a href="/templates/">template</a>, or from scratch. The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
 
     <h2 id="player">The player</h2>
     <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>F</kbd> present fullscreen.</p>
