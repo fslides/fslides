@@ -6,10 +6,19 @@ const fs   = require('fs');
 
 const [,, cmd, ...args] = process.argv;
 
+// Deck manifest: fslides.config.js preferred, fuckslides.config.js legacy.
+function resolveConfigPath(cwd) {
+  for (const f of ['fslides.config.js', 'fuckslides.config.js']) {
+    const p = path.join(cwd, f);
+    if (fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
 function loadConfig(cwd) {
-  const cfgPath = path.join(cwd, 'fuckslides.config.js');
-  if (!fs.existsSync(cfgPath)) {
-    console.error('❌  No fuckslides.config.js found. Run this from a presentation directory.');
+  const cfgPath = resolveConfigPath(cwd);
+  if (!cfgPath) {
+    console.error('❌  No fslides.config.js found. Run this from a presentation directory.');
     process.exit(1);
   }
   return require(cfgPath);

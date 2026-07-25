@@ -85,9 +85,9 @@ Candidates, unvalidated:
 - Auto-wire commenting on scaffold via GitHub App device flow: first run prints a one-time code (enable "Device Flow" on the app), token cached in ~/.config/fslides, then `PUT /user/installations/{id}/repositories/{repo_id}` adds each new repo to a selective installation automatically. (gh CLI tokens can't touch installation APIs — 403, verified 2026-07-24.) Not needed for "All repositories" installs, which remain the recommended default.
 
 **Housekeeping**
-- Rename `fuckslides.config.js` → `fslides.config.js` (read both, prefer new; update create/scaffold templates) — clean the last old-name trace before Phase 2 traffic
-- scaffold: set repo-local git identity when global config is missing (new machines fail the initial commit)
-- README/USAGE refresh once 0.5.0 ships (new toolbar, comments, build/scaffold)
+- [x] Renamed config to `fslides.config.js` (legacy read forever); scaffold/create/templates write the new name (2026-07-24)
+- [x] scaffold sets git identity from the gh account when missing (2026-07-24)
+- [x] README rewritten for the fslides/fslides era (2026-07-24)
 - Note for contributors: `git-lfs` required to fetch narration in cloned decks
 - npm publish requires interactive 2FA; local installs of fresh versions need `--min-release-age=0` (global 7-day cooldown is intentional)
 

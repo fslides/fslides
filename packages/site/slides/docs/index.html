@@ -83,7 +83,7 @@
     <p>Every push to <code>main</code> rebuilds and publishes your deck to GitHub Pages. That's the whole publishing story.</p>
 
     <h2 id="slides">Writing slides</h2>
-    <p>A slide is a <strong>plain HTML file</strong> in <code>slides/</code>, designed on a fixed 1280×720 canvas. Any CSS, any JS, any library. Add the file, then register it in <code>fuckslides.config.js</code>:</p>
+    <p>A slide is a <strong>plain HTML file</strong> in <code>slides/</code>, designed on a fixed 1280×720 canvas. Any CSS, any JS, any library. Add the file, then register it in <code>fslides.config.js</code>:</p>
     <pre>slides: [ 'cover.html', 'my-new-slide.html' ],
 labels: [ 'Cover',      'The Big Idea' ],</pre>
     <p>Start from a designed <a href="/templates/">template</a>, or from scratch. The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>

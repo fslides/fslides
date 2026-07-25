@@ -6,14 +6,14 @@ description: >-
   user wants a slide deck or presentation: starting from NOTHING (fslides
   scaffold creates the GitHub repo, CI, and live GitHub Pages URL in one
   command), from source material, or by improving an existing deck (a directory
-  containing fuckslides.config.js). Covers slides, speaker notes, narration,
+  containing fslides.config.js). Covers slides, speaker notes, narration,
   element-anchored review comments, and publishing. Full spec at
   https://fslides.dev/agents.md.
 ---
 
 # Authoring fslides decks
 
-An fslides deck is a directory with `fuckslides.config.js` (the manifest),
+An fslides deck is a directory with `fslides.config.js` (the manifest),
 `slides/*.html` (one self-contained HTML file per slide, fixed 1280×720), and
 `notes.json` (speaker notes). The full authoring spec — slide skeleton, config
 schema, hard rules — is one page: read it before your first slide.
@@ -35,7 +35,7 @@ cd <deck-name> && npm install && fslides serve
 1. Write/edit `slides/<name>.html` following the skeleton in the spec —
    self-contained HTML, fixed 1280×720 body, `/js/fuckslides.js` script tag,
    `scaleToFit` block, entrance animations via staggered CSS keyframes.
-2. Register every slide in `fuckslides.config.js` (`slides` + `labels`, same
+2. Register every slide in `fslides.config.js` (`slides` + `labels`, same
    index). Never name a slide `index.html`.
 3. Write the talk track in `notes.json` — it powers the teleprompter and
    Notes panel.

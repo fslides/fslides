@@ -56,7 +56,8 @@ window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
     return html.includes('</head>') ? html.replace('</head>', tag + '\n</head>') : html;
   }
 
-  const cfgPath   = path.join(cwd, 'fuckslides.config.js');
+  const cfgPath   = ['fslides.config.js', 'fuckslides.config.js']
+    .map(f => path.join(cwd, f)).find(p => fs.existsSync(p)) || path.join(cwd, 'fslides.config.js');
   const notesPath = path.join(cwd, 'notes.json');
   const recDir    = path.join(slidesDir, 'recordings');
 

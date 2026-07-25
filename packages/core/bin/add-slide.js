@@ -183,7 +183,7 @@ module.exports = function addSlide(slideName, templateName) {
   }
 
   const cwd = process.cwd();
-  const cfgPath = path.join(cwd, 'fuckslides.config.js');
+  const cfgPath = ['fslides.config.js','fuckslides.config.js'].map(x => path.join(cwd, x)).find(p => fs.existsSync(p)) || path.join(cwd, 'fslides.config.js');
   if (!require('fs').existsSync(cfgPath)) {
     console.error('❌  No fuckslides.config.js found. Run from a presentation directory.');
     process.exit(1);

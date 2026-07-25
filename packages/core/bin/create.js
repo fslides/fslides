@@ -20,7 +20,8 @@ function applyTemplate(destDir, templateName, slidesSubdir) {
   for (const f of manifest.slides) {
     fs.copyFileSync(path.join(tdir, f), path.join(slidesDir, f));
   }
-  const cfgPath = path.join(destDir, 'fuckslides.config.js');
+  const cfgPath = ['fslides.config.js', 'fuckslides.config.js']
+    .map(f => path.join(destDir, f)).find(p => fs.existsSync(p));
   let cfg = fs.readFileSync(cfgPath, 'utf8');
   const fmt = arr => "[\n    " + arr.map(x => `'${x}'`).join(',\n    ') + ",\n  ]";
   cfg = cfg.replace(/slides:\s*\[[^\]]*\]/, 'slides: ' + fmt(manifest.slides));

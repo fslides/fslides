@@ -52,7 +52,7 @@ module.exports = function scaffold(name, opts = {}) {
     fs.copyFileSync(path.join(tplSlides, f), path.join(dir, 'slides', dest));
   }
 
-  fs.writeFileSync(path.join(dir, 'fuckslides.config.js'), `module.exports = {
+  fs.writeFileSync(path.join(dir, 'fslides.config.js'), `module.exports = {
   name: '${name}',
   title: '${name}',
   repo: '${repo}',            // powers slide comments (GitHub issues)
@@ -153,7 +153,7 @@ npm run serve        # opens the deck locally with the full player
 \`\`\`
 
 - **Edit a slide:** change the HTML in \`slides/\`, the browser live-reloads.
-- **Add a slide:** \`npx fslides add-slide my-slide\`, then register it in \`fuckslides.config.js\`.
+- **Add a slide:** \`npx fslides add-slide my-slide\`, then register it in \`fslides.config.js\`.
 - **Comment on a slide:** press \`K\` in the player (or the 💬 button) — comments live in this repo's [issues](https://github.com/${repo}/issues), one per slide.
 - **Speaker notes:** press \`N\` in the player; notes save to \`notes.json\`.
 - **Record narration:** \`npm run serve\`, hit the mic button — audio or camera, saved under \`slides/recordings/\` and playable on the published deck.
@@ -171,6 +171,15 @@ Send a PR when you're happy.
   try {
     sh('git init -b main', { cwd: dir });
     if (hasLfs) { try { sh('git lfs install --local', { cwd: dir }); } catch (_) {} }
+    // fresh machines may have no git identity — fall back to the gh account
+    try { sh('git config user.name', { cwd: dir }); }
+    catch (_) {
+      try {
+        const u = JSON.parse(sh('gh api user'));
+        sh(`git config user.name ${JSON.stringify(u.name || u.login)}`, { cwd: dir });
+        sh(`git config user.email ${JSON.stringify(u.email || (u.login + '@users.noreply.github.com'))}`, { cwd: dir });
+      } catch (_) {}
+    }
     sh('git add -A', { cwd: dir });
     sh('git commit -m "scaffold: new fslides deck"', { cwd: dir });
     console.log(`  Creating GitHub repo (${opts.private ? 'private' : 'public'})…`);

@@ -11,7 +11,7 @@ Live copy: https://fslides.dev/agents.md · Source: https://github.com/fslides/f
 
 ```
 my-deck/
-├── fuckslides.config.js     # the manifest (name, title, slides, labels, repo, gateway)
+├── fslides.config.js     # the manifest (legacy name fuckslides.config.js also read)
 ├── notes.json               # per-slide speaker notes: { "<slide>.html": "…" }
 ├── package.json             # devDependency: fslides; scripts: serve/build/pdf
 ├── slides/
@@ -21,7 +21,7 @@ my-deck/
 └── .github/workflows/pages.yml   # CI: fslides build _site → GitHub Pages
 ```
 
-## The manifest (`fuckslides.config.js`)
+## The manifest (`fslides.config.js`)
 
 ```js
 module.exports = {

@@ -201,7 +201,7 @@ module.exports = async function importSlides(args) {
   labels: ${JSON.stringify(labels, null, 4).replace(/\n/g, '\n  ')},
 };
 `;
-  fs.writeFileSync(path.join(cwd, 'fuckslides.config.js'), config);
+  fs.writeFileSync(['fslides.config.js','fuckslides.config.js'].map(x => path.join(cwd, x)).find(p => fs.existsSync(p)) || path.join(cwd, 'fslides.config.js'), config);
 
   console.log(`
 ✅  ${slideFiles.length} slide${slideFiles.length > 1 ? 's' : ''} imported into slides/
