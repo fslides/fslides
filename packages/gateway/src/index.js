@@ -128,6 +128,77 @@ export default {
       return new Response(page, { status: 200, headers: HTML_HEADERS });
     }
 
+    // ── hosted decks: PUT /publish/{owner}/{repo}/{path…} ──
+    // Local: Authorization: Bearer <gh token> — gateway verifies push access.
+    // CI:    Authorization: Bearer <Actions OIDC JWT (aud=fslides.dev)> —
+    //        gateway verifies the signature and the repository claim.
+    if (url.pathname.startsWith('/publish/') && request.method === 'PUT') {
+      const parts = url.pathname.slice('/publish/'.length).split('/');
+      const owner = parts.shift(), repo = parts.shift();
+      const key = parts.join('/');
+      if (!owner || !repo || !key || key.includes('..')) {
+        return new Response('Bad path', { status: 400, headers: NO_STORE });
+      }
+      const auth = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+      if (!auth) return new Response('Missing token', { status: 401, headers: NO_STORE });
+
+      const allowed = await canPublish(auth, owner, repo);
+      if (!allowed) return new Response('Not authorized for ' + owner + '/' + repo, { status: 403, headers: NO_STORE });
+
+      const ct = request.headers.get('Content-Type') || 'application/octet-stream';
+      await env.DECKS.put(`${owner}/${repo}/${key}`.toLowerCase(), request.body, {
+        httpMetadata: { contentType: ct, cacheControl: 'public, max-age=60' },
+      });
+      return new Response(JSON.stringify({ ok: true, url: `https://fslides.dev/@${owner}/${repo}/${key}` }), {
+        status: 200, headers: { 'Content-Type': 'application/json', ...NO_STORE },
+      });
+    }
+
     return new Response('fslides gateway — see https://github.com/fslides/fslides', { status: 404 });
   },
 };
+
+// push-verified GitHub token OR verified Actions OIDC for owner/repo
+async function canPublish(token, owner, repo) {
+  // Actions OIDC JWTs have two dots and a decodable header
+  if (token.split('.').length === 3) {
+    try {
+      const claims = await verifyActionsOIDC(token);
+      return claims && String(claims.repository).toLowerCase() === (owner + '/' + repo).toLowerCase();
+    } catch (_) { return false; }
+  }
+  // plain GitHub token: must see the repo with push permission
+  try {
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'User-Agent': 'fslides-gateway' },
+    });
+    if (!r.ok) return false;
+    const data = await r.json();
+    return !!(data.permissions && (data.permissions.push || data.permissions.admin));
+  } catch (_) { return false; }
+}
+
+function b64urlToBytes(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  const bin = atob(s + '='.repeat((4 - s.length % 4) % 4));
+  return Uint8Array.from(bin, c => c.charCodeAt(0));
+}
+
+async function verifyActionsOIDC(jwt) {
+  const [h, p, sig] = jwt.split('.');
+  const header = JSON.parse(new TextDecoder().decode(b64urlToBytes(h)));
+  const claims = JSON.parse(new TextDecoder().decode(b64urlToBytes(p)));
+  if (claims.iss !== 'https://token.actions.githubusercontent.com') return null;
+  if (claims.aud !== 'fslides.dev') return null;
+  if (claims.exp * 1000 < Date.now()) return null;
+
+  const jwks = await (await fetch('https://token.actions.githubusercontent.com/.well-known/jwks')).json();
+  const jwk = (jwks.keys || []).find(k => k.kid === header.kid);
+  if (!jwk) return null;
+  const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+  const ok = await crypto.subtle.verify(
+    'RSASSA-PKCS1-v1_5', key,
+    b64urlToBytes(sig),
+    new TextEncoder().encode(h + '.' + p));
+  return ok ? claims : null;
+}

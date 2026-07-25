@@ -98,7 +98,7 @@ slides/recordings/*.mp3  filter=lfs diff=lfs merge=lfs -text
   }
 
   fs.mkdirSync(path.join(dir, '.github', 'workflows'), { recursive: true });
-  fs.writeFileSync(path.join(dir, '.github', 'workflows', 'pages.yml'), `name: Deploy deck to GitHub Pages
+  fs.writeFileSync(path.join(dir, '.github', 'workflows', 'deploy.yml'), `name: Deploy deck to fslides.dev
 
 on:
   push:
@@ -107,18 +107,10 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  id-token: write   # OIDC — the gateway verifies the repository claim
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: \${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -128,20 +120,14 @@ jobs:
         with:
           node-version: '20'
       - run: npm install
-      - run: npx fslides build _site
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: './_site'
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      - run: npx fslides deploy
 `, 'utf8');
 
   fs.writeFileSync(path.join(dir, 'README.md'), `# ${name}
 
 A [fslides](https://github.com/fslides/fslides) presentation. Every slide is an HTML file in \`slides/\` — edit them like code.
 
-**Watch it:** https://${owner}.github.io/${name}/ (deployed automatically on every push to \`main\`)
+**Watch it:** https://fslides.dev/@${repo}/ (deployed automatically on every push to \`main\`)
 
 ## Contribute
 
@@ -190,20 +176,12 @@ Send a PR when you're happy.
     die('Repo creation failed: ' + (e.stderr || e.message));
   }
 
-  // ── 3. enable Pages (workflow build) ──
-  try {
-    sh(`gh api repos/${repo}/pages -X POST -f build_type=workflow`, { cwd: dir });
-  } catch (e) {
-    // 409 = already enabled; anything else is worth surfacing but not fatal
-    const msg = String(e.stderr || e.message);
-    if (!msg.includes('409')) console.log('  ⚠  Could not auto-enable Pages (' + msg.split('\n')[0] + ') — enable it in repo Settings → Pages → Source: GitHub Actions.');
-  }
 
   console.log(`
   ✓  ${repo} is live.
 
      Repo:     https://github.com/${repo}
-     Pages:    https://${owner}.github.io/${name}/   (first deploy running now)
+     Live:     https://fslides.dev/@${repo}/   (first deploy running now)
      Comments: press K in the player → issues on the repo
 
      One-time (skip if the fslides app is installed with "All repositories"):

@@ -169,7 +169,7 @@
       box.className = view === 'list' ? 'rows list' : 'grid';
       box.innerHTML = '';
       for (const r of decks) {
-        const url = `https://${r.owner.login}.github.io/${r.name}/`;
+        const url = `https://fslides.dev/@${r.owner.login}/${r.name}/`;
         const card = document.createElement('a');
         card.href = url; card.target = '_blank'; card.rel = 'noopener';
         const meta = new Date(r.pushed_at).toLocaleDateString();

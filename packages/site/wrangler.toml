@@ -1,4 +1,5 @@
 name = "fslides-site"
+main = "src/index.js"
 compatibility_date = "2026-07-01"
 
 routes = [
@@ -8,3 +9,7 @@ routes = [
 
 [assets]
 directory = "_site"
+
+[[r2_buckets]]
+binding = "DECKS"
+bucket_name = "fslides-decks"
