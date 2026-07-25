@@ -125,7 +125,7 @@
 
     $('btn-signin').addEventListener('click', () => {
       const w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
-      window.open(GATEWAY + '/auth/install?origin=' + encodeURIComponent(location.origin),
+      window.open(GATEWAY + '/auth/login?origin=' + encodeURIComponent(location.origin),
         'fslides-auth', `width=${w},height=${h},left=${x},top=${y}`);
     });
     window.addEventListener('message', e => {
