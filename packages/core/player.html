@@ -52,6 +52,28 @@
       padding: 4px 8px; border-radius: 4px;
     }
     #nav-site-links a:hover { color: #F05000; background: rgba(255,255,255,0.06); }
+    #nav-site-links .nav-cta {
+      color: #FF6A1A; border: 1px solid rgba(240,80,0,0.5); border-radius: 4px;
+      background: rgba(240,80,0,0.08); font-weight: 700; cursor: pointer;
+      font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.72rem; padding: 4px 10px;
+    }
+    #nav-site-links .nav-cta:hover { background: rgba(240,80,0,0.18); color: #fff; }
+    .nav-cta-menu {
+      position: fixed; top: 50px; z-index: 10001; width: 460px;
+      background: rgba(12,12,14,0.98); border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.6);
+      font-family: 'JetBrains Mono', ui-monospace, monospace; padding: 6px;
+    }
+    .nav-cta-menu .cta-head { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 8px 10px 6px; }
+    .cta-row {
+      display: flex; align-items: center; gap: 10px; padding: 9px 10px; cursor: pointer;
+      border-radius: 3px; font-size: 0.74rem;
+    }
+    .cta-row:hover { background: rgba(240,80,0,0.1); }
+    .cta-row .cmd { flex: 1; color: rgba(255,255,255,0.85); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cta-row .cmd::before { content: '$ '; color: #FF6A1A; }
+    .cta-row .cpy { color: rgba(255,255,255,0.3); font-size: 0.66rem; flex-shrink: 0; }
+    .cta-row.copied .cpy { color: #4ade80; }
     .nav-btn { position: relative; }
     .nav-btn[data-tip]:hover::after, .nav-timer[data-tip]:hover::after {
       content: attr(data-tip);
@@ -3235,11 +3257,49 @@ const presoDisplayTitle = window.FUCKSLIDES_TITLE || window.FUCKSLIDES_NAME || '
 (function () {
   const links = window.FUCKSLIDES_NAV || [];
   const box = document.getElementById('nav-site-links');
+  let openMenu = null;
+  function closeMenu() { if (openMenu) { openMenu.remove(); openMenu = null; } }
+  document.addEventListener('click', e => {
+    if (openMenu && !openMenu.contains(e.target) && !e.target.classList.contains('nav-cta')) closeMenu();
+  });
   for (const l of links) {
-    const a = document.createElement('a');
-    a.textContent = l.label; a.href = l.href;
-    if (/^https?:/.test(l.href)) { a.target = '_blank'; a.rel = 'noopener'; }
-    box.appendChild(a);
+    if (l.menu) {
+      const b = document.createElement('button');
+      b.className = 'nav-cta';
+      b.textContent = l.label;
+      b.addEventListener('click', () => {
+        if (openMenu) { closeMenu(); return; }
+        const m = document.createElement('div');
+        m.className = 'nav-cta-menu';
+        m.style.left = Math.min(b.getBoundingClientRect().left, innerWidth - 480) + 'px';
+        const h = document.createElement('div');
+        h.className = 'cta-head';
+        h.textContent = l.title || 'create a deck — click a line to copy';
+        m.appendChild(h);
+        for (const item of l.menu) {
+          const row = document.createElement('div');
+          row.className = 'cta-row';
+          row.innerHTML = '<span class="cmd"></span><span class="cpy">copy</span>';
+          row.querySelector('.cmd').textContent = item.cmd;
+          row.addEventListener('click', () => {
+            navigator.clipboard.writeText(item.cmd).then(() => {
+              row.classList.add('copied');
+              row.querySelector('.cpy').textContent = 'copied ✓';
+              setTimeout(() => { row.classList.remove('copied'); row.querySelector('.cpy').textContent = 'copy'; }, 1600);
+            });
+          });
+          m.appendChild(row);
+        }
+        document.body.appendChild(m);
+        openMenu = m;
+      });
+      box.appendChild(b);
+    } else {
+      const a = document.createElement('a');
+      a.textContent = l.label; a.href = l.href;
+      if (/^https?:/.test(l.href)) { a.target = '_blank'; a.rel = 'noopener'; }
+      box.appendChild(a);
+    }
   }
 })();
 if (presoDisplayTitle) navTitle.textContent = presoDisplayTitle;
