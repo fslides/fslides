@@ -43,19 +43,21 @@
     }
     .muted { color: rgba(255,255,255,0.35); font-size: 0.85rem; margin-top: 14px; }
 
-    .decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .decks { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
     .deck {
       background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 12px; padding: 18px 20px; text-decoration: none; color: inherit;
+      border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit;
       transition: border-color 0.15s, transform 0.15s; display: block;
     }
-    .deck:hover { border-color: rgba(56,189,248,0.5); transform: translateY(-2px); }
-    .deck .name { font-weight: 800; color: #fff; font-size: 1.02rem; margin-bottom: 2px; word-break: break-word; }
-    .deck .meta { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
-    .deck .links { display: flex; gap: 12px; font-size: 0.8rem; font-weight: 600; }
-    .deck .links span { color: #38BDF8; }
-    .badge { display: inline-block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-      color: #34D399; border: 1px solid rgba(52,211,153,0.4); border-radius: 20px; padding: 1px 8px; margin-left: 8px; vertical-align: 2px; }
+    .deck:hover { border-color: rgba(56,189,248,0.5); transform: translateY(-3px); }
+    .thumb { position: relative; width: 100%; padding-bottom: 56.25%; background: #16181f; overflow: hidden; }
+    .thumb iframe {
+      position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
+      border: none; transform-origin: top left; pointer-events: none;
+    }
+    .deck .info { padding: 14px 18px 16px; }
+    .deck .name { font-weight: 800; color: #fff; font-size: 0.98rem; margin-bottom: 2px; word-break: break-word; }
+    .deck .meta { font-size: 0.76rem; color: rgba(255,255,255,0.4); }
 
     .newdeck {
       margin-top: 48px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 36px;
@@ -95,7 +97,7 @@
 
     <div id="signed-in" style="display:none">
       <div id="loading">loading your decks…</div>
-      <div id="empty" style="display:none">No repos have the fslides app yet — create a deck below, or <a href="https://github.com/apps/fslides/installations/new" style="color:#38BDF8">enable it on an existing repo</a>.</div>
+      <div id="empty" style="display:none">No decks yet — create one below, or <a href="https://github.com/apps/fslides/installations/new" style="color:#38BDF8">enable it on an existing repo</a>.</div>
       <div class="decks" id="decks"></div>
     </div>
 
@@ -137,16 +139,26 @@
       boot();
     });
 
-    async function isDeck(owner, repo) {
-      // public probe — raw.githubusercontent sends CORS
+    async function isDeck(r) {
+      // scaffolded decks carry the fslides topic (works for private repos —
+      // metadata is readable); older public decks fall back to a config probe
+      if ((r.topics || []).includes('fslides')) return true;
+      if (r.private) return false;
       for (const f of ['fslides.config.js', 'fuckslides.config.js']) {
         try {
-          const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/HEAD/${f}`, { method: 'HEAD' });
-          if (r.ok) return true;
+          const resp = await fetch(`https://raw.githubusercontent.com/${r.owner.login}/${r.name}/HEAD/${f}`, { method: 'HEAD' });
+          if (resp.ok) return true;
         } catch (_) {}
       }
       return false;
     }
+    function scaleThumbs() {
+      document.querySelectorAll('.thumb').forEach(t => {
+        const f = t.querySelector('iframe');
+        if (f) f.style.transform = 'scale(' + (t.offsetWidth / 1280) + ')';
+      });
+    }
+    window.addEventListener('resize', scaleThumbs);
 
     async function boot() {
       const tok = token();
@@ -162,32 +174,34 @@
         const insts = await gh('/user/installations', tok);
         let repos = [];
         for (const inst of insts.installations || []) {
-          const rs = await gh(`/user/installations/${inst.id}/repositories?per_page=100`, tok);
-          repos = repos.concat(rs.repositories || []);
+          for (let page = 1; page <= 5; page++) {
+            const rs = await gh(`/user/installations/${inst.id}/repositories?per_page=100&page=${page}`, tok);
+            repos = repos.concat(rs.repositories || []);
+            if (!rs.repositories || rs.repositories.length < 100) break;
+          }
         }
+        // only decks — the dashboard is a gallery, not a repo list
+        const flags = await Promise.all(repos.map(isDeck));
+        const decks = repos.filter((r, i) => flags[i])
+          .sort((a, b) => new Date(b.pushed_at) - new Date(a.pushed_at));
         $('loading').style.display = 'none';
-        if (!repos.length) { $('empty').style.display = 'block'; return; }
+        if (!decks.length) { $('empty').style.display = 'block'; return; }
 
-        // confirm decks in parallel (public probe; private repos show unbadged)
-        const flags = await Promise.all(repos.map(r => isDeck(r.owner.login, r.name)));
-        repos.forEach((r, i) => { r._deck = flags[i]; });
-        repos.sort((a, b) => (b._deck - a._deck) || (new Date(b.pushed_at) - new Date(a.pushed_at)));
-
-        for (const r of repos) {
+        for (const r of decks) {
+          const url = `https://${r.owner.login}.github.io/${r.name}/`;
           const card = document.createElement('a');
           card.className = 'deck';
-          card.href = `https://${r.owner.login}.github.io/${r.name}/`;
+          card.href = url;
           card.target = '_blank'; card.rel = 'noopener';
-          const pushed = new Date(r.pushed_at).toLocaleDateString();
           card.innerHTML = `
-            <div class="name"></div>
-            <div class="meta"></div>
-            <div class="links"><span>View deck ↗</span></div>`;
-          card.querySelector('.name').textContent = r.full_name;
-          if (r._deck) card.querySelector('.name').insertAdjacentHTML('beforeend', '<span class="badge">deck</span>');
-          card.querySelector('.meta').textContent = (r.private ? 'private · ' : '') + 'updated ' + pushed;
+            <div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1"></iframe></div>
+            <div class="info"><div class="name"></div><div class="meta"></div></div>`;
+          card.querySelector('iframe').src = url + '#0';
+          card.querySelector('.name').textContent = r.name;
+          card.querySelector('.meta').textContent = (r.private ? 'private · ' : '') + 'updated ' + new Date(r.pushed_at).toLocaleDateString();
           $('decks').appendChild(card);
         }
+        scaleThumbs();
       } catch (e) {
         $('loading').textContent = 'Couldn’t load (' + e.message + ') — try signing in again.';
         $('signed-out').style.display = 'block';

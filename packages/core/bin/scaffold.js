@@ -184,6 +184,7 @@ Send a PR when you're happy.
     sh('git commit -m "scaffold: new fslides deck"', { cwd: dir });
     console.log(`  Creating GitHub repo (${opts.private ? 'private' : 'public'})…`);
     sh(`gh repo create ${repo} ${vis} --source . --remote origin --push`, { cwd: dir });
+    try { sh(`gh repo edit ${repo} --add-topic fslides`, { cwd: dir }); } catch (_) {}   // dashboard deck signal
   } catch (e) {
     die('Repo creation failed: ' + (e.stderr || e.message));
   }
