@@ -72,8 +72,17 @@
       font-family: 'JetBrains Mono', monospace; font-size: 1.02rem; color: rgba(255,255,255,0.42);
       margin-bottom: 26px; z-index: 2; cursor: default;
     }
-    .realname .cens { filter: blur(5px); transition: filter 0.25s ease; }
-    .realname:hover .cens { filter: none; color: #FF6A1A; }
+    /* censored in shades of orange — the warmth is the "hover me" invite */
+    .realname .cens {
+      color: #FF6A1A; font-weight: 700; filter: blur(4px); transition: filter 0.25s ease;
+      text-shadow: 0 0 6px #F05000, 0 0 14px rgba(240,80,0,0.9), -2px 0 0 #fb923c, 2px 0 0 #c2410c;
+      animation: censhimmer 2.6s ease-in-out infinite;
+    }
+    .realname:hover .cens { filter: none; text-shadow: none; animation: none; }
+    @keyframes censhimmer {
+      0%, 100% { filter: blur(4px) brightness(1); }
+      50% { filter: blur(3px) brightness(1.6); }
+    }
     .realname .why { color: rgba(255,255,255,0.28); }
     .tagline { font-size: 1.7rem; font-weight: 300; color: rgba(255,255,255,0.78); letter-spacing: -0.01em; margin-bottom: 40px; z-index: 2; }
     .tagline strong { font-weight: 800; color: #fff; }
