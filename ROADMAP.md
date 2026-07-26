@@ -137,6 +137,12 @@ after Baha asked why storage was needed at all. Nothing is stored:
         account) ABOVE the deck toolbar, which keeps only presentation
         controls; logo/title dedup'd, stage math offsets 52px, fullscreen
         hides both layers. Plain decks keep the single toolbar
+      · Brand truth (2026-07-26, Baha's call): the software is FUCKSLIDES —
+        fslides is the package/domain name. Hero carries "short for
+        f[uck]slides" with the profanity blurred until hover ("the bat on
+        the logo is not decorative"); docs intro gets the f*ckslides line.
+        The barbed-bat mark now lives everywhere: hero (floating, glowing),
+        every site bar, favicons; /logo.png served on both origins
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 

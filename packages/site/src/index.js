@@ -34,6 +34,10 @@ export default {
 
     if (url.hostname === 'decks.fslides.dev') return serveDeck(request, url, env);
 
+    if (url.pathname === '/logo.png' || url.pathname === '/favicon.ico') {
+      return new Response(LOGO, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' } });
+    }
+
     // legacy /@owner/repo on the app origin → redirect to the deck origin
     if (url.pathname.startsWith('/@')) {
       return Response.redirect('https://decks.fslides.dev/' + url.pathname.slice(2) + url.search, 301);

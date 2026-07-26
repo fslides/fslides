@@ -50,8 +50,15 @@
 
     .wordmark {
       font-family: 'JetBrains Mono', monospace; font-size: 4.6rem; font-weight: 700;
-      letter-spacing: -0.03em; margin-bottom: 12px; z-index: 2;
+      letter-spacing: -0.03em; margin-bottom: 6px; z-index: 2;
+      display: flex; align-items: center; gap: 26px;
     }
+    .wordmark .mark {
+      width: 86px; height: 86px; border-radius: 20px; display: block;
+      box-shadow: 0 12px 40px rgba(240,80,0,0.45), 0 0 0 1px rgba(255,255,255,0.08);
+      animation: markfloat 5s ease-in-out infinite;
+    }
+    @keyframes markfloat { 50% { transform: translateY(-6px) rotate(-3deg); } }
     .wordmark .p { color: #F05000; }
     .wordmark .caret {
       display: inline-block; width: 0.45em; height: 0.95em; background: #F05000;
@@ -59,6 +66,13 @@
     }
     @keyframes blink { 50% { opacity: 0; } }
 
+    .realname {
+      font-family: 'JetBrains Mono', monospace; font-size: 1.02rem; color: rgba(255,255,255,0.42);
+      margin-bottom: 26px; z-index: 2; cursor: default;
+    }
+    .realname .cens { filter: blur(5px); transition: filter 0.25s ease; }
+    .realname:hover .cens { filter: none; color: #FF6A1A; }
+    .realname .why { color: rgba(255,255,255,0.28); }
     .tagline { font-size: 1.7rem; font-weight: 300; color: rgba(255,255,255,0.78); letter-spacing: -0.01em; margin-bottom: 40px; z-index: 2; }
     .tagline strong { font-weight: 800; color: #fff; }
     .tagline .acc { color: #FF6A1A; font-weight: 800; }
@@ -98,7 +112,8 @@
 <body>
   <div class="glow"></div>
 
-  <div class="wordmark f1"><span class="p">$</span> fslides<span class="caret"></span></div>
+  <div class="wordmark f1"><img class="mark" src="/logo.png" alt="fuckslides — the barbed bat"><span><span class="p">$</span> fslides<span class="caret"></span></span></div>
+  <div class="realname f2">short for <span>f<span class="cens">uck</span>slides</span> <span class="why">— hover. yes, really. the bat on the logo is not decorative.</span></div>
   <div class="tagline f2"><strong>Slides-as-code.</strong> Decks are repos, pushes are deploys, <span class="acc">agents are welcome</span>.</div>
 
   <div class="term f3">
