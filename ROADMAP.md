@@ -132,6 +132,11 @@ after Baha asked why storage was needed at all. Nothing is stored:
       · Landing hero v3: self-typing terminal demo (curl one-liner → ✓ repo
         → ▶ live URL, looping), breathing orange glow, drifting embers,
         $-wordmark with caret
+      · Two-layer chrome (Baha rejected the crammed single bar): website mode
+        gets a dedicated site bar (wordmark, nav links, + new deck CTA,
+        account) ABOVE the deck toolbar, which keeps only presentation
+        controls; logo/title dedup'd, stage math offsets 52px, fullscreen
+        hides both layers. Plain decks keep the single toolbar
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
