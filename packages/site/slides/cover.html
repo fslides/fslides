@@ -90,7 +90,7 @@
 
     /* ── the terminal that types itself ── */
     .term {
-      width: 780px; font-family: 'JetBrains Mono', monospace; font-size: 1.02rem;
+      width: 780px; margin-right: 190px; font-family: 'JetBrains Mono', monospace; font-size: 1.02rem;
       background: rgba(18,21,28,0.92); border: 1px solid rgba(255,255,255,0.13); border-radius: 12px;
       box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(240,80,0,0.08);
       text-align: left; z-index: 2; overflow: hidden;
@@ -113,6 +113,55 @@
     .term .out { display: block; opacity: 0; }
     .term .out.show { opacity: 1; transition: opacity 0.18s ease; }
 
+    /* ── the payoff: a mini browser springs up rendering the deck ── */
+    #mini {
+      position: absolute; width: 400px; left: 50%; margin-left: 205px; bottom: 108px; z-index: 3;
+      border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 34px 90px rgba(0,0,0,0.65), 0 0 70px rgba(240,80,0,0.14);
+      opacity: 0; transform: translateY(30px) scale(0.88) rotate(2deg); pointer-events: none;
+    }
+    #mini.show {
+      opacity: 1; transform: rotate(2deg);
+      transition: opacity 0.5s ease, transform 0.55s cubic-bezier(.3,1.5,.4,1);
+    }
+    #mini .mchrome {
+      display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+      background: #1c1f28; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    #mini .mchrome i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.14); }
+    #mini .mchrome i:first-child { background: rgba(240,80,0,0.7); }
+    #mini .maddr {
+      flex: 1; margin-left: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.64rem;
+      color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.06);
+      border-radius: 5px; padding: 3px 10px;
+    }
+    #mini .maddr b { color: #FF6A1A; font-weight: 400; }
+    #mini .mbar {
+      display: flex; align-items: center; gap: 8px; padding: 5px 10px;
+      background: #14161d; border-bottom: 1px solid rgba(255,255,255,0.07);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: rgba(255,255,255,0.4);
+    }
+    #mini .mbar img { width: 13px; height: 13px; border-radius: 3px; }
+    #mini .mbar .mcount { margin-left: auto; color: #F05000; }
+    #mini .mslide { background: #101218; padding: 26px 26px 30px 30px; position: relative; text-align: left; }
+    #mini .mslide::before { content: ''; position: absolute; left: 0; top: 26px; bottom: 30px; width: 3px; background: #F05000; }
+    #mini .meyebrow {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: #FF6A1A; margin-bottom: 9px;
+      opacity: 0; transform: translateY(8px);
+    }
+    #mini .mtitle {
+      font-weight: 800; font-size: 1.28rem; line-height: 1.2; letter-spacing: -0.02em; color: #fff;
+      margin-bottom: 9px; opacity: 0; transform: translateY(8px);
+    }
+    #mini .msub {
+      font-size: 0.72rem; font-weight: 300; color: rgba(255,255,255,0.5); line-height: 1.5;
+      opacity: 0; transform: translateY(8px);
+    }
+    #mini.show .meyebrow { opacity: 1; transform: none; transition: all 0.4s ease 0.45s; }
+    #mini.show .mtitle { opacity: 1; transform: none; transition: all 0.4s ease 0.6s; }
+    #mini.show .msub { opacity: 1; transform: none; transition: all 0.4s ease 0.75s; }
+
     .hint { margin-top: 40px; font-size: 0.9rem; color: rgba(255,255,255,0.35); z-index: 2; }
     .hint kbd {
       background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
@@ -130,6 +179,16 @@
   <div class="term f3">
     <div class="chrome"><i></i><i></i><i></i><span>~/dev</span></div>
     <div class="screen" id="screen"></div>
+  </div>
+
+  <div id="mini" aria-hidden="true">
+    <div class="mchrome"><i></i><i></i><i></i><span class="maddr"><b>decks.fslides.dev</b>/you/my-deck</span></div>
+    <div class="mbar"><img src="/logo.png" alt="">my-deck<span class="mcount">1 / 2</span></div>
+    <div class="mslide">
+      <div class="meyebrow">team · topic · date</div>
+      <div class="mtitle">A confident title that takes a stance.</div>
+      <div class="msub">One sentence that tells the room why the next twenty minutes matter.</div>
+    </div>
   </div>
 
   <div class="hint f4">this site is itself an fslides deck — press <kbd>→</kbd> to see what that means</div>
@@ -156,7 +215,9 @@
     return el;
   }
 
+  var mini = document.getElementById('mini');
   function run() {
+    mini.classList.remove('show');
     screen.innerHTML = '<span class="p">$ </span><span id="cmd"></span><span class="cursor"></span>';
     var cmdEl = document.getElementById('cmd');
     var i = 0;
@@ -176,8 +237,9 @@
             done.className = 'out show';
             done.innerHTML = '<span class="p">$ </span><span class="cursor"></span>';
             screen.appendChild(done);
+            mini.classList.add('show');   // the deck renders — end to end
           }, 380 * (OUT.length + 1));
-          setTimeout(run, 380 * OUT.length + 4600);
+          setTimeout(run, 380 * OUT.length + 8200);
         }, 450);
       }
     }, 42);
