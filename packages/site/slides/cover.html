@@ -56,14 +56,16 @@
     .wordmark .mark {
       width: 86px; height: 86px; border-radius: 20px; display: block;
       box-shadow: 0 12px 40px rgba(240,80,0,0.45), 0 0 0 1px rgba(255,255,255,0.08);
-      animation: markfloat 5s ease-in-out infinite;
+      transform-origin: 50% 88%;
+      animation: markswing 0.9s cubic-bezier(.3,1.4,.4,1) 0.15s both;
     }
-    @keyframes markfloat { 50% { transform: translateY(-6px) rotate(-3deg); } }
+    .wordmark:hover .mark { animation: markswing 0.55s cubic-bezier(.3,1.4,.4,1); }
+    @keyframes markswing {
+      0%   { transform: rotate(-38deg) scale(0.9); }
+      60%  { transform: rotate(9deg) scale(1.04); }
+      100% { transform: none; }
+    }
     .wordmark .p { color: #F05000; }
-    .wordmark .caret {
-      display: inline-block; width: 0.45em; height: 0.95em; background: #F05000;
-      vertical-align: -0.08em; margin-left: 6px; animation: blink 1.1s steps(1) infinite;
-    }
     @keyframes blink { 50% { opacity: 0; } }
 
     .realname {
@@ -112,7 +114,7 @@
 <body>
   <div class="glow"></div>
 
-  <div class="wordmark f1"><img class="mark" src="/logo.png" alt="fuckslides — the barbed bat"><span><span class="p">$</span> fslides<span class="caret"></span></span></div>
+  <div class="wordmark f1"><img class="mark" src="/logo.png" alt="fuckslides — the barbed bat"><span>fslides</span></div>
   <div class="realname f2">short for <span>f<span class="cens">uck</span>slides</span> <span class="why">— hover. yes, really. the bat on the logo is not decorative.</span></div>
   <div class="tagline f2"><strong>Slides-as-code.</strong> Decks are repos, pushes are deploys, <span class="acc">agents are welcome</span>.</div>
 
@@ -159,6 +161,8 @@
             setTimeout(function () { el.classList.add('show'); }, 380 * (k + 1));
           });
           setTimeout(function () {
+            var old = screen.querySelector('.cursor');
+            if (old) old.remove();   // one blink at a time
             var done = document.createElement('span');
             done.className = 'out show';
             done.innerHTML = '<span class="p">$ </span><span class="cursor"></span>';

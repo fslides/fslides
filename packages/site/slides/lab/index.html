@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>logo lab — fslides</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/logo.png">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: #0d0f14; }
+    body {
+      font-family: 'JetBrains Mono', monospace; -webkit-font-smoothing: antialiased;
+      background: #0d0f14; color: #e8eaf0; min-height: 100vh; display: flex; flex-direction: column;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none;
+      background-image: radial-gradient(rgba(240,80,0,0.06) 1px, transparent 1px); background-size: 30px 30px;
+    }
+    a { color: inherit; text-decoration: none; }
+    .bar {
+      display: flex; align-items: center; gap: 22px; padding: 0 22px; height: 52px;
+      border-bottom: 1px solid rgba(255,255,255,0.09); background: #12151c; position: sticky; top: 0; z-index: 10;
+    }
+    .wordmark { font-weight: 700; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 10px; }
+    .wordmark img { width: 26px; height: 26px; border-radius: 6px; }
+    .wordmark .p { color: #F05000; }
+    .bar nav { margin-left: auto; display: flex; gap: 18px; }
+    .bar nav a { font-size: 0.92rem; color: rgba(232,234,240,0.55); }
+    .bar nav a:hover { color: #F05000; }
+
+    main { flex: 1; max-width: 1300px; width: 100%; margin: 0 auto; padding: 40px 30px 80px; }
+    h1 { font-size: 1.3rem; margin-bottom: 6px; }
+    h1::before { content: '## '; color: #F05000; }
+    .sub { color: rgba(232,234,240,0.5); font-size: 0.95rem; margin-bottom: 34px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 22px; }
+    .cell {
+      border: 1px solid rgba(255,255,255,0.09); background: #12151c;
+      display: flex; flex-direction: column;
+    }
+    .stage {
+      height: 220px; display: flex; align-items: center; justify-content: center; gap: 26px;
+      border-bottom: 1px solid rgba(255,255,255,0.09); overflow: hidden; position: relative;
+    }
+    .stage .wm { font-size: 2.2rem; font-weight: 700; }
+    .stage .wm .p { color: #F05000; }
+    .tile {
+      width: 76px; height: 76px; border-radius: 17px; display: block;
+      box-shadow: 0 12px 40px rgba(240,80,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
+    }
+    .info { padding: 14px 17px 16px; }
+    .info .name { font-size: 0.98rem; font-weight: 700; }
+    .info .name::before { content: '> '; color: #F05000; }
+    .info p { font-size: 0.88rem; color: rgba(232,234,240,0.55); line-height: 1.55; margin-top: 5px; }
+    .info .hint { color: #FF6A1A; }
+
+    /* 1 — float: gentle levitation, breathing glow */
+    .v-float .tile { animation: v-float 5s ease-in-out infinite; }
+    @keyframes v-float {
+      50% { transform: translateY(-8px) rotate(-3deg); box-shadow: 0 22px 55px rgba(240,80,0,0.55), 0 0 0 1px rgba(255,255,255,0.08); }
+    }
+
+    /* 2 — wind-up: batter waggling, waiting for the pitch */
+    .v-windup .tile { transform-origin: 50% 92%; animation: v-windup 2.6s ease-in-out infinite; }
+    @keyframes v-windup {
+      0%, 100% { transform: rotate(-5deg); }
+      45% { transform: rotate(3deg); }
+      60% { transform: rotate(1deg); }
+    }
+
+    /* 3 — swing on entrance (and on hover): one committed swing, then still */
+    .v-swing .tile { transform-origin: 50% 88%; animation: v-swing 0.9s cubic-bezier(.3,1.4,.4,1) both; }
+    .v-swing .stage:hover .tile { animation: v-swing 0.55s cubic-bezier(.3,1.4,.4,1); }
+    @keyframes v-swing {
+      0% { transform: rotate(-38deg) scale(0.9); }
+      60% { transform: rotate(9deg) scale(1.04); }
+      100% { transform: none; }
+    }
+
+    /* 4 — home run: hover swings the bat and a ball flies off it */
+    .v-homerun .tile { transform-origin: 50% 88%; }
+    .v-homerun .stage:hover .tile { animation: v-swing 0.5s cubic-bezier(.3,1.4,.4,1); }
+    .v-homerun .stage::after {
+      content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; box-shadow: 0 0 12px 3px rgba(255,255,255,0.5);
+      left: calc(50% - 90px); top: 55%; opacity: 0;
+    }
+    .v-homerun .stage:hover::after { animation: v-ball 0.9s cubic-bezier(.2,0,.7,1) 0.18s both; }
+    @keyframes v-ball {
+      0% { transform: none; opacity: 1; }
+      100% { transform: translate(230px, -190px) scale(0.35); opacity: 0; }
+    }
+
+    /* 5 — glitch: terminal flicker every few seconds */
+    .v-glitch .tile { animation: v-glitch 4s steps(1) infinite; }
+    @keyframes v-glitch {
+      0%, 92%, 100% { clip-path: none; transform: none; filter: none; }
+      93% { clip-path: inset(12% 0 55% 0); transform: translateX(-5px); filter: hue-rotate(18deg); }
+      94.5% { clip-path: inset(60% 0 8% 0); transform: translateX(5px); }
+      96% { clip-path: inset(30% 0 30% 0); transform: translateX(-3px) skewX(2deg); filter: saturate(1.6); }
+      97.5% { clip-path: none; transform: none; filter: none; }
+    }
+
+    /* 6 — ember orbit: one spark circling the mark */
+    .v-orbit .orbitbox { position: relative; width: 76px; height: 76px; }
+    .v-orbit .orbitbox .tile { position: absolute; inset: 0; }
+    .v-orbit .orbitbox::after {
+      content: ''; position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      background: #FF6A1A; box-shadow: 0 0 10px 2px rgba(255,106,26,0.7);
+      top: 50%; left: 50%; margin: -3px;
+      animation: v-orbit 4.5s linear infinite;
+    }
+    @keyframes v-orbit {
+      from { transform: rotate(0deg) translateX(62px); }
+      to { transform: rotate(360deg) translateX(62px); }
+    }
+
+    .statusline {
+      display: flex; align-items: center; height: 30px; border-top: 1px solid rgba(255,255,255,0.09);
+      background: #12151c; font-size: 0.82rem; color: rgba(232,234,240,0.55); padding: 0 14px; gap: 14px;
+    }
+    .statusline .mode { background: #F05000; color: #fff; font-weight: 700; padding: 2px 8px; }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a class="wordmark" href="/"><img src="/logo.png" alt=""><span>fslides</span></a>
+    <nav><a href="/">home</a><a href="/docs/">docs</a></nav>
+  </header>
+  <main>
+    <h1>logo lab</h1>
+    <p class="sub">six ways to move the bat — all live, judge with your eyes. the hero currently runs <b>swing</b>.</p>
+    <div class="grid">
+      <div class="cell v-float">
+        <div class="stage"><img class="tile" src="/logo.png" alt=""><span class="wm">fslides</span></div>
+        <div class="info"><div class="name">float</div><p>Gentle levitation with a breathing glow. Calm, ambient, never stops — motion as texture.</p></div>
+      </div>
+      <div class="cell v-windup">
+        <div class="stage"><img class="tile" src="/logo.png" alt=""><span class="wm">fslides</span></div>
+        <div class="info"><div class="name">wind-up</div><p>The batter's waggle — small impatient rotations, waiting for the pitch. Loops forever, full of intent.</p></div>
+      </div>
+      <div class="cell v-swing">
+        <div class="stage"><img class="tile" src="/logo.png" alt=""><span class="wm">fslides</span></div>
+        <div class="info"><div class="name">swing</div><p>One committed swing on page load, then stillness. <span class="hint">hover the stage to replay.</span> Confident, quiet after the hit.</p></div>
+      </div>
+      <div class="cell v-homerun">
+        <div class="stage"><img class="tile" src="/logo.png" alt=""><span class="wm">fslides</span></div>
+        <div class="info"><div class="name">home run</div><p>Static until hovered — then the bat swings and <span class="hint">sends one out of the park</span>. An easter egg, not a loop.</p></div>
+      </div>
+      <div class="cell v-glitch">
+        <div class="stage"><img class="tile" src="/logo.png" alt=""><span class="wm">fslides</span></div>
+        <div class="info"><div class="name">glitch</div><p>A 200ms CRT flicker every four seconds — slices, skew, hue shift. Terminal-native menace.</p></div>
+      </div>
+      <div class="cell v-orbit">
+        <div class="stage"><span class="orbitbox"><img class="tile" src="/logo.png" alt=""></span><span class="wm">fslides</span></div>
+        <div class="info"><div class="name">ember orbit</div><p>A single spark circling the mark, like the embers rising on the hero. Subtle, hypnotic, always alive.</p></div>
+      </div>
+    </div>
+  </main>
+  <footer class="statusline"><span class="mode">LAB</span><span>fslides.dev/lab</span></footer>
+</body>
+</html>
