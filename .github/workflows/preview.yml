@@ -39,6 +39,11 @@ jobs:
           OUT=$(npx -y wrangler@4 versions upload 2>&1) || { echo "$OUT"; exit 1; }
           echo "$OUT"
           URL=$(echo "$OUT" | grep -oE 'https://[^ ]*workers\.dev[^ ]*' | head -1)
+          if [ -z "$URL" ]; then
+            # construct from the Version ID (wrangler omits the URL sometimes)
+            VID=$(echo "$OUT" | grep -oE 'Worker Version ID: [0-9a-f-]+' | grep -oE '[0-9a-f-]+$')
+            [ -n "$VID" ] && URL="https://${VID%%-*}-fslides-site.bahaaldine.workers.dev"
+          fi
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Comment preview URL
