@@ -609,6 +609,10 @@
     }
     .voice-bg button.active { background: rgba(255,255,255,0.1); color: #fff; }
 
+    .nav-btn.buoy { color: #FF6A1A; }
+    .nav-btn.buoy:hover { color: #FF6A1A; background: rgba(240,80,0,0.14); }
+    .nav-btn.buoy svg { filter: drop-shadow(0 0 6px rgba(240,80,0,0.45)); }
+
     /* ── Shortcut cheatsheet (H) ── */
     #shortcuts-overlay {
       position: fixed; left: 0; right: 0; bottom: 0; top: var(--chrome-h); z-index: 9600;
@@ -926,6 +930,12 @@
     <span class="comment-count" id="comment-count" style="display:none"></span>
   </button>
   <div class="nav-sep"></div>
+  <button class="nav-btn buoy" id="btn-help" data-tip="Help — every shortcut · H">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="8" cy="8" r="6.25"/><circle cx="8" cy="8" r="2.75"/>
+      <g transform="rotate(45 8 8)"><path d="M8 1.75v3.5M8 10.75v3.5M1.75 8h3.5M10.75 8h3.5"/></g>
+    </svg>
+  </button>
   <button class="nav-btn" id="btn-fs" data-tip="Present fullscreen — F">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>
     <span class="nav-label">Present</span>
@@ -1527,6 +1537,7 @@ function toggleShortcuts() {
   }
 }
 scOverlay.addEventListener('click', () => { if (scOpen) toggleShortcuts(); });
+document.getElementById('btn-help').addEventListener('click', toggleShortcuts);
 
 function handleKey(key) {
   if (editorOpen) return;
