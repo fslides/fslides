@@ -7,6 +7,11 @@ name: Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "PR number to comment the preview URL on"
+        required: true
 
 permissions:
   contents: read
@@ -51,10 +56,13 @@ jobs:
         with:
           script: |
             const url = `${{ steps.preview.outputs.url }}` || '(no preview URL found — check the workflow log)';
+            const prNum = context.eventName === 'workflow_dispatch'
+              ? Number(`${{ github.event.inputs.pr }}`)
+              : context.issue.number;
             const marker = '<!-- fslides-preview -->';
             const body = `${marker}\n🎪 **Staging preview:** ${url}\n\n_Rebuilds on every push to this PR. App-origin pages only (landing, profiles, 404, docs)._`;
             const { data: comments } = await github.rest.issues.listComments({
-              ...context.repo, issue_number: context.issue.number, per_page: 100 });
+              ...context.repo, issue_number: prNum, per_page: 100 });
             const prev = comments.find(c => c.body.includes(marker));
             if (prev) await github.rest.issues.updateComment({ ...context.repo, comment_id: prev.id, body });
-            else await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
+            else await github.rest.issues.createComment({ ...context.repo, issue_number: prNum, body });
