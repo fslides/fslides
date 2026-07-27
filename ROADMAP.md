@@ -144,6 +144,17 @@ after Baha asked why storage was needed at all. Nothing is stored:
         The barbed-bat mark now lives everywhere: hero (floating, glowing),
         every site bar, favicons; /logo.png served on both origins
 
+## Phase 2.6 — Skeleton placeholders (2026-07-27)
+- [x] Loading state on `fslides.dev/{login}` replaced with a full-layout skeleton:
+      sidebar (avatar block, name/login/bio/meta/link bars) + 4-card deck grid,
+      each card with a 16:9 thumbnail placeholder, name bar, description lines,
+      and footer bar. Shimmer animation (`skel-shimmer`) sweeps a subtle brand-orange
+      highlight (9% mix with `--panel2`) left-to-right at 1.8s. All colors are CSS
+      custom properties — dark and light themes work automatically. Responsive at
+      ≤860px: sidebar goes horizontal (110px avatar + text alongside), matching the
+      real layout's mobile breakpoint. Skeleton disappears the moment the GitHub API
+      resolves (`loading.hidden = true`).
+
 ## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
 Prompting in a terminal doesn't scale and isn't traceable. The loop now:
 1. Baha files a GitHub issue (any device) — the issue body IS the prompt;

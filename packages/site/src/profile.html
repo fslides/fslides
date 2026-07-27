@@ -223,6 +223,41 @@
       .who { width: 100%; position: static; display: flex; gap: 20px; align-items: flex-start; }
       .who img.avatar { width: 110px; }
     }
+
+    /* ─── skeleton placeholders ─── */
+    @keyframes skel-shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position:  600px 0; }
+    }
+    .skel {
+      border-radius: 2px;
+      background: linear-gradient(90deg,
+        var(--panel2) 25%,
+        color-mix(in srgb, var(--acc) 9%, var(--panel2)) 50%,
+        var(--panel2) 75%);
+      background-size: 1200px 100%;
+      animation: skel-shimmer 1.8s ease-in-out infinite;
+    }
+    #loading { display: flex; flex: 1; }
+    .skel-wrap {
+      width: 100%; max-width: 1400px; margin: 0 auto;
+      padding: 40px 34px 70px; display: flex; gap: 44px; align-items: flex-start;
+    }
+    .skel-sidebar { width: 280px; flex-shrink: 0; }
+    .skel-avatar { width: 100%; aspect-ratio: 1; }
+    .skel-decks { flex: 1; min-width: 0; }
+    .skel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .skel-card { border: 1px solid var(--line); background: var(--panel); }
+    .skel-thumb { width: 100%; padding-bottom: 56.25%; position: relative; }
+    .skel-thumb .skel { position: absolute; inset: 0; border-radius: 0; }
+    .skel-info { padding: 13px 16px 14px; border-top: 1px solid var(--line); }
+    @media (max-width: 860px) {
+      .skel-wrap { flex-direction: column; }
+      .skel-sidebar { width: 100%; display: flex; gap: 20px; align-items: flex-start; }
+      .skel-avatar { width: 110px; flex-shrink: 0; }
+      .skel-sidebar-text { flex: 1; min-width: 0; }
+      .skel-sidebar-text .skel:first-child { margin-top: 0; }
+    }
   </style>
 </head>
 <body>
@@ -278,7 +313,64 @@
 
     </section>
   </main>
-  <div class="state" id="loading">loading profile…</div>
+  <div id="loading">
+    <div class="skel-wrap">
+      <div class="skel-sidebar">
+        <div class="skel skel-avatar"></div>
+        <div class="skel-sidebar-text">
+          <div class="skel" style="height:28px; width:65%; margin-top:18px; margin-bottom:8px;"></div>
+          <div class="skel" style="height:14px; width:40%; margin-bottom:14px;"></div>
+          <div class="skel" style="height:13px; width:90%; margin-bottom:6px;"></div>
+          <div class="skel" style="height:13px; width:75%; margin-bottom:16px;"></div>
+          <div class="skel" style="height:12px; width:55%; margin-bottom:7px;"></div>
+          <div class="skel" style="height:12px; width:50%; margin-bottom:7px;"></div>
+          <div class="skel" style="height:12px; width:45%; margin-bottom:18px;"></div>
+          <div class="skel" style="height:32px; width:120px;"></div>
+        </div>
+      </div>
+      <div class="skel-decks">
+        <div class="skel" style="height:18px; width:160px; margin-bottom:28px;"></div>
+        <div class="skel-grid">
+          <div class="skel-card">
+            <div class="skel-thumb"><div class="skel"></div></div>
+            <div class="skel-info">
+              <div class="skel" style="height:16px; width:70%; margin-bottom:8px;"></div>
+              <div class="skel" style="height:13px; width:90%; margin-bottom:5px;"></div>
+              <div class="skel" style="height:13px; width:60%; margin-bottom:12px;"></div>
+              <div class="skel" style="height:12px; width:45%;"></div>
+            </div>
+          </div>
+          <div class="skel-card">
+            <div class="skel-thumb"><div class="skel"></div></div>
+            <div class="skel-info">
+              <div class="skel" style="height:16px; width:55%; margin-bottom:8px;"></div>
+              <div class="skel" style="height:13px; width:85%; margin-bottom:5px;"></div>
+              <div class="skel" style="height:13px; width:70%; margin-bottom:12px;"></div>
+              <div class="skel" style="height:12px; width:40%;"></div>
+            </div>
+          </div>
+          <div class="skel-card">
+            <div class="skel-thumb"><div class="skel"></div></div>
+            <div class="skel-info">
+              <div class="skel" style="height:16px; width:80%; margin-bottom:8px;"></div>
+              <div class="skel" style="height:13px; width:95%; margin-bottom:5px;"></div>
+              <div class="skel" style="height:13px; width:50%; margin-bottom:12px;"></div>
+              <div class="skel" style="height:12px; width:35%;"></div>
+            </div>
+          </div>
+          <div class="skel-card">
+            <div class="skel-thumb"><div class="skel"></div></div>
+            <div class="skel-info">
+              <div class="skel" style="height:16px; width:60%; margin-bottom:8px;"></div>
+              <div class="skel" style="height:13px; width:80%; margin-bottom:5px;"></div>
+              <div class="skel" style="height:13px; width:65%; margin-bottom:12px;"></div>
+              <div class="skel" style="height:12px; width:50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="notfound" hidden style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; position:relative; overflow:hidden; padding:20px;">
     <div style="font-family:'JetBrains Mono',monospace; font-size:clamp(4rem,14vw,9rem); font-weight:700; line-height:1; z-index:2;">4<span style="display:inline-block; color:var(--acc); transform:rotate(14deg) translate(4px,0); transform-origin:50% 92%;">0</span>4</div>
     <svg viewBox="0 0 560 180" style="position:absolute; width:min(38vw,440px); right:max(10vw,calc(50% - 380px)); bottom:47%; transform:rotate(-42deg); transform-origin:8% 92%; z-index:1;" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
