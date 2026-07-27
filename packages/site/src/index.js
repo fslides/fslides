@@ -207,10 +207,22 @@ function interstitial(owner, repo) {
   .note { font-size:0.85rem; color:rgba(232,234,240,0.4); }
 </style></head><body>
   <div class="big"><b>${who}</b> — this deck may be private</div>
-  <button id="b">[ sign in with github to view ]</button>
-  <div class="note">access follows the GitHub repo — if you can see it there, you can see it here</div>
+  <button id="b" style="display:none">[ sign in with github to view ]</button>
+  <div class="note" id="n" style="display:none">access follows the GitHub repo — if you can see it there, you can see it here</div>
 <script>
   var G='https://api.fslides.dev';
+  function showBtn(){document.getElementById('b').style.display='';document.getElementById('n').style.display='';}
+  // Reuse an existing GitHub session from localStorage before prompting again.
+  (function(){
+    var t=localStorage.getItem('fs-gh-token');
+    var exp=parseInt(localStorage.getItem('fs-gh-token-exp')||'0',10);
+    if(t&&(!exp||Date.now()<exp)){
+      fetch('/-/session',{method:'POST',body:JSON.stringify({token:t,expiresAt:exp||null})})
+        .then(function(){location.reload();}).catch(showBtn);
+      return;
+    }
+    showBtn();
+  })();
   document.getElementById('b').addEventListener('click',function(){
     var w=640,h=780,x=(screen.width-w)/2,y=(screen.height-h)/2;
     window.open(G+'/auth/login?origin='+encodeURIComponent(location.origin),'fslides-auth',
