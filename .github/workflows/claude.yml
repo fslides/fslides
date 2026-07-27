@@ -38,7 +38,28 @@ jobs:
           fetch-depth: 1
 
       - uses: anthropics/claude-code-action@v1
-        env:
-          ACTIONS_STEP_DEBUG: "true"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      # the action pushes a branch but only links to PR creation — open the
+      # PR automatically and dispatch the preview (GITHUB_TOKEN-created PRs
+      # don't fire pull_request workflows on their own)
+      - name: Open PR and trigger preview
+        if: success() && (github.event_name == 'issues' || (github.event_name == 'issue_comment' && !github.event.issue.pull_request))
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          N="${{ github.event.issue.number }}"
+          BR=$(gh api "repos/$GITHUB_REPOSITORY/branches" --paginate --jq '.[].name' | grep "^claude/issue-$N-" | sort | tail -1 || true)
+          [ -z "$BR" ] && { echo "no branch for #$N — nothing to PR"; exit 0; }
+          AHEAD=$(gh api "repos/$GITHUB_REPOSITORY/compare/main...$BR" --jq '.ahead_by')
+          [ "$AHEAD" = "0" ] && { echo "branch $BR has no commits ahead"; exit 0; }
+          PR=$(gh pr list -R "$GITHUB_REPOSITORY" --head "$BR" --state open --json number --jq '.[0].number' || true)
+          if [ -z "$PR" ]; then
+            TITLE=$(gh issue view "$N" -R "$GITHUB_REPOSITORY" --json title --jq .title)
+            URL=$(gh pr create -R "$GITHUB_REPOSITORY" --head "$BR" --title "$TITLE" \
+              --body "$(printf 'Automated PR from the issue-driven pipeline.\n\nFixes #%s' "$N")")
+            PR=$(basename "$URL")
+            gh issue comment "$N" -R "$GITHUB_REPOSITORY" --body "🔀 Opened PR #$PR — staging preview incoming on the PR."
+          fi
+          gh workflow run preview.yml -R "$GITHUB_REPOSITORY" --ref "$BR" -f pr="$PR"
