@@ -609,6 +609,37 @@
     }
     .voice-bg button.active { background: rgba(255,255,255,0.1); color: #fff; }
 
+    /* ── Shortcut cheatsheet (H) ── */
+    #shortcuts-overlay {
+      position: fixed; left: 0; right: 0; bottom: 0; top: var(--chrome-h); z-index: 9600;
+      background: rgba(13,15,20,0.82); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      display: none; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.18s ease;
+    }
+    #shortcuts-overlay.open { display: flex; }
+    #shortcuts-overlay.visible { opacity: 1; }
+    .sc-panel { width: min(900px, 92vw); max-height: 88%; overflow-y: auto; padding: 8px 20px; }
+    .sc-title { font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .sc-title::before { content: '## '; color: #F05000; }
+    .sc-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: rgba(255,255,255,0.35); margin: 6px 0 30px; }
+    .sc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 26px 48px; }
+    .sc-group h4 {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 10px;
+    }
+    .sc-row {
+      display: flex; align-items: center; gap: 12px; padding: 5.5px 0;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; color: rgba(255,255,255,0.72);
+    }
+    .sc-row .keys { margin-left: auto; display: flex; gap: 5px; flex-shrink: 0; }
+    kbd.sck {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #FF6A1A;
+      background: rgba(240,80,0,0.08); border: 1px solid rgba(240,80,0,0.38); border-bottom-width: 2px;
+      border-radius: 6px; padding: 2px 8px; min-width: 28px; text-align: center;
+    }
+    .sc-foot { margin-top: 30px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: rgba(255,255,255,0.28); text-align: center; }
+    .sc-foot kbd.sck { font-size: 0.72rem; padding: 1px 6px; }
+
     /* ── Editor ── */
     #editor-overlay {
       position: fixed; left: 0; right: 0; bottom: 0; top: var(--chrome-h); z-index: 9500;
@@ -812,6 +843,44 @@
   <video id="bubble-video" playsinline></video>
   <div class="bubble-paused-hint">▶</div>
   <div class="bubble-rec"><span class="brc-dot"></span>REC <span id="bubble-rec-time">0:00</span></div>
+</div>
+
+<div id="shortcuts-overlay" aria-hidden="true">
+  <div class="sc-panel">
+    <div class="sc-title">keyboard</div>
+    <div class="sc-sub">the whole deck, no mouse required</div>
+    <div class="sc-grid">
+      <div class="sc-group">
+        <h4>navigate</h4>
+        <div class="sc-row">next slide<span class="keys"><kbd class="sck">→</kbd><kbd class="sck">space</kbd></span></div>
+        <div class="sc-row">previous slide<span class="keys"><kbd class="sck">←</kbd></span></div>
+        <div class="sc-row">overview grid<span class="keys"><kbd class="sck">G</kbd></span></div>
+        <div class="sc-row">filmstrip<span class="keys"><kbd class="sck">T</kbd></span></div>
+        <div class="sc-row">present fullscreen<span class="keys"><kbd class="sck">F</kbd></span></div>
+      </div>
+      <div class="sc-group">
+        <h4>work</h4>
+        <div class="sc-row">speaker notes<span class="keys"><kbd class="sck">N</kbd></span></div>
+        <div class="sc-row">comments<span class="keys"><kbd class="sck">K</kbd></span></div>
+        <div class="sc-row">edit this slide<span class="keys"><kbd class="sck">E</kbd></span></div>
+        <div class="sc-row">comment on anything<span class="keys"><kbd class="sck">right-click</kbd></span></div>
+      </div>
+      <div class="sc-group">
+        <h4>narrate</h4>
+        <div class="sc-row">play / pause narration<span class="keys"><kbd class="sck">V</kbd></span></div>
+        <div class="sc-row">record, voice or camera<span class="keys"><kbd class="sck">M</kbd></span></div>
+      </div>
+      <div class="sc-group">
+        <h4>on stage</h4>
+        <div class="sc-row">laser pointer<span class="keys"><kbd class="sck">L</kbd></span></div>
+        <div class="sc-row">draw on the slide<span class="keys"><kbd class="sck">D</kbd></span></div>
+        <div class="sc-row">talk timer start / pause<span class="keys"><kbd class="sck">C</kbd></span></div>
+        <div class="sc-row">reset timer<span class="keys"><kbd class="sck">R</kbd></span></div>
+        <div class="sc-row">transitions on / off<span class="keys"><kbd class="sck">Z</kbd></span></div>
+      </div>
+    </div>
+    <div class="sc-foot"><kbd class="sck">H</kbd> toggles this · <kbd class="sck">esc</kbd> closes anything, always</div>
+  </div>
 </div>
 
 <nav class="preso-nav" id="preso-nav">
@@ -1445,8 +1514,24 @@ btnReset.addEventListener('click', () => {
 });
 
 // ── Keys ──────────────────────────────────────────────────────────────────────
+const scOverlay = document.getElementById('shortcuts-overlay');
+let scOpen = false;
+function toggleShortcuts() {
+  scOpen = !scOpen;
+  if (scOpen) {
+    scOverlay.classList.add('open');
+    requestAnimationFrame(() => requestAnimationFrame(() => scOverlay.classList.add('visible')));
+  } else {
+    scOverlay.classList.remove('visible');
+    setTimeout(() => scOverlay.classList.remove('open'), 180);
+  }
+}
+scOverlay.addEventListener('click', () => { if (scOpen) toggleShortcuts(); });
+
 function handleKey(key) {
   if (editorOpen) return;
+  if (key === 'h' || key === 'H' || key === '?') { toggleShortcuts(); return; }
+  if (scOpen) { if (key === 'Escape') toggleShortcuts(); return; }
   if (key === 'e' || key === 'E') { openEditor(); return; }
   if (key === 'g' || key === 'G') { toggleOverview(); return; }
   if (key === 't' || key === 'T') { toggleFilmstrip(); return; }
