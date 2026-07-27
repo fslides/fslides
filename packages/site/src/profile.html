@@ -111,11 +111,17 @@
       position: absolute; top: 0; left: 0; width: 1280px; height: 720px;
       border: none; transform-origin: top left; pointer-events: none;
     }
-    .card .info { padding: 13px 15px; border-top: 1px solid var(--line); }
-    .card .name { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card .info { padding: 13px 16px 14px; border-top: 1px solid var(--line); }
+    .card .head { display: flex; align-items: center; gap: 10px; }
+    .card .name { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
     .card .name::before { content: '> '; color: var(--acc); }
-    .card .desc { font-size: 0.92rem; color: var(--dim); line-height: 1.45; margin-top: 5px; min-height: 1.2em; }
-    .card .when { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--faint); margin-top: 9px; display: flex; gap: 8px; align-items: center; }
+    .card .desc { font-size: 0.92rem; color: var(--dim); line-height: 1.45; margin-top: 6px; }
+    .card .foot {
+      display: flex; align-items: center; gap: 14px; margin-top: 12px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--faint);
+      white-space: nowrap;
+    }
+    .card .foot .when { margin-left: auto; }
     .chip {
       font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--dim);
       border: 1px solid var(--line); padding: 1px 6px;
@@ -134,9 +140,9 @@
     .row .when { color: var(--faint); font-size: 0.82rem; flex-shrink: 0; }
     .row::after { content: '↗'; color: var(--acc); }
 
-    .stats { display: flex; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--faint); }
-    .stats span { display: inline-flex; gap: 4px; align-items: center; }
-    .stats .k { color: var(--acc); }
+    .stats { display: inline-flex; gap: 13px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--faint); }
+    .stats span { display: inline-flex; gap: 5px; align-items: center; }
+    .stats svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.75; flex-shrink: 0; }
     .thumb.lock { display: flex; align-items: center; justify-content: center; padding-bottom: 0; aspect-ratio: 16/9;
       font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--faint); }
     .sharebtn {
@@ -430,11 +436,17 @@
       var a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.rel = 'noopener';
       var priv = r.private ? '<span class="chip">private</span>' : '';
+      var IC = {
+        fork: '<svg viewBox="0 0 16 16"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"/></svg>',
+        star: '<svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>',
+        comment: '<svg viewBox="0 0 16 16"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0 1 13.25 12H9.06l-2.573 2.573A1.458 1.458 0 0 1 4 13.543V12H2.75A1.75 1.75 0 0 1 1 10.25Z"/></svg>',
+        people: '<svg viewBox="0 0 16 16"><path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Z"/></svg>',
+      };
       var stats = '<span class="stats">' +
-        '<span title="forks"><span class="k">⑂</span>' + (r.forks_count || 0) + '</span>' +
-        '<span title="stars"><span class="k">★</span>' + (r.stargazers_count || 0) + '</span>' +
-        '<span title="open comment threads"><span class="k">💬</span>' + (r.open_issues_count || 0) + '</span>' +
-        (r._collabs != null ? '<span title="shared with"><span class="k">👥</span>' + r._collabs + '</span>' : '') +
+        '<span title="forks">' + IC.fork + (r.forks_count || 0) + '</span>' +
+        '<span title="stars">' + IC.star + (r.stargazers_count || 0) + '</span>' +
+        '<span title="open comment threads">' + IC.comment + (r.open_issues_count || 0) + '</span>' +
+        (r._collabs != null ? '<span title="shared with">' + IC.people + r._collabs + '</span>' : '') +
         '</span>';
       var share = ownerMode ? '<button class="sharebtn" data-repo="' + esc(r.full_name) + '">share</button>' : '';
       if (view === 'grid') {
@@ -443,9 +455,9 @@
           ? '<div class="thumb lock">🔒 private — opens with GitHub sign-in</div>'
           : '<div class="thumb"><iframe loading="lazy" scrolling="no" tabindex="-1"></iframe></div>';
         a.innerHTML = thumb +
-          '<div class="info"><div class="name"></div>' +
-          '<div class="desc">' + esc(r.description || '') + '</div>' +
-          '<div class="when">' + priv + stats + '<span>pushed ' + ago(r.pushed_at) + '</span>' + share + '</div></div>';
+          '<div class="info"><div class="head"><div class="name"></div>' + priv + share + '</div>' +
+          (r.description ? '<div class="desc">' + esc(r.description) + '</div>' : '') +
+          '<div class="foot">' + stats + '<span class="when">pushed ' + ago(r.pushed_at) + '</span></div></div>';
         if (!r.private) a.querySelector('iframe').src = url + '#0';
       } else {
         a.className = 'row';

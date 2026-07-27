@@ -25,7 +25,7 @@
 ::selection { background: var(--acc); color: #000; }
 
 body {
-  font-family: var(--sans); font-size: 14px; line-height: 1.65;
+  font-family: var(--sans); font-size: 15.5px; line-height: 1.65;
   background: var(--bg); color: var(--txt);
   -webkit-font-smoothing: antialiased; min-height: 100vh;
   padding-bottom: 26px; /* statusline */
@@ -42,10 +42,10 @@ body::before {
   display: flex; align-items: center; gap: 18px; padding: 0 18px;
   background: rgba(10,10,11,0.92); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
-  font-family: var(--mono); font-size: 12px;
+  font-family: var(--mono); font-size: 14px;
 }
 .wordmark {
-  font-family: var(--mono); font-weight: 700; font-size: 13px;
+  font-family: var(--mono); font-weight: 700; font-size: 15px;
   color: var(--fg); text-decoration: none; letter-spacing: -0.02em;
 }
 .wordmark::before { content: '$ '; color: var(--acc); }
@@ -63,16 +63,16 @@ main { padding: 26px 18px 70px; position: relative; z-index: 2; }
 main.narrow { max-width: 740px; margin: 0 auto; }
 .page-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
 h1 {
-  font-family: var(--mono); font-size: 18px; font-weight: 700;
+  font-family: var(--mono); font-size: 22px; font-weight: 700;
   letter-spacing: -0.01em; color: var(--fg);
 }
 h1::before { content: '> '; color: var(--acc); }
-.page-sub { color: var(--faint); font-size: 12.5px; font-family: var(--mono); margin-bottom: 22px; }
+.page-sub { color: var(--faint); font-size: 14.5px; font-family: var(--mono); margin-bottom: 22px; }
 
 /* ── controls ── */
 .btn {
   display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px;
-  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  font-family: var(--mono); font-size: 14px; font-weight: 700;
   background: transparent; color: var(--dim);
   border: 1px solid var(--line2); border-radius: 0;
   cursor: pointer; text-decoration: none; white-space: nowrap;
@@ -87,7 +87,7 @@ h1::before { content: '> '; color: var(--acc); }
 
 input[type="search"], input[type="text"], select {
   height: 30px; padding: 0 10px;
-  font-family: var(--mono); font-size: 12px;
+  font-family: var(--mono); font-size: 14px;
   background: var(--panel); color: var(--fg);
   border: 1px solid var(--line2); border-radius: 0; outline: none;
 }
@@ -98,7 +98,7 @@ select { cursor: pointer; color: var(--dim); }
 .seg { display: inline-flex; border: 1px solid var(--line2); }
 .seg button {
   height: 28px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 11.5px; font-weight: 700;
+  font-family: var(--mono); font-size: 13.5px; font-weight: 700;
   background: transparent; color: var(--faint); border: none; cursor: pointer;
 }
 .seg button + button { border-left: 1px solid var(--line); }
@@ -106,12 +106,12 @@ select { cursor: pointer; color: var(--dim); }
 .seg svg { width: 11px; height: 11px; }
 
 kbd {
-  font-family: var(--mono); font-size: 10.5px; color: var(--txt);
+  font-family: var(--mono); font-size: 12.5px; color: var(--txt);
   background: var(--panel2); border: 1px solid var(--line2); border-bottom-width: 2px;
   border-radius: 2px; padding: 1px 5px;
 }
 .chip {
-  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
   letter-spacing: 0.05em; text-transform: uppercase;
   color: var(--faint); border: 1px solid var(--line2); padding: 1px 6px;
 }
@@ -128,7 +128,7 @@ kbd {
 .rows { border: 1px solid var(--line); overflow: hidden; }
 .row {
   display: flex; align-items: center; gap: 14px; height: 36px; padding: 0 14px;
-  font-family: var(--mono); font-size: 12.5px;
+  font-family: var(--mono); font-size: 14.5px;
   color: var(--txt); text-decoration: none;
   border-bottom: 1px solid var(--line); background: var(--panel);
   transition: background .08s;
@@ -139,27 +139,27 @@ kbd {
 
 /* ── prose (docs) ── */
 .prose h2 {
-  font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--fg);
+  font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--fg);
   margin: 36px 0 10px; padding-top: 8px;
 }
 .prose h2::before { content: '## '; color: var(--acc); font-weight: 400; }
-.prose h3 { font-size: 13px; font-weight: 700; color: var(--fg); margin: 20px 0 6px; }
-.prose p { margin-bottom: 12px; font-size: 13.5px; color: var(--dim); }
+.prose h3 { font-size: 15px; font-weight: 700; color: var(--fg); margin: 20px 0 6px; }
+.prose p { margin-bottom: 12px; font-size: 15px; color: var(--dim); }
 .prose p strong, .prose li strong { color: var(--txt); font-weight: 600; }
 .prose ul { margin: 0 0 12px 18px; }
-.prose li { margin-bottom: 4px; font-size: 13.5px; color: var(--dim); }
+.prose li { margin-bottom: 4px; font-size: 15px; color: var(--dim); }
 .prose a { color: var(--acc-hi); text-decoration: none; }
 .prose a:hover { text-decoration: underline; }
-.prose table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12.5px; }
+.prose table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 14px; }
 .prose th, .prose td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
-.prose th { font-family: var(--mono); color: var(--faint); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; }
+.prose th { font-family: var(--mono); color: var(--faint); font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; }
 .prose .callout {
   border: 1px solid var(--line); border-left: 2px solid var(--acc);
-  background: var(--panel); padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: var(--dim);
+  background: var(--panel); padding: 10px 14px; margin-bottom: 14px; font-size: 14.5px; color: var(--dim);
 }
 
 pre {
-  font-family: var(--mono); font-size: 12.5px; line-height: 1.8;
+  font-family: var(--mono); font-size: 14px; line-height: 1.8;
   background: var(--panel); border: 1px solid var(--line);
   padding: 12px 16px; overflow-x: auto; margin: 0 0 14px; color: var(--txt);
   position: relative;
@@ -180,7 +180,7 @@ pre code { color: var(--txt); }
 .statusline {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; height: 26px;
   display: flex; align-items: stretch;
-  font-family: var(--mono); font-size: 11px;
+  font-family: var(--mono); font-size: 13px;
   background: var(--panel2); border-top: 1px solid var(--line);
   color: var(--faint);
 }
@@ -205,18 +205,18 @@ pre code { color: var(--txt); }
   font-family: var(--mono); padding: 6px;
 }
 .cta-menu .cta-head {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--faint); padding: 8px 10px 5px;
 }
 .cta-row {
   display: flex; align-items: center; gap: 10px; padding: 9px 10px; cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
 }
 .cta-row:hover { background: var(--acc-bg); }
 .cta-row .cmd { flex: 1; color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cta-row .cmd::before { content: '$ '; color: var(--acc-hi); }
 .cta-row .cmd.nodollar::before { content: ''; }
-.cta-row .lbl { font-size: 10px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; }
-.cta-row .cpy { color: var(--faint); font-size: 10.5px; flex-shrink: 0; }
+.cta-row .lbl { font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; }
+.cta-row .cpy { color: var(--faint); font-size: 12px; flex-shrink: 0; }
 .cta-row.copied .cpy { color: var(--ok); }
-.cta-row select { height: 24px; font-size: 11px; }
+.cta-row select { height: 26px; font-size: 12.5px; }
