@@ -184,6 +184,7 @@ Candidates, unvalidated:
 **AI-native authoring** *(Bento-inspired analysis, 2026-07-22)* — SHIPPED 2026-07-24
 - [x] `docs/agents.md` — served at fslides.dev/agents.md
 - [x] Claude Code plugin (`/plugin marketplace add fslides/fslides` → `fslides-deck` skill)
+- [x] `fslides-monorepo` skill — initialises `.fslides` manifest for repos with multiple decks in subdirectories (issue #13)
 
 **Player**
 - Morph transitions: elements sharing `data-morph` ids FLIP-animate across slides (the Bento flagship; big visual payoff)
