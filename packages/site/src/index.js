@@ -1,6 +1,6 @@
 'use strict';
 
-// fslides.dev — static site (assets) + hosted decks at decks.fslides.dev.
+// fslides.dev — static site (assets) + hosted decks at {owner}.fslides.dev.
 //
 // Decks are rendered on the fly from GitHub: nothing is stored. The worker
 // fetches the deck's config from raw.githubusercontent.com, assembles the
@@ -8,8 +8,13 @@
 // slides/assets/recordings straight from the repo. `git push` IS publishing —
 // no CI, no build step, live within the cache window (~60s).
 //
-// Decks live on their own origin: user JS must never share the app origin
-// (dashboard tokens live in fslides.dev localStorage).
+// Reputation isolation (the github.io model): every owner gets their own
+// subdomain, and fslides.dev is submitted to the Public Suffix List, so
+// browsers/Safe Browsing treat each owner as an independent site — one
+// abuser burns their own subdomain, never the platform. Open to any repo
+// that opts in by carrying an fslides config; env.DENYLIST (comma-separated
+// owners or owner/repo) is the abuse killswitch; every deck response is
+// noindex; /-/report on the app origin routes abuse reports to GitHub.
 
 import JSON5 from 'json5';
 import PLAYER from './vendor/player.html';
@@ -28,19 +33,58 @@ const TYPES = {
 
 const NO_STORE = { 'Cache-Control': 'no-store' };
 
+const RESERVED = new Set([
+  'www', 'api', 'decks', 'app', 'staging', 'mail', 'admin', 'status',
+  'docs', 'cdn', 'assets', 'preview', 'blog', 'shop', 'support',
+]);
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const host = url.hostname.toLowerCase();
 
-    if (url.hostname === 'decks.fslides.dev') return serveDeck(request, url, env);
+    // legacy deck origin → permanent redirect to owner subdomains
+    if (host === 'decks.fslides.dev') {
+      const parts = url.pathname.slice(1).split('/').filter(Boolean);
+      if (parts.length >= 1 && /^[A-Za-z0-9-]+$/.test(parts[0])) {
+        const owner = parts.shift().toLowerCase();
+        return Response.redirect(`https://${owner}.fslides.dev/` + parts.join('/') +
+          (url.pathname.endsWith('/') && parts.length ? '/' : '') + url.search, 301);
+      }
+      return Response.redirect('https://fslides.dev/', 302);
+    }
+
+    // owner subdomains serve decks: {owner}.fslides.dev/{repo}/…
+    const sub = host.match(/^([a-z0-9-]+)\.fslides\.dev$/);
+    if (sub && !RESERVED.has(sub[1])) {
+      return serveDeck(request, url, env, sub[1]);
+    }
+
+    // ── app origin (fslides.dev / www) ──
 
     if (url.pathname === '/logo.png' || url.pathname === '/favicon.ico') {
       return new Response(LOGO, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' } });
     }
 
-    // legacy /@owner/repo on the app origin → redirect to the deck origin
+    // abuse reports → prefilled GitHub issue (GitHub is the moderation surface)
+    if (url.pathname === '/-/report') {
+      const deck = (url.searchParams.get('deck') || '').slice(0, 100).replace(/[^\w./-]/g, '');
+      const owner = deck.split('/')[0] || '';
+      const rest = deck.split('/').slice(1).join('/');
+      const title = encodeURIComponent('[abuse] deck report: ' + deck);
+      const body = encodeURIComponent(
+        'Deck: https://' + owner + '.fslides.dev/' + rest +
+        '\nRepo: https://github.com/' + deck +
+        '\n\nWhat is wrong with this deck?\n\n');
+      return Response.redirect(
+        `https://github.com/fslides/fslides/issues/new?title=${title}&labels=abuse&body=${body}`, 302);
+    }
+
+    // legacy /@owner/repo on the app origin → owner subdomain
     if (url.pathname.startsWith('/@')) {
-      return Response.redirect('https://decks.fslides.dev/' + url.pathname.slice(2) + url.search, 301);
+      const seg = url.pathname.slice(2).split('/').filter(Boolean);
+      const owner = (seg.shift() || '').toLowerCase();
+      return Response.redirect(`https://${owner}.fslides.dev/` + seg.join('/') + url.search, 301);
     }
 
     // app origin: real assets win; profiles and pretty deck URLs fill the
@@ -56,7 +100,8 @@ export default {
           headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' },
         });
       }
-      return Response.redirect('https://decks.fslides.dev/' + seg.join('/') +
+      const owner = seg.shift().toLowerCase();
+      return Response.redirect(`https://${owner}.fslides.dev/` + seg.join('/') +
         (url.pathname.endsWith('/') ? '/' : '') + url.search, 301);
     }
 
@@ -71,7 +116,7 @@ export default {
   },
 };
 
-async function serveDeck(request, url, env) {
+async function serveDeck(request, url, env, owner) {
   const { pathname } = url;
 
   // viewer session for private decks — HttpOnly so deck JS (user code)
@@ -103,17 +148,19 @@ async function serveDeck(request, url, env) {
   }
 
   const parts = pathname.slice(1).split('/').filter(Boolean);
-  const owner = parts.shift();
   const repo = parts.shift();
-  if (!owner || !repo) return new Response('Decks live at decks.fslides.dev/owner/repo/', { status: 404, headers: NO_STORE });
+  if (!repo) {
+    // owner root: their public profile lives on the app origin
+    return Response.redirect('https://fslides.dev/' + owner, 302);
+  }
   const key = parts.join('/');
   if (decodeURIComponent(key).includes('..')) return new Response('Bad path', { status: 400, headers: NO_STORE });
 
-  // launch posture: hosted decks are allowlist-only (env PUBLISHERS,
-  // comma-separated owners; '*' opens it up — pair with quotas first)
-  const publishers = (env.PUBLISHERS || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
-  if (!publishers.includes('*') && !publishers.includes(owner.toLowerCase())) {
-    return new Response('Hosted decks are invite-only for now — ask at https://github.com/fslides/fslides/issues', { status: 403, headers: NO_STORE });
+  // abuse killswitch: env.DENYLIST is comma-separated owners or owner/repo
+  const deny = (env.DENYLIST || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+  if (deny.includes(owner) || deny.includes(owner + '/' + repo.toLowerCase())) {
+    return new Response('This deck has been disabled following an abuse report. Appeal: https://github.com/fslides/fslides/issues',
+      { status: 410, headers: NO_STORE });
   }
 
   // deck root without trailing slash → redirect so relative URLs resolve
@@ -143,8 +190,8 @@ async function serveDeck(request, url, env) {
     let notes = '{}';
     if (nf.resp.ok) { const t = await nf.resp.text(); try { JSON.parse(t); notes = t; } catch (_) {} }
     const html = renderPlayer(owner, repo, config, notes);
-    if (request.method === 'HEAD') return new Response(null, { headers: { 'Content-Type': TYPES.html } });
-    return new Response(html, { headers: { 'Content-Type': TYPES.html, 'Cache-Control': cc('public, max-age=60') } });
+    if (request.method === 'HEAD') return new Response(null, { headers: { 'Content-Type': TYPES.html, 'X-Robots-Tag': 'noindex' } });
+    return new Response(html, { headers: { 'Content-Type': TYPES.html, 'Cache-Control': cc('public, max-age=60'), 'X-Robots-Tag': 'noindex' } });
   }
 
   // slides / assets / recordings — the deck's slides dir is the URL root,
@@ -181,6 +228,7 @@ async function serveDeck(request, url, env) {
     headers: {
       'Content-Type': TYPES[ext] || 'application/octet-stream',
       'Cache-Control': cc(ext === 'html' ? 'public, max-age=60' : 'public, max-age=300'),
+      'X-Robots-Tag': 'noindex',
     },
   });
   return out;

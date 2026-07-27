@@ -6,7 +6,9 @@ preview_urls = true
 routes = [
   { pattern = "fslides.dev", custom_domain = true },
   { pattern = "www.fslides.dev", custom_domain = true },
-  { pattern = "decks.fslides.dev", custom_domain = true }
+  { pattern = "decks.fslides.dev", custom_domain = true },
+  # owner subdomains — reputation isolation, one subdomain per GitHub owner
+  { pattern = "*.fslides.dev/*", zone_name = "fslides.dev" }
 ]
 
 [assets]
@@ -14,7 +16,8 @@ directory = "_site"
 binding = "ASSETS"
 
 [vars]
-PUBLISHERS = "bahaaldine,fslides"
+# abuse killswitch: comma-separated owners or owner/repo to disable
+DENYLIST = ""
 
 # player/runtime/logo vendored from packages/core (npm run sync-vendor)
 [[rules]]

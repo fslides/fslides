@@ -529,7 +529,7 @@
     box.className = view === 'list' ? 'rows' : 'grid';
     box.innerHTML = '';
     decks.forEach(function (r) {
-      var url = 'https://decks.fslides.dev/' + r.owner.login + '/' + r.name + '/';
+      var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + r.name + '/';
       var a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.rel = 'noopener';
       var priv = r.private ? '<span class="chip">private</span>' : '';
@@ -707,7 +707,7 @@
 
   function openShare(r, anchor) {
     var pop = $('share-pop');
-    var url = 'https://decks.fslides.dev/' + r.owner.login + '/' + r.name + '/';
+    var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + r.name + '/';
     pop.innerHTML = '<h4>share ' + esc(r.name) + '</h4>' +
       '<div class="linkrow"><input readonly value="' + esc(url) + '"><button class="copy">copy</button></div>' +
       (r.private

@@ -179,6 +179,28 @@ Prompting in a terminal doesn't scale and isn't traceable. The loop now:
   repo safe — strangers can't spend the subscription)
 - Backlog: previews for decks-origin behavior; screenshot bot on PRs
 
+## Phase 2.8 — Open hosting with reputation isolation (2026-07-27, Baha's call)
+Invite-only is a launch posture, not a product. Adopted the github.io model:
+- [x] Owner subdomains: decks serve at {owner}.fslides.dev/{repo} (wildcard
+      route on the zone; first-level = free Universal SSL). decks.fslides.dev
+      and fslides.dev/owner/repo 301 to the new scheme; owner root redirects
+      to their fslides.dev profile
+- [x] PUBLISHERS allowlist DELETED — any repo carrying an fslides config
+      renders. Opt-in = the config itself; attackers can only burn their own
+      subdomain
+- [x] Abuse killswitch: env DENYLIST (comma owners or owner/repo) → 410;
+      one commit to main disables an abuser
+- [x] Report path: /-/report?deck=owner/repo on the app origin → prefilled
+      GitHub abuse issue; linked from every deck's H cheatsheet footer
+- [x] All deck responses X-Robots-Tag: noindex (decks are for sharing, not SEO)
+- [ ] Public Suffix List: PR adding fslides.dev (private section) — once
+      merged + propagated, browsers/Safe Browsing treat each owner subdomain
+      as an independent site (blast radius = one owner, like github.io)
+- [ ] BAHA (DNS, Cloudflare dash → fslides.dev → DNS): wildcard record
+      (Type A, name `*`, IPv4 192.0.2.1, Proxied ON) + later a TXT record
+      `_psl` pointing at the PSL PR URL
+- Backlog: rate limiting rules, proactive Safe Browsing monitoring
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:

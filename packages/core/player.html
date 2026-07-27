@@ -883,7 +883,7 @@
         <div class="sc-row">transitions on / off<span class="keys"><kbd class="sck">Z</kbd></span></div>
       </div>
     </div>
-    <div class="sc-foot"><kbd class="sck">H</kbd> toggles this · <kbd class="sck">esc</kbd> closes anything, always</div>
+    <div class="sc-foot"><kbd class="sck">H</kbd> toggles this · <kbd class="sck">esc</kbd> closes anything, always<span id="sc-report"></span></div>
   </div>
 </div>
 
@@ -1525,6 +1525,13 @@ btnReset.addEventListener('click', () => {
 
 // ── Keys ──────────────────────────────────────────────────────────────────────
 const scOverlay = document.getElementById('shortcuts-overlay');
+// abuse report path — every hosted deck is one click from a report form
+if (window.FUCKSLIDES_REPO) {
+  const rep = document.getElementById('sc-report');
+  rep.innerHTML = ' · <a href="https://fslides.dev/-/report?deck=' +
+    encodeURIComponent(window.FUCKSLIDES_REPO) + '" target="_blank" rel="noopener" ' +
+    'style="color: rgba(255,255,255,0.28); text-decoration: underline;">report this deck</a>';
+}
 let scOpen = false;
 function toggleShortcuts() {
   scOpen = !scOpen;
