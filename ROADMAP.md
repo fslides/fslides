@@ -144,6 +144,24 @@ after Baha asked why storage was needed at all. Nothing is stored:
         The barbed-bat mark now lives everywhere: hero (floating, glowing),
         every site bar, favicons; /logo.png served on both origins
 
+## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
+Prompting in a terminal doesn't scale and isn't traceable. The loop now:
+1. Baha files a GitHub issue (any device) — the issue body IS the prompt;
+   mention @claude (or put it in the title)
+2. claude-code-action runs Claude Code in CI: implements on a branch,
+   opens a PR linked to the issue, replies in-thread
+3. Iterations are comments: "@claude …" on the issue/PR re-runs it
+4. Staging: every PR gets a Cloudflare version-preview URL commented on
+   the PR (app-origin pages; decks-origin logic only runs on real domains)
+5. Merge to main → production deploy (site/gateway, path-filtered)
+- [x] .github/workflows/{claude,preview,deploy}.yml committed
+- [ ] BAHA one-time setup: install the Claude GitHub App on fslides
+      (https://github.com/apps/claude → fslides org, this repo);
+      `claude setup-token` → `gh secret set CLAUDE_CODE_OAUTH_TOKEN`;
+      Cloudflare API token (Workers Scripts:Edit) → `gh secret set
+      CLOUDFLARE_API_TOKEN` + `gh secret set CLOUDFLARE_ACCOUNT_ID`
+- Backlog: previews for decks-origin behavior; screenshot bot on PRs
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:

@@ -1,6 +1,7 @@
 name = "fslides-site"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
+preview_urls = true
 
 routes = [
   { pattern = "fslides.dev", custom_domain = true },

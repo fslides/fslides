@@ -1,0 +1,54 @@
+# Staging: every PR that touches the site gets its own preview URL
+# (Cloudflare version preview on workers.dev), commented on the PR.
+# Note: previews exercise the app origin (landing, profiles, 404, docs);
+# the decks.fslides.dev hostname logic only runs on the real domains.
+name: Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build site
+        working-directory: packages/site
+        run: |
+          npm install
+          npm run sync-vendor
+          node ../core/bin/cli.js build _site
+
+      - name: Upload version preview
+        id: preview
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/site
+          command: versions upload
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const out = `${{ steps.preview.outputs.command-output }}`;
+            const m = out.match(/https:\/\/[^\s]*workers\.dev[^\s]*/);
+            const url = m ? m[0] : '(no preview URL found — check the workflow log)';
+            const marker = '<!-- fslides-preview -->';
+            const body = `${marker}\n🎪 **Staging preview:** ${url}\n\n_Rebuilds on every push to this PR. App-origin pages only (landing, profiles, 404, docs)._`;
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo, issue_number: context.issue.number, per_page: 100 });
+            const prev = comments.find(c => c.body.includes(marker));
+            if (prev) await github.rest.issues.updateComment({ ...context.repo, comment_id: prev.id, body });
+            else await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
