@@ -155,6 +155,25 @@ after Baha asked why storage was needed at all. Nothing is stored:
       real layout's mobile breakpoint. Skeleton disappears the moment the GitHub API
       resolves (`loading.hidden = true`).
 
+## Phase 2.8 — Monorepo deck support (2026-07-27, issue #13)
+- [x] `.fslides` manifest at the repo root opts a repo into multi-deck mode:
+      `{ "decks": ["obs-preso", "talks/k8s-2024"] }`. Root-config single-deck
+      repos are fully unchanged — no manifest = no change in behavior.
+- [x] Worker (decks.fslides.dev): manifest-based URL routing. Probes `.fslides`
+      when the path has segments beyond owner/repo; longest-prefix match maps
+      `/owner/repo/subpath/` to the sub-deck's config + assets. Root requests on
+      manifest-only repos redirect to the first listed deck. Manifest cached 60 s,
+      misses cached 15 s — same as existing config 404s.
+- [x] Profile (fslides.dev/{login}): `getRepoDecks()` replaces `isDeck()`. Topic
+      repos and public non-topic repos are probed for `.fslides`; manifest present →
+      N cards surfaced (one per listed path, name = last path segment). Owner mode
+      and public profile both expand monorepo repos. Single-deck repos yield one card,
+      unchanged. Private monorepo sub-decks are not yet expanded (raw probe requires
+      auth; deferred).
+- [x] `fslides-monorepo` CLI skill (claude/issue-13-20260727-0603): scans the
+      working tree for sub-deck configs and writes the `.fslides` manifest —
+      the migration path for existing repos.
+
 ## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
 Prompting in a terminal doesn't scale and isn't traceable. The loop now:
 1. Baha files a GitHub issue (any device) — the issue body IS the prompt;
