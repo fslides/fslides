@@ -189,16 +189,26 @@
     .state a { color: var(--acc); }
     .state .big { font-size: 1.1rem; color: var(--fg); margin-bottom: 10px; }
 
-    .newdeck { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 22px; max-width: 640px; display: none; }
-    .newdeck h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); margin-bottom: 10px; }
-    .newdeck p { font-size: 0.95rem; color: var(--dim); margin-bottom: 9px; }
-    .newdeck pre {
-      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; color: var(--fg);
-      background: var(--panel); border: 1px solid var(--line); padding: 10px 13px; margin-bottom: 9px;
-      overflow-x: auto;
+    .cta-btn {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--acc-hi);
+      background: color-mix(in srgb, var(--acc) 12%, transparent); border: 1px solid var(--acc);
+      border-radius: 6px; padding: 7px 14px; cursor: pointer; white-space: nowrap; margin-left: auto;
     }
-    .newdeck pre .p { color: var(--acc); } .newdeck pre .c { color: var(--faint); }
-    .newdeck a { color: var(--acc); }
+    .cta-btn:hover { background: color-mix(in srgb, var(--acc) 24%, transparent); color: var(--fg); }
+    #cta-menu {
+      position: absolute; z-index: 50; width: min(480px, 94vw); background: var(--panel);
+      border: 1px solid var(--acc); box-shadow: 0 18px 50px rgba(0,0,0,0.4); padding: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #cta-menu .head { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); padding: 8px 10px 6px; }
+    #cta-menu .row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; cursor: pointer; }
+    #cta-menu .row:hover { background: color-mix(in srgb, var(--acc) 10%, transparent); }
+    #cta-menu .cmd { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; color: var(--fg); }
+    #cta-menu .cmd::before { content: '$ '; color: var(--acc); }
+    #cta-menu .cmd.nodollar::before { content: ''; }
+    #cta-menu .lbl { font-size: 0.72rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; flex-shrink: 0; }
+    #cta-menu .cpy { font-size: 0.75rem; color: var(--faint); flex-shrink: 0; }
+    #cta-menu .row.copied .cpy { color: #34D399; }
 
     .statusline {
       display: flex; align-items: center; height: 30px; border-top: 1px solid var(--line);
@@ -256,6 +266,7 @@
           <button id="view-grid"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="1" width="5.5" height="5.5" rx="1"/><rect x="1" y="9.5" width="5.5" height="5.5" rx="1"/><rect x="9.5" y="9.5" width="5.5" height="5.5" rx="1"/></svg>grid</button>
           <button id="view-list"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>list</button>
         </div>
+        <button class="cta-btn" id="btn-newdeck">+ new deck</button>
       </div>
 
       <div id="decks" class="grid"></div>
@@ -265,12 +276,6 @@
         <div>make one: <a href="/">curl -fsSL fslides.dev/new | sh -s -- my-deck</a></div>
       </div>
 
-      <div class="newdeck" id="newdeck">
-        <h3>new deck</h3>
-        <p>Creation lives in the terminal — one command, same for you and your <strong>agent</strong>:</p>
-        <pre><span class="p">$</span> curl -fsSL fslides.dev/new | sh -s -- my-deck   <span class="c"># live at decks.fslides.dev on push</span></pre>
-        <p>Claude Code: <code>/plugin marketplace add fslides/fslides</code> · spec: <a href="/agents.md">agents.md</a></p>
-      </div>
     </section>
   </main>
   <div class="state" id="loading">loading profile…</div>
@@ -546,7 +551,6 @@
       ownerMode = true;
       ownerTok = tok;
       $('visibility').hidden = false;
-      $('newdeck').style.display = 'block';
       loadOwnerDecks(tok);
     }).catch(function () { $('btn-signin').hidden = false; });
   }
@@ -560,6 +564,42 @@
     });
     return Promise.all(tries).then(function (ok) { return ok[0] || ok[1]; });
   }
+
+  // ── + new deck: same contextual menu as the landing's CTA ──
+  var NEW_DECK = [
+    { cmd: 'curl -fsSL fslides.dev/new | sh -s -- my-deck', note: 'you drive' },
+    { cmd: '/plugin marketplace add fslides/fslides', note: 'your agent drives' },
+  ];
+  $('btn-newdeck').addEventListener('click', function (e) {
+    e.stopPropagation();
+    var m = document.getElementById('cta-menu');
+    if (m) { m.remove(); return; }
+    m = document.createElement('div');
+    m.id = 'cta-menu';
+    m.innerHTML = '<div class="head">create a deck — click a line to copy</div>';
+    NEW_DECK.forEach(function (item) {
+      var row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = '<span class="cmd' + (item.cmd.charAt(0) === '/' ? ' nodollar' : '') + '"></span><span class="lbl"></span><span class="cpy">copy</span>';
+      row.querySelector('.cmd').textContent = item.cmd;
+      row.querySelector('.lbl').textContent = item.note;
+      row.addEventListener('click', function () {
+        navigator.clipboard.writeText(item.cmd).then(function () {
+          row.classList.add('copied');
+          row.querySelector('.cpy').textContent = 'copied ✓';
+          setTimeout(function () { row.classList.remove('copied'); row.querySelector('.cpy').textContent = 'copy'; }, 1600);
+        });
+      });
+      m.appendChild(row);
+    });
+    var b = e.currentTarget.getBoundingClientRect();
+    m.style.top = (b.bottom + window.scrollY + 8) + 'px';
+    m.style.left = Math.max(10, Math.min(b.right + window.scrollX - 480, window.innerWidth - 494)) + 'px';
+    document.body.appendChild(m);
+    document.addEventListener('click', function closer(ev) {
+      if (!m.contains(ev.target)) { m.remove(); document.removeEventListener('click', closer); }
+    });
+  });
 
   // ── share: copy the link; invite/remove people — GitHub's ACL underneath.
   // view = pull, edit = push. Managing people needs the app's
