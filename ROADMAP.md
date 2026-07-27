@@ -155,11 +155,17 @@ Prompting in a terminal doesn't scale and isn't traceable. The loop now:
    the PR (app-origin pages; decks-origin logic only runs on real domains)
 5. Merge to main → production deploy (site/gateway, path-filtered)
 - [x] .github/workflows/{claude,preview,deploy}.yml committed
-- [ ] BAHA one-time setup: install the Claude GitHub App on fslides
-      (https://github.com/apps/claude → fslides org, this repo);
-      `claude setup-token` → `gh secret set CLAUDE_CODE_OAUTH_TOKEN`;
-      Cloudflare API token (Workers Scripts:Edit) → `gh secret set
-      CLOUDFLARE_API_TOKEN` + `gh secret set CLOUDFLARE_ACCOUNT_ID`
+- [x] Setup complete & E2E-proven 2026-07-27: issue #9 → @claude implemented
+      → PR #10 → staging URL in PR comment → verified serving the change.
+      Auth: OAuth token from Baha's subscription (works — early 401s were
+      token-delivery bugs, not the token; procedure: run `claude setup-token`
+      in a real terminal, copy the token, Claude verifies it in a sandbox
+      HOME before setting the secret). Deploys: plain `npx wrangler@4`
+      (wrangler-action was flaky). Previews needed account-level
+      previews_enabled=true on the worker (set via API) + URL constructed
+      from Version ID when wrangler omits it
+- @claude trust gate: only OWNER/MEMBER/COLLABORATOR can trigger (public
+  repo safe — strangers can't spend the subscription)
 - Backlog: previews for decks-origin behavior; screenshot bot on PRs
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
