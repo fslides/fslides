@@ -218,10 +218,64 @@
     .statusline .mode { background: var(--acc); color: #fff; font-weight: 700; padding: 2px 8px; }
     .statusline .right { margin-left: auto; }
 
+    /* ── skeleton placeholders ── */
+    @keyframes skel-shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position:  200% 0; }
+    }
+    .skel {
+      background: linear-gradient(
+        90deg,
+        var(--panel2) 25%,
+        color-mix(in srgb, var(--acc) 9%, var(--panel2)) 50%,
+        var(--panel2) 75%
+      );
+      background-size: 200% 100%;
+      animation: skel-shimmer 1.8s ease-in-out infinite;
+    }
+    /* sidebar */
+    .skel-avatar { width: 100%; aspect-ratio: 1; }
+    .skel-name   { height: 28px; width: 72%; margin-top: 18px; }
+    .skel-login  { height: 14px; width: 44%; margin-top: 8px; }
+    .skel-bio    { height: 13px; margin-top: 8px; }
+    .skel-bio + .skel-bio { width: 68%; margin-top: 6px; }
+    .skel-meta-row { height: 13px; width: 55%; margin-top: 8px; }
+    .skel-ghlink { height: 34px; width: 120px; margin-top: 18px; }
+    /* deck heading */
+    .skel-h2 { height: 18px; width: 160px; margin-bottom: 28px; }
+    /* deck cards */
+    .skel-thumb { width: 100%; padding-bottom: 56.25%; background: inherit; }
+    .skel-card-info { padding: 13px 16px 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+    .skel-card-name { height: 14px; width: 60%; }
+    .skel-card-desc { height: 11px; width: 85%; }
+    .skel-card-desc2 { height: 11px; width: 50%; }
+    .skel-card-foot { height: 11px; width: 40%; margin-top: 4px; }
+    /* row (list) skeletons */
+    .skel-row { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid var(--line); }
+    .skel-row-name { height: 14px; flex: 1; }
+    .skel-row-stat { height: 12px; width: 50px; }
+    .skel-row-when { height: 12px; width: 60px; }
+
+    #loading {
+      flex: 1; display: flex; flex-direction: column;
+    }
+    .skel-wrap {
+      display: flex; gap: 44px; align-items: flex-start;
+      width: 100%; max-width: 1400px; margin: 0 auto; padding: 40px 34px 70px;
+      flex: 1;
+    }
+    .skel-sidebar { width: 280px; flex-shrink: 0; }
+    .skel-decks-col { flex: 1; min-width: 0; }
+    .skel-grid-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .skel-card { border: 1px solid var(--line); background: var(--panel); overflow: hidden; }
+
     @media (max-width: 860px) {
       .wrap { flex-direction: column; }
       .who { width: 100%; position: static; display: flex; gap: 20px; align-items: flex-start; }
       .who img.avatar { width: 110px; }
+      .skel-wrap { flex-direction: column; }
+      .skel-sidebar { width: 100%; display: flex; gap: 20px; align-items: flex-start; }
+      .skel-avatar { width: 110px; flex-shrink: 0; }
     }
   </style>
 </head>
@@ -278,7 +332,62 @@
 
     </section>
   </main>
-  <div class="state" id="loading">loading profile…</div>
+  <div id="loading">
+    <div class="skel-wrap">
+      <!-- sidebar skeleton -->
+      <aside class="skel-sidebar">
+        <div class="skel skel-avatar"></div>
+        <div class="skel skel-name"></div>
+        <div class="skel skel-login"></div>
+        <div class="skel skel-bio"></div>
+        <div class="skel skel-bio"></div>
+        <div class="skel skel-meta-row"></div>
+        <div class="skel skel-meta-row" style="width:40%"></div>
+        <div class="skel skel-meta-row" style="width:50%"></div>
+        <div class="skel skel-ghlink"></div>
+      </aside>
+      <!-- decks skeleton -->
+      <section class="skel-decks-col">
+        <div class="skel skel-h2"></div>
+        <div class="skel-grid-wrap">
+          <div class="skel-card">
+            <div class="skel skel-thumb"></div>
+            <div class="skel-card-info">
+              <div class="skel skel-card-name"></div>
+              <div class="skel skel-card-desc"></div>
+              <div class="skel skel-card-desc2"></div>
+              <div class="skel skel-card-foot"></div>
+            </div>
+          </div>
+          <div class="skel-card">
+            <div class="skel skel-thumb"></div>
+            <div class="skel-card-info">
+              <div class="skel skel-card-name" style="width:75%"></div>
+              <div class="skel skel-card-desc"></div>
+              <div class="skel skel-card-foot"></div>
+            </div>
+          </div>
+          <div class="skel-card">
+            <div class="skel skel-thumb"></div>
+            <div class="skel-card-info">
+              <div class="skel skel-card-name" style="width:55%"></div>
+              <div class="skel skel-card-desc" style="width:90%"></div>
+              <div class="skel skel-card-desc2" style="width:60%"></div>
+              <div class="skel skel-card-foot"></div>
+            </div>
+          </div>
+          <div class="skel-card">
+            <div class="skel skel-thumb"></div>
+            <div class="skel-card-info">
+              <div class="skel skel-card-name" style="width:80%"></div>
+              <div class="skel skel-card-desc" style="width:70%"></div>
+              <div class="skel skel-card-foot"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
   <div id="notfound" hidden style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; position:relative; overflow:hidden; padding:20px;">
     <div style="font-family:'JetBrains Mono',monospace; font-size:clamp(4rem,14vw,9rem); font-weight:700; line-height:1; z-index:2;">4<span style="display:inline-block; color:var(--acc); transform:rotate(14deg) translate(4px,0); transform-origin:50% 92%;">0</span>4</div>
     <svg viewBox="0 0 560 180" style="position:absolute; width:min(38vw,440px); right:max(10vw,calc(50% - 380px)); bottom:47%; transform:rotate(-42deg); transform-origin:8% 92%; z-index:1;" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

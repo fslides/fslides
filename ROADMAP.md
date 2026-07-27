@@ -144,6 +144,15 @@ after Baha asked why storage was needed at all. Nothing is stored:
         The barbed-bat mark now lives everywhere: hero (floating, glowing),
         every site bar, favicons; /logo.png served on both origins
 
+## Phase 2.6 — UX polish (ongoing)
+
+- [x] Skeleton placeholders (2026-07-27, issue #11): profile page shows a
+      shimmering skeleton layout (sidebar + 4 deck cards) while the GitHub API
+      resolves, replacing the "loading profile…" text. Shimmer uses brand-orange
+      highlight over panel2 background; dark/light theme-aware via CSS variables.
+      Pattern is scoped to profile.html (the only async-heavy page today); extend
+      to other surfaces as they grow.
+
 ## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
 Prompting in a terminal doesn't scale and isn't traceable. The loop now:
 1. Baha files a GitHub issue (any device) — the issue body IS the prompt;
