@@ -12,7 +12,9 @@ routes = [
 # Non-secret config
 [vars]
 ALLOWED_ORIGIN_SUFFIXES = ".github.io,fslides.dev,localhost,127.0.0.1"
+OAUTH_CLIENT_ID = ""  # OAuth App client ID — set in dashboard or override here once created
 
 # Secrets (set with `wrangler secret put <NAME>`):
 #   GITHUB_CLIENT_ID      — from the "fslides" GitHub App
 #   GITHUB_CLIENT_SECRET  — from the "fslides" GitHub App
+#   OAUTH_CLIENT_SECRET   — from the classic OAuth App (repo scope; one-click private-deck sign-in)

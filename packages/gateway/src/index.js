@@ -5,19 +5,22 @@
 // The single server-side component in the fslides architecture. Decks stay
 // static (GitHub Pages, S3, anywhere); this worker only brokers identity:
 //
-//   GET /auth/login?origin=<deck-origin>   → redirect to GitHub App authorize
-//   GET /auth/callback?code&state          → exchange code, hand the token to
-//                                            the opener window via postMessage
-//   GET /healthz                           → ok
+//   GET /auth/login?origin=<deck-origin>           → redirect to GitHub App authorize
+//   GET /auth/login?flow=oauth&origin=<deck-origin> → redirect to OAuth App (repo scope)
+//   GET /auth/callback?code&state                  → exchange code, hand the token to
+//                                                    the opener window via postMessage
+//   GET /healthz                                   → ok
 //
-// The player opens /auth/login in a popup. After GitHub authorizes, the
-// callback page posts { type: 'fslides-auth', token, expiresAt } to the deck
-// window and closes itself. The player then talks to api.github.com directly
-// (CORS-open) with the user-to-server token — comments read/write with the
-// user's identity, scoped by the GitHub App's issues-only permission and its
-// per-repo installations. No token ever persists server-side.
+// Two flows:
+//   default (GitHub App) — issues:write only; used for comments on public decks.
+//   flow=oauth (OAuth App) — repo:read; used for one-click private-deck sign-in.
+//     Classic tokens don't expire; expiresAt sent as Date.now()+30d.
+//     Requires OAUTH_CLIENT_ID var + OAUTH_CLIENT_SECRET secret.
+//     Missing → /auth/login?flow=oauth returns 503 'oauth tier not configured'.
 //
-// Secrets (wrangler secret put …): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+// Secrets (wrangler secret put …): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET,
+//                                   OAUTH_CLIENT_SECRET
+// Vars: OAUTH_CLIENT_ID (placeholder; set in wrangler.toml or dashboard)
 // Optional var: ALLOWED_ORIGIN_SUFFIXES (comma-separated, e.g. ".github.io,localhost")
 
 const HTML_HEADERS = { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' };
@@ -69,9 +72,24 @@ export default {
 
     if (url.pathname === '/auth/login' || url.pathname === '/auth/install') {
       const origin = url.searchParams.get('origin') || '';
+      const flow   = url.searchParams.get('flow')   || '';
       if (!originAllowed(origin, env)) {
         return new Response('Origin not allowed', { status: 400, headers: NO_STORE });
       }
+
+      // OAuth App flow: classic repo-scope token, one-click for personal/non-enterprise.
+      if (flow === 'oauth') {
+        if (!env.OAUTH_CLIENT_ID) {
+          return new Response('oauth tier not configured', { status: 503, headers: NO_STORE });
+        }
+        const state = await signState({ origin, flow: 'oauth', exp: Date.now() + 10 * 60 * 1000 }, env.GITHUB_CLIENT_SECRET);
+        const gh = new URL('https://github.com/login/oauth/authorize');
+        gh.searchParams.set('client_id', env.OAUTH_CLIENT_ID);
+        gh.searchParams.set('scope', 'repo');
+        gh.searchParams.set('state', state);
+        return Response.redirect(gh.toString(), 302);
+      }
+
       const state = await signState({ origin, exp: Date.now() + 10 * 60 * 1000 }, env.GITHUB_CLIENT_SECRET);
       let gh;
       if (url.pathname === '/auth/install') {
@@ -95,20 +113,23 @@ export default {
       if (!code || !state) {
         return new Response('Invalid or expired auth state', { status: 400, headers: NO_STORE });
       }
+      const isOAuthFlow = state.flow === 'oauth';
+      const clientId     = isOAuthFlow ? env.OAUTH_CLIENT_ID     : env.GITHUB_CLIENT_ID;
+      const clientSecret = isOAuthFlow ? env.OAUTH_CLIENT_SECRET : env.GITHUB_CLIENT_SECRET;
       const r = await fetch('https://github.com/login/oauth/access_token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          client_id: env.GITHUB_CLIENT_ID,
-          client_secret: env.GITHUB_CLIENT_SECRET,
-          code,
-        }),
+        body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code }),
       });
       const data = await r.json();
       if (!data.access_token) {
         return new Response('Token exchange failed: ' + (data.error_description || data.error || 'unknown'), { status: 502, headers: NO_STORE });
       }
-      const expiresAt = data.expires_in ? Date.now() + data.expires_in * 1000 : Date.now() + 8 * 3600 * 1000;
+      // Classic OAuth App tokens don't expire — treat as 30 days for cookie/storage purposes.
+      // GitHub App tokens carry expires_in; default to 8 h if absent.
+      const expiresAt = isOAuthFlow
+        ? Date.now() + 30 * 24 * 3600 * 1000
+        : (data.expires_in ? Date.now() + data.expires_in * 1000 : Date.now() + 8 * 3600 * 1000);
 
       // Hand the token to the deck window and close. postMessage is pinned to
       // the exact origin that initiated login (signed into state).
