@@ -87,7 +87,7 @@ export default {
         gh.searchParams.set('client_id', env.OAUTH_CLIENT_ID);
         gh.searchParams.set('scope', 'repo');
         gh.searchParams.set('state', state);
-        return Response.redirect(gh.toString(), 302);
+        return new Response(null, { status: 302, headers: { 'Location': gh.toString(), 'Cache-Control': 'no-store' } });
       }
 
       const state = await signState({ origin, exp: Date.now() + 10 * 60 * 1000 }, env.GITHUB_CLIENT_SECRET);
@@ -104,7 +104,7 @@ export default {
         gh.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
         gh.searchParams.set('state', state);
       }
-      return Response.redirect(gh.toString(), 302);
+      return new Response(null, { status: 302, headers: { 'Location': gh.toString(), 'Cache-Control': 'no-store' } });
     }
 
     if (url.pathname === '/auth/callback') {
