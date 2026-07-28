@@ -313,7 +313,7 @@ function interstitial(owner, repo) {
       <button id="pat-btn">[ unlock ]</button>
     </div>
     <div id="pat-err" style="display:none;color:#F05000;font-size:0.9rem;margin-bottom:8px">token rejected by GitHub</div>
-    <div style="font-size:0.85rem;color:rgba(232,234,240,0.35);line-height:1.8">
+    <div style="font-size:0.9rem;color:rgba(232,234,240,0.35);line-height:1.8">
       <div>&gt; create one: github.com/settings/tokens &rarr; classic, repo scope (read is all we use)</div>
       <div>&gt; in an SSO org? after creating, click 'Configure SSO' &rarr; authorize your org</div>
       <div>&gt; the token stays in an HttpOnly cookie on this owner's subdomain &mdash; deck code can never read it</div>
