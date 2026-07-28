@@ -136,7 +136,9 @@ async function serveDeck(request, url, env, owner) {
     const body = await request.json().catch(() => ({}));
     const t = body && body.token;
     if (!t || !/^[A-Za-z0-9_.\-\/+=]+$/.test(t)) return new Response('bad token', { status: 400, headers: NO_STORE });
-    const maxAge = Math.max(60, Math.min(28800, Math.floor(((body.expiresAt || 0) - Date.now()) / 1000) || 28800));
+    // PATs are long-lived; accept expiresAt up to 30 days. OAuth tokens without
+    // expiresAt (or with a past/absent value) default to 8 h (28800 s).
+    const maxAge = Math.max(60, Math.min(2592000, Math.floor(((body.expiresAt || 0) - Date.now()) / 1000) || 28800));
     return new Response('ok', {
       headers: {
         'Set-Cookie': `fs_t=${t}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${maxAge}`,
@@ -295,14 +297,35 @@ function interstitial(owner, repo) {
   button { font-family:inherit; font-size:1rem; color:#F05000; background:none;
     border:1px solid rgba(255,255,255,0.15); padding:11px 20px; cursor:pointer; }
   button:hover { border-color:#F05000; }
+  button:disabled { opacity:0.5; cursor:default; }
   .note { font-size:0.85rem; color:rgba(232,234,240,0.4); }
+  #pat-input { font-family:'JetBrains Mono',monospace; font-size:0.9rem; background:#0d0f14;
+    color:#e8eaf0; border:1px solid rgba(255,255,255,0.15); padding:10px; outline:none; flex:1; min-width:0; }
+  #pat-input:focus { border-color:rgba(255,255,255,0.35); }
 </style></head><body>
   <div class="big"><b>${who}</b> — this deck may be private</div>
   <button id="b" style="display:none">[ sign in with github to view ]</button>
   <div class="note" id="n" style="display:none">access follows the GitHub repo — if you can see it there, you can see it here</div>
+  <a id="pat-toggle" href="#" style="display:none;font-size:0.9rem;color:rgba(232,234,240,0.45);text-decoration:none">or use a personal access token</a>
+  <div id="pat-form" style="display:none;width:100%;max-width:400px;text-align:left">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input id="pat-input" type="password" placeholder="ghp_... or github_pat_..." autocomplete="off" spellcheck="false">
+      <button id="pat-btn">[ unlock ]</button>
+    </div>
+    <div id="pat-err" style="display:none;color:#F05000;font-size:0.9rem;margin-bottom:8px">token rejected by GitHub</div>
+    <div style="font-size:0.85rem;color:rgba(232,234,240,0.35);line-height:1.8">
+      <div>&gt; create one: github.com/settings/tokens &rarr; classic, repo scope (read is all we use)</div>
+      <div>&gt; in an SSO org? after creating, click 'Configure SSO' &rarr; authorize your org</div>
+      <div>&gt; the token stays in an HttpOnly cookie on this owner's subdomain &mdash; deck code can never read it</div>
+    </div>
+  </div>
 <script>
   var G='https://api.fslides.dev';
-  function showBtn(){document.getElementById('b').style.display='';document.getElementById('n').style.display='';}
+  function showBtn(){
+    document.getElementById('b').style.display='';
+    document.getElementById('n').style.display='';
+    document.getElementById('pat-toggle').style.display='';
+  }
   // Reuse an existing GitHub session from localStorage before prompting again.
   (function(){
     var t=localStorage.getItem('fs-gh-token');
@@ -323,6 +346,40 @@ function interstitial(owner, repo) {
     if(e.origin!==new URL(G).origin||!e.data||e.data.type!=='fslides-auth')return;
     fetch('/-/session',{method:'POST',body:JSON.stringify({token:e.data.token,expiresAt:e.data.expiresAt})})
       .then(function(){location.reload();});
+  });
+  document.getElementById('pat-toggle').addEventListener('click',function(e){
+    e.preventDefault();
+    var f=document.getElementById('pat-form');
+    if(f.style.display==='none'){
+      f.style.display='';
+      document.getElementById('pat-input').focus();
+    } else {
+      f.style.display='none';
+    }
+  });
+  function submitPat(){
+    var tok=document.getElementById('pat-input').value.trim();
+    var err=document.getElementById('pat-err');
+    var btn=document.getElementById('pat-btn');
+    if(!tok)return;
+    err.style.display='none';
+    btn.textContent='[ ... ]';
+    btn.disabled=true;
+    fetch('https://api.github.com/user',{headers:{Authorization:'Bearer '+tok}})
+      .then(function(r){
+        if(!r.ok)throw new Error('rejected');
+        return fetch('/-/session',{method:'POST',body:JSON.stringify({token:tok,expiresAt:Date.now()+30*24*3600*1000})});
+      })
+      .then(function(){location.reload();})
+      .catch(function(){
+        err.style.display='';
+        btn.textContent='[ unlock ]';
+        btn.disabled=false;
+      });
+  }
+  document.getElementById('pat-btn').addEventListener('click',submitPat);
+  document.getElementById('pat-input').addEventListener('keydown',function(e){
+    if(e.key==='Enter')submitPat();
   });
 </script></body></html>`, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', ...NO_STORE } });
 }
