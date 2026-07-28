@@ -2,8 +2,10 @@ name = "fslides-gateway"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
 
-# Custom domain (configure after the fslides.dev zone is on Cloudflare):
+# Explicit zone route so the gateway wins over the site worker's *.fslides.dev/*
+# wildcard (Cloudflare zone routes beat custom domains; this pins the gateway).
 routes = [
+  { pattern = "api.fslides.dev/*", zone_name = "fslides.dev" },
   { pattern = "api.fslides.dev", custom_domain = true }
 ]
 

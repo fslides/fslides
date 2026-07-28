@@ -36,6 +36,7 @@ const NO_STORE = { 'Cache-Control': 'no-store' };
 const RESERVED = new Set([
   'www', 'api', 'decks', 'app', 'staging', 'mail', 'admin', 'status',
   'docs', 'cdn', 'assets', 'preview', 'blog', 'shop', 'support',
+  'auth', 'login', 'gateway', 'ftp', 'smtp', 'imap',
 ]);
 
 export default {
@@ -61,6 +62,16 @@ export default {
     }
 
     // ── app origin (fslides.dev / www) ──
+
+    // Defense in depth: a reserved subdomain reached here (e.g. api.fslides.dev
+    // if the gateway zone route is absent). Return 404 — never pretty-URL-redirect
+    // reserved names like /auth/login into deck space.
+    if (sub && sub[1] !== 'www') {
+      return new Response(NOTFOUND, {
+        status: 404,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
 
     if (url.pathname === '/logo.png' || url.pathname === '/favicon.ico') {
       return new Response(LOGO, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' } });
