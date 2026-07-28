@@ -101,7 +101,7 @@ slides/recordings/*.mp3  filter=lfs diff=lfs merge=lfs -text
 
 A [fslides](https://github.com/fslides/fslides) presentation. Every slide is an HTML file in \`slides/\` — edit them like code.
 
-**Watch it:** https://decks.fslides.dev/${repo}/ — renders straight from this repo; every push to \`main\` is live within a minute.
+**Watch it:** https://${owner.toLowerCase()}.fslides.dev/${name}/ — renders straight from this repo; every push to \`main\` is live within a minute.
 
 ## Contribute
 
@@ -155,7 +155,7 @@ Send a PR when you're happy.
   ✓  ${repo} is live.
 
      Repo:     https://github.com/${repo}
-     Live:     https://decks.fslides.dev/${repo}/   (renders straight from the repo — no CI, no build)
+     Live:     https://${owner.toLowerCase()}.fslides.dev/${name}/   (renders straight from the repo — no CI, no build)
      Comments: press K in the player → issues on the repo
 
      One-time (skip if the fslides app is installed with "All repositories"):
