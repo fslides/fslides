@@ -2085,7 +2085,7 @@ function signInWithGitHub(install) {
   const x = (screen.width - w) / 2, y = (screen.height - h) / 2;
   const path = install ? '/auth/install' : '/auth/login';
   window.open(
-    GATEWAY.replace(/\/$/, '') + path + '?origin=' + encodeURIComponent(location.origin),
+    GATEWAY.replace(/\/$/, '') + path + '?origin=' + encodeURIComponent(location.origin) + '&t=' + Date.now(),
     'fslides-auth',
     `width=${w},height=${h},left=${x},top=${y}`);
 }
@@ -3534,7 +3534,7 @@ const presoDisplayTitle = window.FUCKSLIDES_TITLE || window.FUCKSLIDES_NAME || '
     b.textContent = 'sign in';
     b.addEventListener('click', () => {
       const w = 640, h = 780, x = (screen.width - w) / 2, y = (screen.height - h) / 2;
-      window.open(GW + '/auth/login?origin=' + encodeURIComponent(location.origin),
+      window.open(GW + '/auth/login?origin=' + encodeURIComponent(location.origin) + '&t=' + Date.now(),
         'fslides-auth', `width=${w},height=${h},left=${x},top=${y}`);
     });
     return b;

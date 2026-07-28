@@ -339,7 +339,7 @@ function interstitial(owner, repo) {
   })();
   document.getElementById('b').addEventListener('click',function(){
     var w=640,h=780,x=(screen.width-w)/2,y=(screen.height-h)/2;
-    window.open(G+'/auth/login?flow=oauth&origin='+encodeURIComponent(location.origin),'fslides-auth',
+    window.open(G+'/auth/login?flow=oauth&origin='+encodeURIComponent(location.origin)+'&t='+Date.now(),'fslides-auth',
       'width='+w+',height='+h+',left='+x+',top='+y);
   });
   window.addEventListener('message',function(e){
