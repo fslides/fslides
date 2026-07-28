@@ -143,8 +143,8 @@ async function serveDeck(request, url, env, owner) {
   if (pathname === '/logo.png') {
     return new Response(LOGO, { headers: { 'Content-Type': TYPES.png, 'Cache-Control': 'public, max-age=86400' } });
   }
-  if (pathname === '/' || pathname === '/favicon.ico') {
-    return Response.redirect('https://fslides.dev' + (pathname === '/' ? '/' : pathname), 302);
+  if (pathname === '/favicon.ico') {
+    return Response.redirect('https://fslides.dev/favicon.ico', 302);
   }
 
   const parts = pathname.slice(1).split('/').filter(Boolean);
