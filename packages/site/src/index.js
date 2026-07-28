@@ -214,10 +214,10 @@ async function serveDeck(request, url, env, owner) {
       }
     }
     // maybe private: offer sign-in (GitHub is the ACL — access follows the
-    // repo). With a token and still nothing: truly missing or no access.
+    // repo). With a token and still nothing: org likely restricts OAuth apps
+    // or the viewer simply has no access.
     if (!viewerToken) return interstitial(owner, repo);
-    return new Response('Not found — or your GitHub account has no access to ' + owner + '/' + repo + '.',
-      { status: 404, headers: NO_STORE });
+    return enterpriseGuidance(owner, repo);
   }
   if (loaded instanceof Response) return loaded;
   const { config, deckPrivate } = loaded;
@@ -339,7 +339,7 @@ function interstitial(owner, repo) {
   })();
   document.getElementById('b').addEventListener('click',function(){
     var w=640,h=780,x=(screen.width-w)/2,y=(screen.height-h)/2;
-    window.open(G+'/auth/login?origin='+encodeURIComponent(location.origin),'fslides-auth',
+    window.open(G+'/auth/login?flow=oauth&origin='+encodeURIComponent(location.origin),'fslides-auth',
       'width='+w+',height='+h+',left='+x+',top='+y);
   });
   window.addEventListener('message',function(e){
@@ -382,6 +382,98 @@ function interstitial(owner, repo) {
     if(e.key==='Enter')submitPat();
   });
 </script></body></html>`, { status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', ...NO_STORE } });
+}
+
+// Shown when a viewer HAS a session token but the deck fetch still fails —
+// the org likely restricts OAuth Apps. Three paths forward: token-paste,
+// ask an admin, or accept they simply don't have access.
+function enterpriseGuidance(owner, repo) {
+  const who = (owner + '/' + repo).replace(/[&<>"]/g, '');
+  return new Response(`<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${who} — fslides</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{background:#0d0f14;color:rgba(232,234,240,0.75);min-height:100vh;margin:0;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+    font-family:'JetBrains Mono',monospace;font-size:0.95rem;text-align:center;padding:28px}
+  .title{color:#e8eaf0;font-size:1.15rem;font-weight:700}
+  .title b{color:#F05000}
+  .reason{color:rgba(232,234,240,0.55);font-size:0.9rem;line-height:1.7;max-width:520px}
+  .divider{width:100%;max-width:520px;border:none;border-top:1px solid rgba(255,255,255,0.08);margin:4px 0}
+  .section-label{color:#F05000;font-size:0.82rem;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
+  button{font-family:inherit;font-size:0.95rem;color:#F05000;background:none;
+    border:1px solid rgba(255,255,255,0.15);padding:11px 20px;cursor:pointer}
+  button:hover{border-color:#F05000}
+  button:disabled{opacity:0.5;cursor:default}
+  a.action{display:inline-block;font-family:inherit;font-size:0.95rem;color:#F05000;
+    border:1px solid rgba(255,255,255,0.15);padding:11px 20px;text-decoration:none}
+  a.action:hover{border-color:#F05000}
+  .muted{font-size:0.88rem;color:rgba(232,234,240,0.35);max-width:520px;line-height:1.7}
+  #pat-input{font-family:'JetBrains Mono',monospace;font-size:0.9rem;background:#0d0f14;
+    color:#e8eaf0;border:1px solid rgba(255,255,255,0.15);padding:10px;outline:none;flex:1;min-width:0}
+  #pat-input:focus{border-color:rgba(255,255,255,0.35)}
+  .pat-wrap{width:100%;max-width:520px;text-align:left}
+</style></head><body>
+  <div class="title">can't reach <b>${who}</b></div>
+  <div class="reason">
+    &gt; your GitHub org likely restricts OAuth Apps<br>
+    &gt; signed in, but this token can't see the repo
+  </div>
+  <hr class="divider">
+
+  <div class="section-label">## option a — use a personal access token</div>
+  <div class="pat-wrap">
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <input id="pat-input" type="password" placeholder="ghp_... or github_pat_..." autocomplete="off" spellcheck="false">
+      <button id="pat-btn">[ unlock ]</button>
+    </div>
+    <div id="pat-err" style="display:none;color:#F05000;font-size:0.9rem;margin-bottom:8px">token rejected by GitHub</div>
+    <div class="muted">
+      &gt; create one: github.com/settings/tokens &rarr; classic, repo scope<br>
+      &gt; in an SSO org? after creating, click 'Configure SSO' &rarr; authorize your org<br>
+      &gt; stays in an HttpOnly cookie — deck code can never read it
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-label">## option b — ask an org admin</div>
+  <a class="action" href="https://github.com/apps/fslides/installations/new" target="_blank" rel="noopener">
+    [ ask an org admin to approve fslides ]
+  </a>
+  <div class="muted">an admin can install the fslides GitHub App on your org &mdash; once approved, one-click sign-in works for everyone</div>
+
+  <hr class="divider">
+  <div class="muted">&gt; or maybe you simply don't have access to this repo &mdash; check on github.com/${who}</div>
+
+<script>
+  var G='https://api.fslides.dev';
+  function submitPat(){
+    var tok=document.getElementById('pat-input').value.trim();
+    var err=document.getElementById('pat-err');
+    var btn=document.getElementById('pat-btn');
+    if(!tok)return;
+    err.style.display='none';
+    btn.textContent='[ ... ]';
+    btn.disabled=true;
+    fetch('https://api.github.com/user',{headers:{Authorization:'Bearer '+tok}})
+      .then(function(r){
+        if(!r.ok)throw new Error('rejected');
+        return fetch('/-/session',{method:'POST',body:JSON.stringify({token:tok,expiresAt:Date.now()+30*24*3600*1000})});
+      })
+      .then(function(){location.reload();})
+      .catch(function(){
+        err.style.display='';
+        btn.textContent='[ unlock ]';
+        btn.disabled=false;
+      });
+  }
+  document.getElementById('pat-btn').addEventListener('click',submitPat);
+  document.getElementById('pat-input').addEventListener('keydown',function(e){
+    if(e.key==='Enter')submitPat();
+  });
+</script></body></html>`, { status: 403, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
 
 function raw(owner, repo, path, ttl, method) {

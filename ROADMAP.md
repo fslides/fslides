@@ -249,6 +249,23 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       `_psl` pointing at the PSL PR URL
 - Backlog: rate limiting rules, proactive Safe Browsing monitoring
 
+## Phase 2.10 — Two-tier private-deck sign-in (2026-07-28, issue #24)
+- [x] Gateway: classic OAuth App flow alongside the GitHub App.
+      `/auth/login?flow=oauth&origin=…` → 302 to github.com/login/oauth/authorize
+      with `scope=repo`; same HMAC state scheme, `flow` carried inside the payload.
+      Callback branches on `state.flow`: OAuth App uses OAUTH_CLIENT_ID/SECRET,
+      classic tokens sent with expiresAt = now+30d. Missing OAUTH_CLIENT_ID → 503
+      'oauth tier not configured'. OAUTH_CLIENT_ID added as a [vars] placeholder
+      in wrangler.toml; OAUTH_CLIENT_SECRET is a wrangler secret (Baha sets both
+      after creating the OAuth App). GitHub App flow (comments) unchanged.
+- [x] Site interstitial: primary [ sign in with github to view ] button now opens
+      the oauth flow (repo-read, one click). Token-paste remains the secondary path.
+- [x] Enterprise guidance page: when a viewer HAS a session token but the fetch
+      still fails (org likely restricts OAuth Apps), render a styled page instead
+      of plain text. Three options: (a) token-paste form, (b) ask an org admin to
+      approve fslides (links /apps/fslides/installations/new), (c) "or maybe you
+      simply don't have access." Terminal styling, orange accents, text ≥0.9rem.
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:
