@@ -31,7 +31,7 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
-      actions: read
+      actions: write   # dispatch the preview workflow for auto-created PRs
     steps:
       - uses: actions/checkout@v4
         with:
