@@ -155,13 +155,13 @@ after Baha asked why storage was needed at all. Nothing is stored:
       real layout's mobile breakpoint. Skeleton disappears the moment the GitHub API
       resolves (`loading.hidden = true`).
 
-## Phase 2.8 — Monorepo deck support (2026-07-27, issue #13)
+## Phase 2.9 — Monorepo deck support (2026-07-27, issue #13)
 - [x] `.fslides` manifest at the repo root opts a repo into multi-deck mode:
       `{ "decks": ["obs-preso", "talks/k8s-2024"] }`. Root-config single-deck
       repos are fully unchanged — no manifest = no change in behavior.
-- [x] Worker (decks.fslides.dev): manifest-based URL routing. Probes `.fslides`
-      when the path has segments beyond owner/repo; longest-prefix match maps
-      `/owner/repo/subpath/` to the sub-deck's config + assets. Root requests on
+- [x] Worker ({owner}.fslides.dev): manifest-based URL routing. Probes `.fslides`
+      when the path has segments beyond repo; longest-prefix match maps
+      `/{repo}/subpath/` to the sub-deck's config + assets. Root requests on
       manifest-only repos redirect to the first listed deck. Manifest cached 60 s,
       misses cached 15 s — same as existing config 404s.
 - [x] Profile (fslides.dev/{login}): `getRepoDecks()` replaces `isDeck()`. Topic
@@ -173,6 +173,28 @@ after Baha asked why storage was needed at all. Nothing is stored:
 - [x] `fslides-monorepo` CLI skill (claude/issue-13-20260727-0603): scans the
       working tree for sub-deck configs and writes the `.fslides` manifest —
       the migration path for existing repos.
+
+## Phase 2.8 — Open hosting with reputation isolation (2026-07-27, Baha's call)
+Invite-only is a launch posture, not a product. Adopted the github.io model:
+- [x] Owner subdomains: decks serve at {owner}.fslides.dev/{repo} (wildcard
+      route on the zone; first-level = free Universal SSL). decks.fslides.dev
+      and fslides.dev/owner/repo 301 to the new scheme; owner root redirects
+      to their fslides.dev profile
+- [x] PUBLISHERS allowlist DELETED — any repo carrying an fslides config
+      renders. Opt-in = the config itself; attackers can only burn their own
+      subdomain
+- [x] Abuse killswitch: env DENYLIST (comma owners or owner/repo) → 410;
+      one commit to main disables an abuser
+- [x] Report path: /-/report?deck=owner/repo on the app origin → prefilled
+      GitHub abuse issue; linked from every deck's H cheatsheet footer
+- [x] All deck responses X-Robots-Tag: noindex (decks are for sharing, not SEO)
+- [ ] Public Suffix List: PR adding fslides.dev (private section) — once
+      merged + propagated, browsers/Safe Browsing treat each owner subdomain
+      as an independent site (blast radius = one owner, like github.io)
+- [ ] BAHA (DNS, Cloudflare dash → fslides.dev → DNS): wildcard record
+      (Type A, name `*`, IPv4 192.0.2.1, Proxied ON) + later a TXT record
+      `_psl` pointing at the PSL PR URL
+- Backlog: rate limiting rules, proactive Safe Browsing monitoring
 
 ## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
 Prompting in a terminal doesn't scale and isn't traceable. The loop now:

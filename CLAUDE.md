@@ -12,7 +12,7 @@ pushes are deploys, agents are first-class users.
 - `packages/core` — CLI + player (player.html is one file with inline script)
 - `packages/site` — fslides.dev: a worker (`src/index.js`) serving static
   assets, profile pages (`src/profile.html`), the 404 (`src/notfound.html`),
-  and rendering hosted decks on the fly from GitHub at decks.fslides.dev
+  and rendering hosted decks on the fly from GitHub at {owner}.fslides.dev (owner subdomains, PSL-isolated; DENYLIST env is the abuse killswitch)
   (nothing is stored; `git push` publishes)
 - `packages/gateway` — api.fslides.dev: GitHub OAuth for comments
 - Site builds: `cd packages/site && npm run sync-vendor && node

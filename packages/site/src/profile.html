@@ -408,7 +408,7 @@
   <footer class="statusline">
     <span class="mode">PROFILE</span>
     <span id="status-user"></span>
-    <span class="right">decks render live from GitHub · api <span id="sl-api">…</span> · <span id="clock"></span></span>
+    <span class="right"><a href="/-/report" style="color: inherit; text-decoration: underline;">report abuse</a> · decks render live from GitHub · api <span id="sl-api">…</span> · <span id="clock"></span></span>
   </footer>
 
 <script>
@@ -531,7 +531,7 @@
     decks.forEach(function (r) {
       var repoN = r._repoName || r.name;
       var deckPath = r._deckPath || '';
-      var url = 'https://decks.fslides.dev/' + r.owner.login + '/' + repoN + '/' + (deckPath ? deckPath + '/' : '');
+      var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + repoN + '/' + (deckPath ? deckPath + '/' : '');
       var a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.rel = 'noopener';
       var priv = r.private ? '<span class="chip">private</span>' : '';
@@ -760,7 +760,7 @@
     var pop = $('share-pop');
     var repoN = r._repoName || r.name;
     var deckPath = r._deckPath || '';
-    var url = 'https://decks.fslides.dev/' + r.owner.login + '/' + repoN + '/' + (deckPath ? deckPath + '/' : '');
+    var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + repoN + '/' + (deckPath ? deckPath + '/' : '');
     pop.innerHTML = '<h4>share ' + esc(r.name) + '</h4>' +
       '<div class="linkrow"><input readonly value="' + esc(url) + '"><button class="copy">copy</button></div>' +
       (r.private
