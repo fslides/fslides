@@ -529,7 +529,9 @@
     box.className = view === 'list' ? 'rows' : 'grid';
     box.innerHTML = '';
     decks.forEach(function (r) {
-      var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + r.name + '/';
+      var repoN = r._repoName || r.name;
+      var deckPath = r._deckPath || '';
+      var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + repoN + '/' + (deckPath ? deckPath + '/' : '');
       var a = document.createElement('a');
       a.href = url; a.target = '_blank'; a.rel = 'noopener';
       var priv = r.private ? '<span class="chip">private</span>' : '';
@@ -581,28 +583,32 @@
     gh('/search/repositories?q=user:' + encodeURIComponent(profileLogin) + '+topic:fslides&sort=updated&per_page=100')
       .catch(function () { return { items: [] }; }),
   ]).then(function (res) {
-    var user = res[0], pub = (res[1].items || []).filter(function (r) { return !r.private; });
-    $('loading').hidden = true;
+    var user = res[0], topicRepos = (res[1].items || []).filter(function (r) { return !r.private; });
     if (!user) {
+      $('loading').hidden = true;
       $('nf-login').textContent = '@' + profileLogin;
       document.title = '404 — fslides';
       $('notfound').hidden = false;
       return;
     }
-
-    $('main').hidden = false;
-    $('avatar').src = user.avatar_url;
-    $('name').textContent = user.name || user.login;
-    $('login').textContent = '@' + user.login;
-    $('bio').textContent = user.bio || '';
-    $('gh-link').href = user.html_url;
-    var meta = ['<div class="deck-count"><b>' + pub.length + '</b> deck' + (pub.length === 1 ? '' : 's') + '</div>'];
-    if (user.followers != null) meta.push('<div><b>' + user.followers + '</b> followers</div>');
-    if (user.location) meta.push('<div>' + esc(user.location) + '</div>');
-    $('meta').innerHTML = meta.join('');
-
-    setDecks(pub);
-    bootViewer();
+    // Expand monorepo repos before rendering (manifest probes run in parallel)
+    return Promise.all(topicRepos.map(function (r) { return getRepoDecks(r); }))
+      .then(function (groups) {
+        var pub = [].concat.apply([], groups);
+        $('loading').hidden = true;
+        $('main').hidden = false;
+        $('avatar').src = user.avatar_url;
+        $('name').textContent = user.name || user.login;
+        $('login').textContent = '@' + user.login;
+        $('bio').textContent = user.bio || '';
+        $('gh-link').href = user.html_url;
+        var meta = ['<div class="deck-count"><b>' + pub.length + '</b> deck' + (pub.length === 1 ? '' : 's') + '</div>'];
+        if (user.followers != null) meta.push('<div><b>' + user.followers + '</b> followers</div>');
+        if (user.location) meta.push('<div>' + esc(user.location) + '</div>');
+        $('meta').innerHTML = meta.join('');
+        setDecks(pub);
+        bootViewer();
+      });
   });
 
   // ── viewer identity: on your own profile, this page IS the dashboard ──
@@ -647,14 +653,59 @@
     }).catch(function () { $('btn-signin').hidden = false; });
   }
 
-  function isDeck(r) {
-    if ((r.topics || []).indexOf('fslides') !== -1) return Promise.resolve(true);
-    if (r.private) return Promise.resolve(false);
-    var tries = ['fslides.config.js', 'fuckslides.config.js'].map(function (f) {
-      return fetch('https://raw.githubusercontent.com/' + r.owner.login + '/' + r.name + '/HEAD/' + f, { method: 'HEAD' })
-        .then(function (resp) { return resp.ok; }).catch(function () { return false; });
+  // Returns Promise<Array> of deck entries for a repo.
+  // Each entry: { ...repo_props, _repoName, _deckPath, name }
+  // Single-deck repos yield [one entry]; monorepo manifest repos yield N entries.
+  function getRepoDecks(r) {
+    var rawBase = 'https://raw.githubusercontent.com/' + r.owner.login + '/' + r.name + '/HEAD/';
+
+    function makeEntry(deckPath) {
+      var dp = deckPath ? deckPath.split('/').filter(Boolean).join('/') : '';
+      var entry = {};
+      for (var k in r) { if (Object.prototype.hasOwnProperty.call(r, k)) entry[k] = r[k]; }
+      entry._repoName = r.name;
+      entry._deckPath = dp;
+      entry.name = dp ? dp.split('/').pop() : r.name;
+      return entry;
+    }
+
+    function probeManifest() {
+      return fetch(rawBase + '.fslides')
+        .then(function (resp) {
+          if (!resp.ok) return null;
+          return resp.text().then(function (text) {
+            try { return JSON.parse(text); } catch (_) { return null; }
+          });
+        }).catch(function () { return null; });
+    }
+
+    function expandManifest(manifest) {
+      if (!manifest || !Array.isArray(manifest.decks) || manifest.decks.length === 0) return null;
+      return manifest.decks.map(function (dp) { return makeEntry(dp); });
+    }
+
+    var hasTopic = (r.topics || []).indexOf('fslides') !== -1;
+
+    if (hasTopic) {
+      return probeManifest().then(function (manifest) {
+        return expandManifest(manifest) || [makeEntry('')];
+      });
+    }
+
+    if (r.private) return Promise.resolve([]);
+
+    // Public, no topic: probe root config + manifest in parallel
+    var checkRoot = Promise.all(
+      ['fslides.config.js', 'fuckslides.config.js'].map(function (f) {
+        return fetch(rawBase + f, { method: 'HEAD' })
+          .then(function (resp) { return resp.ok; }).catch(function () { return false; });
+      })
+    ).then(function (ok) { return ok[0] || ok[1]; });
+
+    return Promise.all([checkRoot, probeManifest()]).then(function (res) {
+      var hasRoot = res[0], manifest = res[1];
+      return expandManifest(manifest) || (hasRoot ? [makeEntry('')] : []);
     });
-    return Promise.all(tries).then(function (ok) { return ok[0] || ok[1]; });
   }
 
   // ── + new deck: same contextual menu as the landing's CTA ──
@@ -707,7 +758,9 @@
 
   function openShare(r, anchor) {
     var pop = $('share-pop');
-    var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + r.name + '/';
+    var repoN = r._repoName || r.name;
+    var deckPath = r._deckPath || '';
+    var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + repoN + '/' + (deckPath ? deckPath + '/' : '');
     pop.innerHTML = '<h4>share ' + esc(r.name) + '</h4>' +
       '<div class="linkrow"><input readonly value="' + esc(url) + '"><button class="copy">copy</button></div>' +
       (r.private
@@ -843,8 +896,8 @@
       return Promise.all(jobs);
     }).then(function (lists) {
       var repos = [].concat.apply([], lists);
-      return Promise.all(repos.map(isDeck)).then(function (flags) {
-        return repos.filter(function (r, i) { return flags[i]; });
+      return Promise.all(repos.map(function (r) { return getRepoDecks(r); })).then(function (groups) {
+        return [].concat.apply([], groups);
       });
     }).then(function (decks) {
       // owner list supersedes the public one (it includes private decks)

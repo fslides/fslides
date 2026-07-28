@@ -153,8 +153,7 @@ async function serveDeck(request, url, env, owner) {
     // owner root: their public profile lives on the app origin
     return Response.redirect('https://fslides.dev/' + owner, 302);
   }
-  const key = parts.join('/');
-  if (decodeURIComponent(key).includes('..')) return new Response('Bad path', { status: 400, headers: NO_STORE });
+  if (decodeURIComponent(parts.join('/')).includes('..')) return new Response('Bad path', { status: 400, headers: NO_STORE });
 
   // abuse killswitch: env.DENYLIST is comma-separated owners or owner/repo
   const deny = (env.DENYLIST || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
@@ -163,13 +162,44 @@ async function serveDeck(request, url, env, owner) {
       { status: 410, headers: NO_STORE });
   }
 
+  // Monorepo: probe the .fslides manifest to resolve sub-deck routing.
+  // /{repo}/obs-preso/slide.html → deckSubPath='obs-preso', key='slide.html'
+  // Single-deck repos skip this when parts is empty; manifest 404s are cached 15 s.
+  let manifest = null;
+  let deckSubPath = '';
+  let key = '';
+  if (parts.length > 0) {
+    manifest = await loadManifest(owner, repo, viewerToken);
+    if (manifest && Array.isArray(manifest.decks) && manifest.decks.length > 0) {
+      const sorted = manifest.decks
+        .map(d => d.split('/').filter(Boolean))
+        .sort((a, b) => b.length - a.length); // longest prefix first
+      for (const dp of sorted) {
+        if (parts.length >= dp.length && parts.slice(0, dp.length).join('/') === dp.join('/')) {
+          deckSubPath = dp.join('/');
+          key = parts.slice(dp.length).join('/');
+          break;
+        }
+      }
+    }
+    if (!deckSubPath) key = parts.join('/');
+  }
+
   // deck root without trailing slash → redirect so relative URLs resolve
   if (!key && !pathname.endsWith('/')) {
     return Response.redirect(url.origin + pathname + '/', 301);
   }
 
-  const loaded = await loadConfig(owner, repo, viewerToken);
+  const loaded = await loadConfig(owner, repo, viewerToken, deckSubPath);
   if (!loaded) {
+    // Manifest-only repo with no root config: redirect to first listed sub-deck
+    if (!deckSubPath && !key) {
+      if (!manifest) manifest = await loadManifest(owner, repo, viewerToken);
+      if (manifest && Array.isArray(manifest.decks) && manifest.decks.length > 0) {
+        const first = manifest.decks[0].split('/').filter(Boolean).join('/');
+        return Response.redirect(`${url.origin}/${repo}/${first}/`, 302);
+      }
+    }
     // maybe private: offer sign-in (GitHub is the ACL — access follows the
     // repo). With a token and still nothing: truly missing or no access.
     if (!viewerToken) return interstitial(owner, repo);
@@ -186,7 +216,8 @@ async function serveDeck(request, url, env, owner) {
     (key === 'index.html' && !(config.slides || []).includes('index.html'));
 
   if (isPlayer) {
-    const nf = await fetchFile(owner, repo, 'notes.json', 60, viewerToken);
+    const notesPath = deckSubPath ? deckSubPath + '/notes.json' : 'notes.json';
+    const nf = await fetchFile(owner, repo, notesPath, 60, viewerToken);
     let notes = '{}';
     if (nf.resp.ok) { const t = await nf.resp.text(); try { JSON.parse(t); notes = t; } catch (_) {} }
     const html = renderPlayer(owner, repo, config, notes);
@@ -196,7 +227,8 @@ async function serveDeck(request, url, env, owner) {
 
   // slides / assets / recordings — the deck's slides dir is the URL root,
   // mirroring the layout `fslides build` emits
-  const repoPath = (config.slidesDir || 'slides') + '/' + key;
+  const deckPrefix = deckSubPath ? deckSubPath + '/' : '';
+  const repoPath = deckPrefix + (config.slidesDir || 'slides') + '/' + key;
   const ext = key.split('.').pop().toLowerCase();
 
   if (request.method === 'HEAD' && !deckPrivate) {
@@ -313,12 +345,21 @@ async function fetchFile(owner, repo, path, ttl, token) {
   return { resp: await apiRaw(owner, repo, path, token), private: true };
 }
 
+// .fslides manifest at the repo root opts a repo into monorepo mode.
+// Returns null on missing/invalid; cached 60 s (misses cached 15 s by raw()).
+async function loadManifest(owner, repo, token) {
+  const f = await fetchFile(owner, repo, '.fslides', 60, token);
+  if (!f.resp.ok) return null;
+  try { return JSON5.parse(await f.resp.text()); } catch (_) { return null; }
+}
+
 // deck configs are literal objects (`module.exports = { … }`) — parsed with
 // JSON5, never executed. Computed configs work locally but can't be hosted.
-async function loadConfig(owner, repo, token) {
+async function loadConfig(owner, repo, token, deckSubPath) {
+  const prefix = deckSubPath ? deckSubPath + '/' : '';
   let found = null;
   for (const name of ['fslides.config.js', 'fuckslides.config.js']) {
-    const f = await fetchFile(owner, repo, name, 60, token);
+    const f = await fetchFile(owner, repo, prefix + name, 60, token);
     if (f.resp.ok) { found = { name, src: await f.resp.text(), deckPrivate: f.private }; break; }
   }
   if (!found) return null;
