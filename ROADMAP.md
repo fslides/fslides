@@ -193,7 +193,7 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       as an independent site (blast radius = one owner, like github.io)
 - [ ] BAHA (DNS, Cloudflare dash → fslides.dev → DNS): wildcard record
       (Type A, name `*`, IPv4 192.0.2.1, Proxied ON) + later a TXT record
-      `_psl` pointing at the PSL PR URL
+      `_psl` pointing at the PSL PR URL. security@fslides.dev live (2026-07-28).
 - Backlog: rate limiting rules, proactive Safe Browsing monitoring
 
 ## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
@@ -246,7 +246,7 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       as an independent site (blast radius = one owner, like github.io)
 - [ ] BAHA (DNS, Cloudflare dash → fslides.dev → DNS): wildcard record
       (Type A, name `*`, IPv4 192.0.2.1, Proxied ON) + later a TXT record
-      `_psl` pointing at the PSL PR URL
+      `_psl` pointing at the PSL PR URL. security@fslides.dev live (2026-07-28).
 - Backlog: rate limiting rules, proactive Safe Browsing monitoring
 
 ## Phase 2.10 — Two-tier private-deck sign-in (2026-07-28, issue #24)
@@ -265,6 +265,11 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       of plain text. Three options: (a) token-paste form, (b) ask an org admin to
       approve fslides (links /apps/fslides/installations/new), (c) "or maybe you
       simply don't have access." Terminal styling, orange accents, text ≥0.9rem.
+- [x] VERIFIED in production 2026-07-28: one-click OAuth sign-in renders a
+      private deck end-to-end (incognito). Classic OAuth App
+      Ov23liTBpJrvbFFyAelL; secret validated against GitHub's token endpoint.
+      Auth-redirect cache poisoning from the #20 outage fixed (#26/#27:
+      cache-busted every sign-in URL + no-store on gateway redirects).
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
