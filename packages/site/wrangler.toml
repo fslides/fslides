@@ -14,6 +14,9 @@ routes = [
 [assets]
 directory = "_site"
 binding = "ASSETS"
+# the worker decides first — otherwise the assets layer serves app pages on
+# owner subdomains (it matches by path only, ignoring hostname)
+run_worker_first = true
 
 [vars]
 # abuse killswitch: comma-separated owners or owner/repo to disable
