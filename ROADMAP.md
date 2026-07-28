@@ -234,6 +234,13 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
 - [x] Report path: /-/report?deck=owner/repo on the app origin → prefilled
       GitHub abuse issue; linked from every deck's H cheatsheet footer
 - [x] All deck responses X-Robots-Tag: noindex (decks are for sharing, not SEO)
+- [x] Wildcard route / gateway conflict fixed (2026-07-28, issue #20): the
+      *.fslides.dev/* wildcard was beating the gateway's custom domain on
+      api.fslides.dev. Fixed by adding an explicit zone route in
+      packages/gateway/wrangler.toml so the gateway wins. Defense in depth in
+      the site worker: added auth/login/gateway/ftp/smtp/imap to RESERVED; a
+      reserved-subdomain request that reaches the app-origin branch now returns
+      the bat 404 instead of pretty-URL-redirecting (e.g. /auth/login → auth.fslides.dev)
 - [ ] Public Suffix List: PR adding fslides.dev (private section) — once
       merged + propagated, browsers/Safe Browsing treat each owner subdomain
       as an independent site (blast radius = one owner, like github.io)
