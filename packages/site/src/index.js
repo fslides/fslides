@@ -66,7 +66,7 @@ export default {
     // Defense in depth: a reserved subdomain reached here (e.g. api.fslides.dev
     // if the gateway zone route is absent). Return 404 — never pretty-URL-redirect
     // reserved names like /auth/login into deck space.
-    if (sub) {
+    if (sub && sub[1] !== 'www') {
       return new Response(NOTFOUND, {
         status: 404,
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
