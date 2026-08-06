@@ -856,14 +856,25 @@
 
     <section class="doc-section" id="cmd-gif">
       <h3>fuckslides gif &lt;slide&gt;</h3>
-      <p>Exports a single slide as an animated GIF at 2× retina quality.</p>
+      <p>Exports a single slide as an animated GIF at 2× retina quality. Playback speed is real-time-accurate — the encoder measures actual capture time and adjusts the frame rate so animations play back at the same speed they run in the browser.</p>
 
       <div class="code-block">
         <pre><span class="clr">$</span> fuckslides gif demo.html
+<span class="dim">→ demo.gif</span>
+
+<span class="cm"># Custom frame rate, duration, and scale</span>
+<span class="clr">$</span> fuckslides gif demo.html --fps=30 --duration=8 --scale=1
 <span class="dim">→ demo.gif</span></pre>
       </div>
 
-      <p>Captures at <strong>2560×1440</strong>, <strong>20fps</strong>, <strong>13 seconds</strong> via Puppeteer, then encodes with gifski for maximum quality. Requires gifski:</p>
+      <p>Options:</p>
+      <ul>
+        <li><code>--fps=N</code> — capture/playback frame rate (default <strong>20</strong>)</li>
+        <li><code>--duration=N</code> — capture length in seconds, or ms if &gt; 1000 (default <strong>13s</strong>)</li>
+        <li><code>--scale=1|2</code> — device scale factor; <code>1</code> captures ~2× faster for smoother motion on slower machines (default <strong>2</strong>)</li>
+      </ul>
+
+      <p>Captures at <strong>1280×720</strong> (scale 1) or <strong>2560×1440</strong> (scale 2) via Puppeteer, then encodes with gifski for maximum quality. Requires gifski:</p>
 
       <div class="code-block">
         <pre><span class="clr">$</span> brew install gifski  <span class="cm"># macOS</span></pre>
