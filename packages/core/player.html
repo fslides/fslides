@@ -2105,7 +2105,8 @@ if (GATEWAY) {
   });
 }
 
-function slideIssueTitle(file) { return '💬 Slide: ' + file; }
+const DECKPATH = window.FUCKSLIDES_DECKPATH || '';
+function slideIssueTitle(file) { return '💬 Slide: ' + (DECKPATH ? DECKPATH + '/' : '') + file; }
 
 // ── anchor helpers ──
 const ANCHOR_RE = /<!--fslides-anchor (\{[\s\S]*?\})-->/;
