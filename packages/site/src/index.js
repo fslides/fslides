@@ -233,7 +233,7 @@ async function serveDeck(request, url, env, owner) {
     const nf = await fetchFile(owner, repo, notesPath, 60, viewerToken);
     let notes = '{}';
     if (nf.resp.ok) { const t = await nf.resp.text(); try { JSON.parse(t); notes = t; } catch (_) {} }
-    const html = renderPlayer(owner, repo, config, notes);
+    const html = renderPlayer(owner, repo, config, notes, deckSubPath);
     if (request.method === 'HEAD') return new Response(null, { headers: { 'Content-Type': TYPES.html, 'X-Robots-Tag': 'noindex' } });
     return new Response(html, { headers: { 'Content-Type': TYPES.html, 'Cache-Control': cc('public, max-age=60'), 'X-Robots-Tag': 'noindex' } });
   }
@@ -534,7 +534,7 @@ async function loadConfig(owner, repo, token, deckSubPath) {
   }
 }
 
-function renderPlayer(owner, repo, config, notes) {
+function renderPlayer(owner, repo, config, notes, deckPath) {
   const name = config.name || repo;
   const snippet = `<script>
 window.FUCKSLIDES_SLIDES     = ${JSON.stringify(config.slides || [])};
@@ -545,6 +545,7 @@ window.FUCKSLIDES_DISABLED   = ${JSON.stringify(config.disabled || [])};
 window.FUCKSLIDES_NOTES      = ${notes};
 window.FUCKSLIDES_RECORDINGS = null;
 window.FUCKSLIDES_REPO       = ${JSON.stringify(owner + '/' + repo)};
+window.FUCKSLIDES_DECKPATH   = ${JSON.stringify(deckPath || '')};
 window.FUCKSLIDES_GATEWAY    = ${JSON.stringify(config.gateway || 'https://api.fslides.dev')};
 window.FUCKSLIDES_NAV        = ${JSON.stringify(config.nav || [])};
 window.FUCKSLIDES_SELECTION  = ${JSON.stringify(config.selection !== false)};

@@ -94,6 +94,16 @@
     }
     .toolbar input[type=search] { flex: 1; min-width: 200px; max-width: 360px; }
     .toolbar input[type=search]:focus, .toolbar select:focus { border-color: var(--acc); }
+    .owner-head {
+      grid-column: 1 / -1; width: 100%;
+      display: flex; align-items: center; gap: 10px;
+      margin: 18px 0 2px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--faint);
+    }
+    .owner-head img { width: 18px; height: 18px; border-radius: 4px; }
+    .owner-head b { color: var(--fg); font-weight: 600; }
+    .owner-head .n { margin-left: auto; }
     .toolbar input::placeholder { color: var(--faint); }
     .seg { display: flex; border: 1px solid var(--line); }
     .seg button {
@@ -528,7 +538,35 @@
     var box = $('decks');
     box.className = view === 'list' ? 'rows' : 'grid';
     box.innerHTML = '';
+
+    // decks spanning several owners (your account + orgs + shared with you):
+    // group them, your own decks first
+    var owners = [];
+    decks.forEach(function (r) { if (owners.indexOf(r.owner.login) === -1) owners.push(r.owner.login); });
+    if (owners.length > 1) {
+      owners.sort(function (a, b) {
+        var mine = profileLogin.toLowerCase();
+        if (a.toLowerCase() === mine) return -1;
+        if (b.toLowerCase() === mine) return 1;
+        return a.localeCompare(b);
+      });
+      var byOwner = {};
+      decks.forEach(function (r) { (byOwner[r.owner.login] = byOwner[r.owner.login] || []).push(r); });
+      decks = [];
+      owners.forEach(function (o) {
+        var group = byOwner[o];
+        var head = document.createElement('div');
+        head.className = 'owner-head';
+        head.innerHTML = '<img src="' + esc(group[0].owner.avatar_url || '') + '" alt="">' +
+          '<b>' + esc(o) + '</b><span class="n">' + group.length + ' deck' + (group.length === 1 ? '' : 's') + '</span>';
+        head._isHead = true;
+        decks.push(head);
+        group.forEach(function (r) { decks.push(r); });
+      });
+    }
+
     decks.forEach(function (r) {
+      if (r._isHead) { box.appendChild(r); return; }
       var repoN = r._repoName || r.name;
       var deckPath = r._deckPath || '';
       var url = 'https://' + r.owner.login.toLowerCase() + '.fslides.dev/' + repoN + '/' + (deckPath ? deckPath + '/' : '');

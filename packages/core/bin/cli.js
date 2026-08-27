@@ -66,6 +66,9 @@ switch (cmd) {
   case 'build':
     require('./build')(loadConfig(process.cwd()), args[0] && !args[0].startsWith('-') ? args[0] : undefined);
     break;
+  case 'share':
+    require('./share')(args);
+    break;
   case 'scaffold':
     require('./scaffold')(args[0], { private: args.includes('--private'), org: getFlag('--org'), template: getFlag('--template') });
     break;

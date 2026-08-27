@@ -79,6 +79,12 @@ export default {
 
       // OAuth App flow: classic repo-scope token, one-click for personal/non-enterprise.
       if (flow === 'oauth') {
+        // Enterprise hard-off: DISABLE_OAUTH=1 removes the broad-scope tier
+        // entirely — the gateway then only ever brokers the GitHub App flow
+        // (issues-only, expiring user tokens).
+        if (env.DISABLE_OAUTH) {
+          return new Response('oauth tier disabled', { status: 404, headers: NO_STORE });
+        }
         if (!env.OAUTH_CLIENT_ID) {
           return new Response('oauth tier not configured', { status: 503, headers: NO_STORE });
         }
