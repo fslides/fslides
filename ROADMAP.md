@@ -302,6 +302,13 @@ Candidates, unvalidated:
 **Scaffold**
 - Auto-wire commenting on scaffold via GitHub App device flow: first run prints a one-time code (enable "Device Flow" on the app), token cached in ~/.config/fslides, then `PUT /user/installations/{id}/repositories/{repo_id}` adds each new repo to a selective installation automatically. (gh CLI tokens can't touch installation APIs — 403, verified 2026-07-24.) Not needed for "All repositories" installs, which remain the recommended default.
 
+**Enterprise collaboration** *(landed 2026-08-27, PRs #31/#32)*
+- [x] `fslides share [user]` — collaborator invites via the caller's own gh auth (--view/--admin/--remove; no args lists access); no app permission involved (2026-08-27)
+- [x] Dashboard groups decks by owner when they span accounts/orgs (2026-08-27)
+- [x] Comment issues namespaced by deck subpath (FUCKSLIDES_DECKPATH) — multi-deck repos can't collide (2026-08-27)
+- [x] Gateway DISABLE_OAUTH=1 hard-off for the classic repo-scope tier (2026-08-27)
+- [x] docs/enterprise.md + docs/enroll-decks.yml — select-repos install, issue-ops instant enrollment (scaffold files `enroll: org/repo`), hourly sweep as reconciliation (2026-08-27)
+
 **Distribution**
 - [x] `curl -fsSL fslides.dev/install | sh` installer (v1 wraps npm) — leads all CTAs (2026-07-24)
 - Standalone binaries (Node SEA or bun-compiled) via GitHub Releases; installer auto-detects and skips the Node prerequisite
