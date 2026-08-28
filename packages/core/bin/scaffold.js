@@ -146,6 +146,17 @@ Send a PR when you're happy.
     console.log(`  Creating GitHub repo (${opts.private ? 'private' : 'public'})…`);
     sh(`gh repo create ${repo} ${vis} --source . --remote origin --push`, { cwd: dir });
     try { sh(`gh repo edit ${repo} --add-topic fslides`, { cwd: dir }); } catch (_) {}   // dashboard deck signal
+
+    // Org decks: ping the org's enrollment repo (issue-ops) so the fslides
+    // app is added to this repo immediately instead of on the next sweep.
+    // Convention: <org>/fslides-enrollment with an issues-triggered workflow —
+    // see docs/enterprise.md. Silently skipped when the repo doesn't exist.
+    if (opts.org) {
+      try {
+        sh(`gh api repos/${owner}/fslides-enrollment/issues -f title="enroll: ${repo}" -f body="Automated enrollment request from fslides scaffold."`);
+        console.log('  ✓  enrollment requested (comments will be live in ~a minute)');
+      } catch (_) {}
+    }
   } catch (e) {
     die('Repo creation failed: ' + (e.stderr || e.message));
   }

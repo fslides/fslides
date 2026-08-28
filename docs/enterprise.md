@@ -22,11 +22,18 @@ about 8 hours. The gateway (one stateless Cloudflare Worker) stores nothing.
    The app's world is exactly the deck repos, nothing else.
 
 2. **Let a workflow you own do the enrollment.**
-   `fslides scaffold` tags every deck repo with the `fslides` topic. A small
-   scheduled Action — owned, audited and revocable by the security team —
-   adds topic-tagged repos to the app installation. New decks become
-   commentable within the schedule interval; nobody files a ticket. See
+   `fslides scaffold` tags every deck repo with the `fslides` topic and files
+   an issue in your `<org>/fslides-enrollment` repo. A workflow you own fires
+   on that issue, validates the repo (in your org, carries the topic), enrolls
+   it, and closes the issue — comments are live within about a minute of
+   scaffold, and every enrollment leaves an issue as its audit record. A
+   scheduled sweep catches anything that missed the event path. Nobody files
+   a ticket, and nobody but your workflow touches the app installation. See
    `enroll.yml` below.
+
+   Note the failure domain: only *inline comments* wait on enrollment.
+   Creating, sharing (`fslides share`), editing and viewing decks never
+   involve the app.
 
 3. **Self-host the gateway (optional, strictest).**
    Deploy `packages/gateway` on your own infra with a GitHub App **owned by
@@ -40,40 +47,79 @@ about 8 hours. The gateway (one stateless Cloudflare Worker) stores nothing.
 
 ## Reference enrollment workflow
 
-Runs on a schedule with an org-admin token (fine-grained: Administration
-read/write on the installation), finds repos tagged `fslides`, and adds any
-missing ones to the app installation.
+Lives in `<org>/fslides-enrollment`, a repo the security team owns. Two
+triggers, one job:
+
+- **`issues: opened`** — the instant path. `fslides scaffold` files
+  `enroll: <org>/<repo>` the moment a deck is created; the workflow
+  validates and enrolls within seconds, then closes the issue (your audit
+  trail: one issue per enrollment, with requester and timestamp).
+- **`schedule`** — the sweeper. Catches repos tagged by hand or created
+  while the event path was unavailable.
+
+The token needs org-level installation admin (fine-grained); it lives in
+this repo's secrets, never in deck repos. Validation is explicit: a repo is
+enrolled only if it exists in your org **and** carries the `fslides` topic —
+an issue naming anything else is closed with a refusal comment.
 
 ```yaml
-# .github/workflows/enroll-decks.yml — lives in a repo the security team owns
+# <org>/fslides-enrollment/.github/workflows/enroll-decks.yml
 name: Enroll fslides decks
 on:
-  schedule: [{ cron: '*/30 * * * *' }]
+  issues: { types: [opened] }
+  schedule: [{ cron: '0 * * * *' }]     # hourly sweep; the issue path is the fast lane
   workflow_dispatch: {}
 
-permissions: {}
+permissions:
+  issues: write                          # close/comment enrollment issues
 
 jobs:
   enroll:
     runs-on: ubuntu-latest
     steps:
-      - name: Add topic-tagged repos to the fslides app installation
+      - name: Enroll deck repos
         env:
-          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}   # fine-grained, org admin
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}   # fine-grained, org installation admin
+          ISSUE_TOKEN: ${{ github.token }}
           ORG: your-org
-          APP_SLUG: fslides                           # or your self-hosted app slug
+          APP_SLUG: fslides                            # or your self-hosted app slug
+          EVENT: ${{ github.event_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
         run: |
           set -euo pipefail
           INSTALLATION_ID=$(gh api "orgs/$ORG/installations" \
             --jq ".installations[] | select(.app_slug == \"$APP_SLUG\") | .id")
-          ENROLLED=$(gh api --paginate "user/installations/$INSTALLATION_ID/repositories" \
-            --jq '.repositories[].id' | sort)
-          TAGGED=$(gh api --paginate "search/repositories?q=org:$ORG+topic:fslides" \
-            --jq '.items[].id' | sort)
-          for repo_id in $(comm -13 <(echo "$ENROLLED") <(echo "$TAGGED")); do
-            gh api -X PUT "user/installations/$INSTALLATION_ID/repositories/$repo_id"
-            echo "enrolled repo id $repo_id"
-          done
+
+          enroll_repo() {  # $1 = repo id
+            gh api -X PUT "user/installations/$INSTALLATION_ID/repositories/$1"
+          }
+          say() {  # comment + close the triggering issue
+            [ "$EVENT" = "issues" ] || return 0
+            GH_TOKEN="$ISSUE_TOKEN" gh issue comment "$ISSUE_NUMBER" -R "$GITHUB_REPOSITORY" -b "$1"
+            GH_TOKEN="$ISSUE_TOKEN" gh issue close "$ISSUE_NUMBER" -R "$GITHUB_REPOSITORY"
+          }
+
+          if [ "$EVENT" = "issues" ]; then
+            # instant path: validate "enroll: org/repo" from the issue title
+            REPO_FULL=$(echo "$ISSUE_TITLE" | sed -n 's/^enroll: *//p')
+            case "$REPO_FULL" in "$ORG"/*) ;; *) say "❌ not an $ORG repo — refused"; exit 0;; esac
+            INFO=$(gh api "repos/$REPO_FULL" --jq '{id: .id, topics: .topics}' 2>/dev/null) \
+              || { say "❌ repo not found — refused"; exit 0; }
+            echo "$INFO" | grep -q '"fslides"' \
+              || { say "❌ repo is not tagged fslides — refused"; exit 0; }
+            enroll_repo "$(echo "$INFO" | sed -n 's/.*"id": *\([0-9]*\).*/\1/p')"
+            say "✅ enrolled — slide comments are live on $REPO_FULL"
+          else
+            # sweep: enroll every tagged repo not yet in the installation
+            ENROLLED=$(gh api --paginate "user/installations/$INSTALLATION_ID/repositories" \
+              --jq '.repositories[].id' | sort)
+            TAGGED=$(gh api --paginate "search/repositories?q=org:$ORG+topic:fslides" \
+              --jq '.items[].id' | sort)
+            for repo_id in $(comm -13 <(echo "$ENROLLED") <(echo "$TAGGED")); do
+              enroll_repo "$repo_id" && echo "enrolled repo id $repo_id"
+            done
+          fi
 ```
 
 Notes for review:
@@ -87,6 +133,6 @@ Notes for review:
 
 | Symptom | Cause | Answer |
 |---|---|---|
-| "comments unavailable" on a fresh deck | repo not yet enrolled (workflow interval) | wait for the next enroll run, or paste a fine-grained PAT (Issues R/W on that repo) in the player |
+| "comments unavailable" on a fresh deck | enrollment issue still processing (~1 min), or deck tagged by hand between sweeps | check the enrollment issue, wait for the hourly sweep, or paste a fine-grained PAT (Issues R/W on that repo) in the player |
 | Collaborator invite blocked | org collaborator policy | org owners allow member invites, or share via a team |
 | Private deck won't load for an invitee | invite not yet accepted | accept the GitHub invite email first |
