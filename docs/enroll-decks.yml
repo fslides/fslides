@@ -1,0 +1,57 @@
+# <org>/fslides-enrollment/.github/workflows/enroll-decks.yml
+name: Enroll fslides decks
+on:
+  issues: { types: [opened] }
+  schedule: [{ cron: '0 * * * *' }]     # hourly sweep; the issue path is the fast lane
+  workflow_dispatch: {}
+
+permissions:
+  issues: write                          # close/comment enrollment issues
+
+jobs:
+  enroll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enroll deck repos
+        env:
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}   # fine-grained, org installation admin
+          ISSUE_TOKEN: ${{ github.token }}
+          ORG: your-org
+          APP_SLUG: fslides                            # or your self-hosted app slug
+          EVENT: ${{ github.event_name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          set -euo pipefail
+          INSTALLATION_ID=$(gh api "orgs/$ORG/installations" \
+            --jq ".installations[] | select(.app_slug == \"$APP_SLUG\") | .id")
+
+          enroll_repo() {  # $1 = repo id
+            gh api -X PUT "user/installations/$INSTALLATION_ID/repositories/$1"
+          }
+          say() {  # comment + close the triggering issue
+            [ "$EVENT" = "issues" ] || return 0
+            GH_TOKEN="$ISSUE_TOKEN" gh issue comment "$ISSUE_NUMBER" -R "$GITHUB_REPOSITORY" -b "$1"
+            GH_TOKEN="$ISSUE_TOKEN" gh issue close "$ISSUE_NUMBER" -R "$GITHUB_REPOSITORY"
+          }
+
+          if [ "$EVENT" = "issues" ]; then
+            # instant path: validate "enroll: org/repo" from the issue title
+            REPO_FULL=$(echo "$ISSUE_TITLE" | sed -n 's/^enroll: *//p')
+            case "$REPO_FULL" in "$ORG"/*) ;; *) say "❌ not an $ORG repo — refused"; exit 0;; esac
+            INFO=$(gh api "repos/$REPO_FULL" --jq '{id: .id, topics: .topics}' 2>/dev/null) \
+              || { say "❌ repo not found — refused"; exit 0; }
+            echo "$INFO" | grep -q '"fslides"' \
+              || { say "❌ repo is not tagged fslides — refused"; exit 0; }
+            enroll_repo "$(echo "$INFO" | sed -n 's/.*"id": *\([0-9]*\).*/\1/p')"
+            say "✅ enrolled — slide comments are live on $REPO_FULL"
+          else
+            # sweep: enroll every tagged repo not yet in the installation
+            ENROLLED=$(gh api --paginate "user/installations/$INSTALLATION_ID/repositories" \
+              --jq '.repositories[].id' | sort)
+            TAGGED=$(gh api --paginate "search/repositories?q=org:$ORG+topic:fslides" \
+              --jq '.items[].id' | sort)
+            for repo_id in $(comm -13 <(echo "$ENROLLED") <(echo "$TAGGED")); do
+              enroll_repo "$repo_id" && echo "enrolled repo id $repo_id"
+            done
+          fi

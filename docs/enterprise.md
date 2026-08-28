@@ -62,6 +62,10 @@ this repo's secrets, never in deck repos. Validation is explicit: a repo is
 enrolled only if it exists in your org **and** carries the `fslides` topic —
 an issue naming anything else is closed with a refusal comment.
 
+The workflow: [`docs/enroll-decks.yml`](./enroll-decks.yml) — copy it into
+`<org>/fslides-enrollment/.github/workflows/` and set `ORG`, `APP_SLUG` and
+the `ORG_ADMIN_TOKEN` secret.
+
 ```yaml
 # <org>/fslides-enrollment/.github/workflows/enroll-decks.yml
 name: Enroll fslides decks
