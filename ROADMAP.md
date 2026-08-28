@@ -307,6 +307,7 @@ Candidates, unvalidated:
 - [x] Dashboard groups decks by owner when they span accounts/orgs (2026-08-27)
 - [x] Comment issues namespaced by deck subpath (FUCKSLIDES_DECKPATH) — multi-deck repos can't collide (2026-08-27)
 - [x] Gateway DISABLE_OAUTH=1 hard-off for the classic repo-scope tier (2026-08-27)
+- [x] Sharing rides GitHub notifications: invite email/web notification out of the box; `fslides share` prints a paste-ready DM snippet; dashboard shows pending "shared with you" invites with one-click accept-and-open (2026-08-27)
 - [x] docs/enterprise.md + docs/enroll-decks.yml — select-repos install, issue-ops instant enrollment (scaffold files `enroll: org/repo`), hourly sweep as reconciliation (2026-08-27)
 
 **Distribution**

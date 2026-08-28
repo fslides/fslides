@@ -94,6 +94,21 @@
     }
     .toolbar input[type=search] { flex: 1; min-width: 200px; max-width: 360px; }
     .toolbar input[type=search]:focus, .toolbar select:focus { border-color: var(--acc); }
+    .invites { margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+    .invite {
+      display: flex; align-items: center; gap: 12px;
+      border: 1px solid var(--acc); background: color-mix(in srgb, var(--acc) 7%, transparent);
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    }
+    .invite img { width: 20px; height: 20px; border-radius: 4px; }
+    .invite .who b { color: var(--fg); }
+    .invite .who { color: var(--faint); }
+    .invite button {
+      margin-left: auto; background: none; border: none; cursor: pointer;
+      color: var(--acc-hi); font-family: inherit; font-size: inherit; white-space: nowrap;
+    }
+    .invite button:hover { text-decoration: underline; }
     .owner-head {
       grid-column: 1 / -1; width: 100%;
       display: flex; align-items: center; gap: 10px;
@@ -296,6 +311,7 @@
     <section class="decks">
       <h2>decks <span class="count" id="count"></span></h2>
 
+      <div class="invites" id="invites"></div>
       <div class="toolbar" id="toolbar">
         <input id="search" type="search" placeholder="/ find a deck" autocomplete="off">
         <select id="visibility" hidden>
@@ -686,6 +702,7 @@
 
       ownerMode = true;
       ownerTok = tok;
+      loadInvites(tok);
       $('visibility').hidden = false;
       loadOwnerDecks(tok);
     }).catch(function () { $('btn-signin').hidden = false; });
@@ -918,6 +935,34 @@
   }
 
   // owner view: app installations see private repos too (issues-only grant)
+  // ── "shared with you": pending repo invitations, GitHub as the transport ──
+  // Works with repo-scope viewer tokens (the private-deck sign-in); app-flow
+  // tokens 403 here and the banner stays hidden — never an error.
+  function loadInvites(tok) {
+    gh('/user/repository_invitations?per_page=20', tok).then(function (invites) {
+      var box = $('invites');
+      box.innerHTML = '';
+      (invites || []).filter(function (i) { return !i.expired; }).forEach(function (inv) {
+        var repoFull = inv.repository && inv.repository.full_name || '';
+        var owner = repoFull.split('/')[0] || '';
+        var name = repoFull.split('/')[1] || '';
+        var row = document.createElement('div');
+        row.className = 'invite';
+        row.innerHTML = '<img src="' + esc(inv.inviter && inv.inviter.avatar_url || '') + '" alt="">' +
+          '<span class="who">@' + esc(inv.inviter && inv.inviter.login || '?') + ' shared <b>' + esc(repoFull) + '</b> with you</span>' +
+          '<button class="acc">[accept & open]</button>';
+        row.querySelector('.acc').addEventListener('click', function () {
+          row.querySelector('.acc').textContent = '[accepting…]';
+          ghApi('PATCH', '/user/repository_invitations/' + inv.id, tok).then(function (x) {
+            if (!x.ok) { row.querySelector('.acc').textContent = '[failed — open on github ↗]'; return; }
+            window.location.href = 'https://' + owner.toLowerCase() + '.fslides.dev/' + name + '/';
+          });
+        });
+        box.appendChild(row);
+      });
+    }).catch(function () { /* app-flow token or none: banner stays hidden */ });
+  }
+
   function loadOwnerDecks(tok) {
     gh('/user/installations', tok).then(function (insts) {
       var jobs = (insts.installations || []).map(function (inst) {

@@ -110,9 +110,19 @@ module.exports = function share(args) {
 
   // 204 = already a collaborator (role updated); JSON body = fresh invitation
   const pending = out && out.includes('"id"');
+  const [repoOwner, repoName] = repo.split('/');
+  const deckUrl = `https://${repoOwner.toLowerCase()}.fslides.dev/${repoName}/`;
   console.log(`
-  ✓  ${user} → ${label} on ${repo}${pending ? '  (invite sent — pending their accept)' : ''}
-
-     They can watch the deck at its fslides.dev URL${permission === 'pull' ? '' : ', edit slides, and comment'}.
+  ✓  ${user} → ${label} on ${repo}${pending ? '  (invite sent — GitHub notified them)' : ''}
 `);
+  if (pending) {
+    console.log(`  Paste this to ${user}:
+
+     I shared "${repoName}" with you.
+     Accept: https://github.com/${repo}/invitations
+     Watch:  ${deckUrl}
+`);
+  } else {
+    console.log(`     Deck: ${deckUrl}\n`);
+  }
 };
