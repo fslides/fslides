@@ -312,6 +312,18 @@
       display: flex; flex-direction: column;
     }
     #notes-panel.open { transform: translateY(0); }
+    #notes-panel.resizing { transition: none; }
+    #notes-resize-handle {
+      height: 9px; flex-shrink: 0; margin-top: -9px; cursor: row-resize;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 10;
+    }
+    #notes-resize-handle::after {
+      content: ''; width: 34px; height: 3px; border-radius: 3px;
+      background: rgba(255,255,255,0.18); transition: background 0.15s;
+    }
+    #notes-resize-handle:hover::after { background: rgba(255,255,255,0.5); }
+    #notes-resize-handle.dragging::after { background: #38BDF8; }
     .notes-header {
       flex-shrink: 0; display: flex; align-items: center; gap: 0.8rem;
       padding: 0.45rem 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.07);
@@ -793,6 +805,7 @@
 <div id="filmstrip"><div id="filmstrip-track"></div></div>
 
 <div id="notes-panel">
+  <div id="notes-resize-handle" title="Drag to resize"></div>
   <div class="notes-header">
     <span class="notes-icon">
       <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2h10v8H2z"/><path d="M4 5h6M4 7.5h4"/></svg>
@@ -1977,6 +1990,7 @@ editorTextarea.addEventListener('click', updateLineCol);
 
 // ── Notes ────────────────────────────────────────────────────────────────────
 const notesPanel    = document.getElementById('notes-panel');
+const notesResizeHandle = document.getElementById('notes-resize-handle');
 const notesTextarea = document.getElementById('notes-textarea');
 const notesSlideName = document.getElementById('notes-slide-name');
 const notesSaveMsg  = document.getElementById('notes-save-msg');
@@ -1986,6 +2000,59 @@ let notesOpen = false;
 let allNotes  = {};
 let notesSaveTimer = null;
 let notesSaveMsgTimer = null;
+
+// Resizable height — drag notesResizeHandle up to make room for longer notes,
+// shrinking the slide instead of letting the panel cover it.
+const NOTES_HEIGHT_KEY = 'fs-notes-height-' + (window.FUCKSLIDES_NAME || 'default');
+const NOTES_MIN_HEIGHT = 120;
+const NOTES_TOP_MARGIN = 160; // keep at least this much room for the slide above
+let notesHeight = parseInt(localStorage.getItem(NOTES_HEIGHT_KEY), 10) || 210;
+
+function clampNotesHeight(h) {
+  return Math.max(NOTES_MIN_HEIGHT, Math.min(h, window.innerHeight - NOTES_TOP_MARGIN));
+}
+function applyNotesHeight() {
+  notesHeight = clampNotesHeight(notesHeight);
+  notesPanel.style.height = notesHeight + 'px';
+}
+applyNotesHeight();
+
+notesResizeHandle.addEventListener('mousedown', e => {
+  e.preventDefault();
+  notesResizeHandle.classList.add('dragging');
+  notesPanel.classList.add('resizing');
+  document.body.style.cursor = 'row-resize';
+  document.body.style.userSelect = 'none';
+
+  // The slide renders in a real <iframe>; once the cursor crosses over it during
+  // the drag, mousemove/mouseup fire on the iframe's own document instead of
+  // ours, so our listeners here silently stop hearing them. A transparent
+  // full-viewport overlay above everything (including the iframe) keeps all
+  // drag events targeted at the parent document until mouseup.
+  const dragOverlay = document.createElement('div');
+  dragOverlay.style.cssText = 'position:fixed;inset:0;z-index:9990;cursor:row-resize;';
+  document.body.appendChild(dragOverlay);
+
+  function onMove(ev) {
+    notesHeight = clampNotesHeight(window.innerHeight - ev.clientY);
+    notesPanel.style.height = notesHeight + 'px';
+    sizeFrame();
+  }
+  function onUp() {
+    notesResizeHandle.classList.remove('dragging');
+    notesPanel.classList.remove('resizing');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    dragOverlay.remove();
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onUp);
+    window.removeEventListener('blur', onUp);
+    localStorage.setItem(NOTES_HEIGHT_KEY, String(notesHeight));
+  }
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  window.addEventListener('blur', onUp);
+});
 
 if (!window.FUCKSLIDES_EXPORT) fetch('/api/notes').then(r => r.json()).then(d => { allNotes = d; }).catch(() => {});
 
@@ -2002,11 +2069,13 @@ function openNotes() {
   loadNotesForSlide();
   notesPanel.classList.add('open');
   btnNotes.classList.add('active');
+  sizeFrame();
 }
 function closeNotes() {
   notesOpen = false;
   notesPanel.classList.remove('open');
   btnNotes.classList.remove('active');
+  sizeFrame();
 }
 function toggleNotes() { notesOpen ? closeNotes() : openNotes(); }
 
@@ -3426,11 +3495,13 @@ voiceDelBtn.addEventListener('click', () => {
 // ── 16:9 letterbox — fixed 1280×720, scaled to fit ───────────────────────────
 const NAV_H = 46;
 const SITE_BAR_H = 52;
+// When the notes panel is open, its height is reserved out of the available
+// viewport so the slide shrinks to fit above it instead of being covered.
 function sizeFrame() {
   const vw = window.innerWidth;
   const barH = document.fullscreenElement ? 0
     : NAV_H + (document.body.classList.contains('website') ? SITE_BAR_H : 0);
-  const vh = window.innerHeight - barH;
+  const vh = window.innerHeight - barH - (notesOpen ? notesHeight : 0);
   const ratio = 16 / 9;
   const cw = vw / vh > ratio ? vh * ratio : vw;
   const scale = cw / 1280;
@@ -3439,7 +3510,7 @@ function sizeFrame() {
   slideWrapper.style.top  = (barH + (vh - 720 * scale) / 2) + 'px';
 }
 document.addEventListener('fullscreenchange', sizeFrame);
-window.addEventListener('resize', sizeFrame);
+window.addEventListener('resize', () => { applyNotesHeight(); sizeFrame(); });
 sizeFrame();
 
 let presenterChannel = null;
