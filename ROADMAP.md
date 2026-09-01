@@ -289,6 +289,7 @@ Candidates, unvalidated:
 - [x] Claude Code plugin (`/plugin marketplace add fslides/fslides` → `fslides-deck` skill)
 
 **Player**
+- [x] Resizable notes panel (2026-09-01): drag handle on the top edge, height persisted per-deck in localStorage, slide reflows above the panel instead of being covered; full-viewport overlay keeps the drag alive over the slide iframe
 - Morph transitions: elements sharing `data-morph` ids FLIP-animate across slides (the Bento flagship; big visual payoff)
 - Narration "full autopilot": optional auto-advance when a slide's narration ends
 - Rebuild a proper speaker view (the old Presenter was removed 2026-07-23 — unclear + broken; teleprompter covers recording, Notes covers presenting, but a dual-screen view has real value)
