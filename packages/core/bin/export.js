@@ -122,8 +122,11 @@ window.FUCKSLIDES_EXPORT    = true;
 window.FUCKSLIDES_CONTENTS  = ${safeJson(slideContents)};
 </script>`;
 
+  const deckTitle = (config.title || config.name || 'Presentation')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
   html = html
-    .replace(/<title>[^<]*<\/title>/, `<title>${config.title || config.name || 'Presentation'}</title>`)
+    .replace(/<title>[\s\S]*?<\/title>/, `<title>${deckTitle}</title>`)
     .replace('</head>', snippet + '\n</head>');
 
   // Inline fuckslides.js and remove external src reference
