@@ -19,6 +19,7 @@ module.exports = {
   slides: ['01-title.html', '02-intro.html'], // order matters
   labels: ['Title', 'Intro'],                 // optional, per-slide nav labels
   // port: 3000,                              // optional, for `serve`
+  // liveReload: false,                       // optional, disable SSE reload on `serve`
   // disabled: [],                            // optional, slides to skip
 };
 ```

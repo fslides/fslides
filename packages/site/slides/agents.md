@@ -34,6 +34,7 @@ module.exports = {
   slides: [ 'cover.html', 'topic.html' ],  // order = presentation order
   labels: [ 'Cover', 'The Topic' ],        // shown in the player's nav/overview
   // disabled: ['draft.html'],             // listed but skipped
+  // liveReload: false,                    // fslides serve: no SSE reload (or ?noreload=1 per tab)
 };
 ```
 

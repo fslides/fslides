@@ -45,6 +45,7 @@ window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
 window.FUCKSLIDES_NAV       = ${JSON.stringify(config.nav || [])};
 window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
+window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
 </script>`;
 
   const playerTemplate = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');
@@ -92,9 +93,10 @@ window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
   }
 
   // ── Live reload ────────────────────────────────────────────────────────────
-  // Watches slidesDir (+ fuckslides.config.js) and pushes an SSE 'reload' event
+  // Watches slidesDir (+ fslides.config.js) and pushes an SSE 'reload' event
   // to every connected player tab so edits show up without restarting `serve`
-  // or manually refreshing the browser.
+  // or manually refreshing the browser. Opt out with liveReload: false. The
+  // player also skips the reload while the in-browser editor is open.
   const sseClients = new Set();
 
   function broadcastReload() {
@@ -124,8 +126,10 @@ window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
     }
   }
 
-  watchPath(slidesDir, true);
-  watchPath(cfgPath, false);
+  if (config.liveReload !== false) {
+    watchPath(slidesDir, true);
+    watchPath(cfgPath, false);
+  }
 
   const allCommentsCache = { data: null, at: 0 };
 

@@ -11,6 +11,8 @@ module.exports = {
     'Title',
   ],
 
+  // liveReload: false,  // fslides serve: disable SSE reload (or open with ?noreload=1)
+
   // Optional: per-slide PDF overrides
   // pdfOverrides: {
   //   'my-animated-slide.html': {
