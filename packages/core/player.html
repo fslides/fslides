@@ -370,6 +370,24 @@
     #anchor-layer { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
     body.presenting #anchor-layer,
     body.windowed-presenting #anchor-layer { display: none; }   /* clean canvas while presenting */
+    /* windowed present: toolbar slides fully off the top; mouse near top peeks it back.
+       Reset top:0 so translateY(-100%) always clears the viewport regardless of
+       whether the site bar adds an extra 52px offset in website mode. */
+    body.windowed-presenting { --chrome-h: 0px; }
+    body.windowed-presenting .preso-nav {
+      top: 0; transform: translateY(-100%); opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    body.windowed-presenting .preso-nav.preso-peek {
+      transform: translateY(0); opacity: 1; pointer-events: auto;
+    }
+    body.windowed-presenting #site-bar {
+      transform: translateY(-100%); opacity: 0; pointer-events: none;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    body.windowed-presenting #site-bar.preso-peek {
+      transform: translateY(0); opacity: 1; pointer-events: auto;
+    }
     .hover-highlight {
       position: absolute; pointer-events: none;
       border: 1.5px dashed rgba(56,189,248,0.55); border-radius: 4px;
@@ -1154,15 +1172,33 @@ function go(newIdx) {
 }
 
 function toggleFullscreen() {
+  if (windowPresent) exitPresentWindow();   // can't be both at once
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
   else document.exitFullscreen();
 }
 
 // ── Windowed present ──────────────────────────────────────────────────────────
-// W — stays in this window/tab, toolbar visible, hover highlights and overlays
-// suppressed (body.windowed-presenting). Esc or W again to exit.
+// W — stays in this window/tab. Toolbar slides off the top; mouse against the
+// top edge peeks it back. Hover highlights, overlays, and selection suppressed.
+// Esc or W again exits.
 let windowPresent = false;
 function isPresenting() { return !!document.fullscreenElement || windowPresent; }
+
+let peekHideTimer = null;
+function setPeek(on) {
+  presoNav.classList.toggle('preso-peek', on);
+  const sb = document.getElementById('site-bar');
+  if (sb) sb.classList.toggle('preso-peek', on);
+}
+function onPresentMousemove(e) {
+  if (e.clientY < 20) {
+    clearTimeout(peekHideTimer);
+    setPeek(true);
+  } else if (presoNav.classList.contains('preso-peek')) {
+    clearTimeout(peekHideTimer);
+    peekHideTimer = setTimeout(() => setPeek(false), 600);
+  }
+}
 
 function enterPresentWindow() {
   if (windowPresent) return;
@@ -1170,12 +1206,19 @@ function enterPresentWindow() {
   windowPresent = true;
   document.body.classList.add('windowed-presenting');
   try { clearHover(); clearSelection(); closeCtxMenu(); } catch (_) {}
-  showToast('Presenting — W or Esc to exit');
+  sizeFrame();
+  document.addEventListener('mousemove', onPresentMousemove);
+  showToast('Presenting — move mouse to top for controls · W or Esc to exit');
 }
 function exitPresentWindow() {
   if (!windowPresent) return;
   windowPresent = false;
   document.body.classList.remove('windowed-presenting');
+  document.removeEventListener('mousemove', onPresentMousemove);
+  clearTimeout(peekHideTimer);
+  setPeek(false);
+  showNavBar();
+  sizeFrame();
 }
 function togglePresentWindow() {
   if (windowPresent) exitPresentWindow(); else enterPresentWindow();
@@ -3455,7 +3498,8 @@ const NAV_H = 46;
 const SITE_BAR_H = 52;
 function sizeFrame() {
   const vw = window.innerWidth;
-  const barH = document.fullscreenElement ? 0
+  // toolbar hidden in both fullscreen and windowed present
+  const barH = (document.fullscreenElement || windowPresent) ? 0
     : NAV_H + (document.body.classList.contains('website') ? SITE_BAR_H : 0);
   const vh = window.innerHeight - barH;
   const ratio = 16 / 9;
