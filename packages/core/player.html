@@ -368,7 +368,8 @@
 
     /* ── Anchored comments ── */
     #anchor-layer { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
-    body.presenting #anchor-layer { display: none; }   /* clean canvas while presenting */
+    body.presenting #anchor-layer,
+    body.windowed-presenting #anchor-layer { display: none; }   /* clean canvas while presenting */
     .hover-highlight {
       position: absolute; pointer-events: none;
       border: 1.5px dashed rgba(56,189,248,0.55); border-radius: 4px;
@@ -861,6 +862,7 @@
         <div class="sc-row">overview grid<span class="keys"><kbd class="sck">G</kbd></span></div>
         <div class="sc-row">filmstrip<span class="keys"><kbd class="sck">T</kbd></span></div>
         <div class="sc-row">present fullscreen<span class="keys"><kbd class="sck">F</kbd></span></div>
+        <div class="sc-row">present in window — no overlays<span class="keys"><kbd class="sck">W</kbd></span></div>
       </div>
       <div class="sc-group">
         <h4>work</h4>
@@ -1154,6 +1156,29 @@ function go(newIdx) {
 function toggleFullscreen() {
   if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
   else document.exitFullscreen();
+}
+
+// ── Windowed present ──────────────────────────────────────────────────────────
+// W — stays in this window/tab, toolbar visible, hover highlights and overlays
+// suppressed (body.windowed-presenting). Esc or W again to exit.
+let windowPresent = false;
+function isPresenting() { return !!document.fullscreenElement || windowPresent; }
+
+function enterPresentWindow() {
+  if (windowPresent) return;
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  windowPresent = true;
+  document.body.classList.add('windowed-presenting');
+  try { clearHover(); clearSelection(); closeCtxMenu(); } catch (_) {}
+  showToast('Presenting — W or Esc to exit');
+}
+function exitPresentWindow() {
+  if (!windowPresent) return;
+  windowPresent = false;
+  document.body.classList.remove('windowed-presenting');
+}
+function togglePresentWindow() {
+  if (windowPresent) exitPresentWindow(); else enterPresentWindow();
 }
 
 // ── Lazy-load thumbnail iframes (script-stripped, frozen render) ──────────────
@@ -1574,6 +1599,7 @@ function handleKey(key) {
     if (voiceOpen) { closeVoicePanel(); return; }
     if (commentsOpen) { closeComments(); return; }
     if (ovOpen) { closeOverview(); return; } if (fsOpen) { closeFilmstrip(); return; }
+    if (windowPresent) { exitPresentWindow(); return; }
   }
   if (ovOpen) {
     const cols = getGridCols();
@@ -1588,6 +1614,7 @@ function handleKey(key) {
   if (key === 'ArrowRight' || key === 'ArrowDown' || key === ' ' || key === 'PageDown') go(idx + 1);
   else if (key === 'ArrowLeft' || key === 'ArrowUp' || key === 'PageUp') go(idx - 1);
   else if (key === 'f' || key === 'F') toggleFullscreen();
+  else if (key === 'w' || key === 'W') togglePresentWindow();
 }
 document.addEventListener('keydown', e => {
   if (editorOpen && (e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); return; }
@@ -2562,7 +2589,7 @@ function attachSlideInteractions() {
   doc._fsSelAttached = true;
 
   doc.addEventListener('mousemove', e => {
-    if (document.fullscreenElement) { clearHover(); return; }
+    if (isPresenting()) { clearHover(); return; }
     if (dragStart) {
       const dx = e.clientX - dragStart[0], dy = e.clientY - dragStart[1];
       if (!dragging && Math.abs(dx) + Math.abs(dy) > 7) {
@@ -2592,7 +2619,7 @@ function attachSlideInteractions() {
   doc.addEventListener('mouseleave', clearHover, true);
 
   doc.addEventListener('mousedown', e => {
-    if (e.button !== 0 || document.fullscreenElement) return;
+    if (e.button !== 0 || isPresenting()) return;
     closeCtxMenu();
     dragStart = [e.clientX, e.clientY];
     dragging = false;
@@ -2629,7 +2656,7 @@ function attachSlideInteractions() {
   }, true);
 
   doc.addEventListener('contextmenu', e => {
-    if (document.fullscreenElement) return;
+    if (isPresenting()) return;
     const block = blockOf(e.target, doc);
     e.preventDefault();
     // right-click outside the current selection re-selects the target block
