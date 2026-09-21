@@ -40,7 +40,7 @@ Slides are self-contained HTML on a fixed 1280×720 canvas. The player scales, n
 
 | | |
 |---|---|
-| **Navigate** | ← → · **G** overview grid · **T** filmstrip · **F** present fullscreen |
+| **Navigate** | ← → · **G** overview grid · **T** filmstrip · **F** present fullscreen · **W** present in window |
 | **Notes** | **N** — per-slide speaker notes, saved to `notes.json` |
 | **Narrate** | **M** — record voice or camera per slide: pop-out teleprompter, live waveform, device pickers, virtual backgrounds. Viewers press **Play** (**V**) on the published deck; camera takes render in a draggable bubble and auto-continue across slides |
 | **Comment** | **K** — reviewers right-click any element and pin a thread to it (drag-select for groups). Threads are **GitHub issues** on your repo; the panel is a deck-wide inbox. Published decks get one-popup GitHub sign-in via the [fslides GitHub App](https://github.com/apps/fslides) (issues-only permission) |
