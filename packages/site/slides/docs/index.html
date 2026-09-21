@@ -44,7 +44,8 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
     <p>Start from a designed <a href="/templates/">template</a>, or from scratch. The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
 
     <h2 id="player">The player</h2>
-    <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>F</kbd> present fullscreen.</p>
+    <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>E</kbd> edit this slide · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>F</kbd> present fullscreen.</p>
+    <p>Edits on disk live-reload the player. While the in-browser editor is open, that full-page refresh is skipped — the editor already updates its own preview on save. Disable live reload for a tab with <code>?noreload=1</code>, or deck-wide with <code>liveReload: false</code> in <code>fslides.config.js</code>.</p>
     <p>Speaker notes live in <code>notes.json</code> and are editable in the Notes panel — they ship with the deck and feed the teleprompter.</p>
 
     <h2 id="narration">Narration</h2>

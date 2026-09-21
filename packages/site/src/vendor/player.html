@@ -3714,9 +3714,14 @@ document.addEventListener('fullscreenchange', () => {
 showNavBar();
 
 // ── Config hot-reload ─────────────────────────────────────────────────────────
-if (!window.FUCKSLIDES_EXPORT && typeof EventSource !== 'undefined') {
+// The editor already refreshes its own preview on save. A full-page reload
+// would tear the overlay down mid-edit, so skip SSE reloads while it is open.
+// liveReload: false in the deck config, or ?noreload=1 on this tab, turn it off.
+const liveReloadOn = window.FUCKSLIDES_LIVE_RELOAD !== false
+  && new URLSearchParams(location.search).get('noreload') !== '1';
+if (!window.FUCKSLIDES_EXPORT && liveReloadOn && typeof EventSource !== 'undefined') {
   const sse = new EventSource('/api/sse');
-  sse.addEventListener('reload', () => location.reload());
+  sse.addEventListener('reload', () => { if (!editorOpen) location.reload(); });
 }
 
 </script>
