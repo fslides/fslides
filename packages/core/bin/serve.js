@@ -17,41 +17,52 @@ const AUDIO_EXTS = ['.webm', '.m4a', '.mp3', '.ogg', '.wav', '.mp4'];
 
 module.exports = function serve(config) {
   const cwd       = process.cwd();
-  const slidesDir = path.join(cwd, config.slidesDir || 'slides');
   const pkgDir    = path.join(__dirname, '..');
   const PORT      = config.port || 3000;
 
-  // Inject slide manifest into player.html so the player knows the deck
-  const slidesJson   = JSON.stringify(config.slides);
-  const labelsJson   = JSON.stringify(config.labels || config.slides.map(s => s.replace('.html', '')));
-  const nameJson     = JSON.stringify(config.name || 'presentation');
-  const titleJson    = JSON.stringify(config.title || config.name || 'presentation');
-  const disabledJson = JSON.stringify(config.disabled || []);
-  let repo = config.repo || null;
-  if (!repo) {
-    try {
-      const remote = execSync('git remote get-url origin', { cwd, encoding: 'utf8', stdio: 'pipe' }).trim();
-      const m = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
-      if (m) repo = m[1] + '/' + m[2];
-    } catch (_) {}
-  }
-  const configSnippet = `<script>
+  const playerTemplate = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');
+
+  // Builds the player HTML (and the manifest tag injected into standalone
+  // slide files) from a config object. Called once at startup and again
+  // every time fslides.config.js changes on disk, so a `serve` left running
+  // across an edit to `slides`/`labels` picks up the new list instead of
+  // silently continuing to serve whatever was current at process start.
+  let slidesJson;
+  let repo = null; // resolved (or re-resolved) per config build; read by the comment-API routes below
+  function buildPlayerHtml(cfg) {
+    slidesJson          = JSON.stringify(cfg.slides);
+    const labelsJson    = JSON.stringify(cfg.labels || cfg.slides.map(s => s.replace('.html', '')));
+    const nameJson      = JSON.stringify(cfg.name || 'presentation');
+    const titleJson     = JSON.stringify(cfg.title || cfg.name || 'presentation');
+    const disabledJson  = JSON.stringify(cfg.disabled || []);
+    repo = cfg.repo || null;
+    if (!repo) {
+      try {
+        const remote = execSync('git remote get-url origin', { cwd, encoding: 'utf8', stdio: 'pipe' }).trim();
+        const m = remote.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
+        if (m) repo = m[1] + '/' + m[2];
+      } catch (_) {}
+    }
+    const configSnippet = `<script>
 window.FUCKSLIDES_SLIDES    = ${slidesJson};
 window.FUCKSLIDES_LABELS    = ${labelsJson};
 window.FUCKSLIDES_NAME      = ${nameJson};
 window.FUCKSLIDES_TITLE     = ${titleJson};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
 window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
-window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
-window.FUCKSLIDES_NAV       = ${JSON.stringify(config.nav || [])};
-window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
-window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
+window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(cfg.gateway || null)};
+window.FUCKSLIDES_NAV       = ${JSON.stringify(cfg.nav || [])};
+window.FUCKSLIDES_SELECTION = ${JSON.stringify(cfg.selection !== false)};
+window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(cfg.liveReload !== false)};
 </script>`;
 
-  const playerTemplate = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');
-  const playerHtml     = playerTemplate
-    .replace(/<title>[^<]*<\/title>/, `<title>${config.title || config.name || 'Presentation'}</title>`)
-    .replace('</head>', configSnippet + '\n</head>');
+    return playerTemplate
+      .replace(/<title>[^<]*<\/title>/, `<title>${cfg.title || cfg.name || 'Presentation'}</title>`)
+      .replace('</head>', configSnippet + '\n</head>');
+  }
+
+  let slidesDir  = path.join(cwd, config.slidesDir || 'slides');
+  let playerHtml = buildPlayerHtml(config);
 
   // Inject slide manifest into each slide too (for standalone keyboard nav)
   function injectSlideManifest(html) {
@@ -112,23 +123,43 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
     reloadDebounce = setTimeout(broadcastReload, 120);
   }
 
-  function watchPath(target, recursive) {
+  function watchPath(target, recursive, onChange) {
     if (!fs.existsSync(target)) return;
+    const handler = () => { if (onChange) onChange(); scheduleReload(); };
     try {
-      fs.watch(target, { recursive }, () => scheduleReload());
+      fs.watch(target, { recursive }, handler);
     } catch (e) {
       // Recursive watching isn't supported on all platforms (e.g. older Linux
       // kernels via Node's inotify backend). Fall back to a flat watch so
       // top-level slide edits still trigger a reload.
       if (recursive && e.code === 'ERR_FEATURE_UNAVAILABLE_ON_PLATFORM') {
-        try { fs.watch(target, () => scheduleReload()); } catch (_) {}
+        try { fs.watch(target, handler); } catch (_) {}
       }
+    }
+  }
+
+  // Re-require fslides.config.js and rebuild the player HTML from it. Without
+  // this, `serve` only ever reflects the config it started with -- editing
+  // `slides`/`labels` while it's running (add, remove, rename a slide) got
+  // silently ignored: the SSE reload fired, but the browser just re-fetched
+  // the same stale manifest, so the player 404'd navigating past where the
+  // old list ended. A bad edit (syntax error, mid-save) logs and keeps
+  // serving the last-good config instead of taking the whole server down.
+  function reloadConfig() {
+    try {
+      delete require.cache[require.resolve(cfgPath)];
+      const fresh = require(cfgPath);
+      config     = fresh;
+      slidesDir  = path.join(cwd, config.slidesDir || 'slides');
+      playerHtml = buildPlayerHtml(config);
+    } catch (e) {
+      console.error(`\n  ⚠️  fslides.config.js failed to reload (${e.message}) — still serving the previous config.\n`);
     }
   }
 
   if (config.liveReload !== false) {
     watchPath(slidesDir, true);
-    watchPath(cfgPath, false);
+    watchPath(cfgPath, false, reloadConfig);
   }
 
   const allCommentsCache = { data: null, at: 0 };
