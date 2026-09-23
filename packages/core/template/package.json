@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "fuckslides serve",
-    "pdf":   "fuckslides pdf",
-    "gif":   "fuckslides gif"
+    "serve": "fslides serve",
+    "pdf":   "fslides pdf",
+    "gif":   "fslides gif"
   },
   "devDependencies": {
-    "fuck-slides": "*"
+    "fslides": "*"
   }
 }
