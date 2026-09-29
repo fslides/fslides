@@ -18,6 +18,7 @@
       <a href="/">deck</a>
       <a href="/docs/" class="here">docs</a>
       <a href="/templates/">templates</a>
+      <a href="/skills/">skills</a>
       <a href="/dashboard/">~/decks</a>
       <a href="/agents.md">agents.md</a>
       <a href="https://github.com/fslides/fslides">github</a>
@@ -43,6 +44,12 @@
 labels: [ 'Cover',      'The Big Idea' ],</pre>
     <p>Start from a designed <a href="/templates/">template</a>, or from scratch. The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
 
+    <h2 id="styles">Styles &amp; skills</h2>
+    <p>A <strong>style</strong> packages a deck's design system so the next deck looks the same: a design brief (<code>SKILL.md</code>), shared CSS/JS, and reference slides. Applying one installs the brief as a project skill, so your agent follows it for every slide it writes.</p>
+    <pre><span class="p">$</span> fslides style add &lt;path | git-url[#subdir]&gt;
+<span class="p">$</span> fslides create my-deck --style &lt;name&gt;   <span class="c"># or apply: fslides style use &lt;name&gt;</span></pre>
+    <p>Browse the <a href="/skills/">skills catalog</a>, or package your own: see <a href="/agents.md">agents.md</a> for the format.</p>
+
     <h2 id="player">The player</h2>
     <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>E</kbd> edit this slide · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>F</kbd> present fullscreen · <kbd>W</kbd> present in window.</p>
     <p>Edits on disk live-reload the player. While the in-browser editor is open, that full-page refresh is skipped — the editor already updates its own preview on save. Disable live reload for a tab with <code>?noreload=1</code>, or deck-wide with <code>liveReload: false</code> in <code>fslides.config.js</code>.</p>
@@ -67,6 +74,8 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
       <tr><td><code>fslides scaffold &lt;name&gt;</code></td><td>New deck as a GitHub repo — files, CI, Pages, comments wired</td></tr>
       <tr><td><code>fslides create &lt;name&gt;</code></td><td>New local-only deck</td></tr>
       <tr><td><code>fslides add-slide &lt;name&gt;</code></td><td>Scaffold one slide file</td></tr>
+      <tr><td><code>fslides style list | add | use</code></td><td>Install and apply design-system styles (<a href="/skills/">skills</a>)</td></tr>
+      <tr><td><code>fslides create &lt;name&gt; --style &lt;s&gt;</code></td><td>New deck from a style's starter slides</td></tr>
       <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder (what CI publishes)</td></tr>
       <tr><td><code>fslides export [out.html]</code></td><td>Single self-contained HTML file</td></tr>
       <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports</td></tr>

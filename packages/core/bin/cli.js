@@ -32,7 +32,10 @@ function getFlag(flag) {
 
 switch (cmd) {
   case 'create':
-    require('./create')(args[0], getFlag('--template'));
+    require('./create')(args[0], getFlag('--template'), getFlag('--style'));
+    break;
+  case 'style':
+    require('./style')(args);
     break;
   case 'import':
     require('./import')(args);
@@ -70,14 +73,15 @@ switch (cmd) {
     require('./share')(args);
     break;
   case 'scaffold':
-    require('./scaffold')(args[0], { private: args.includes('--private'), org: getFlag('--org'), template: getFlag('--template') });
+    require('./scaffold')(args[0], { private: args.includes('--private'), org: getFlag('--org'), template: getFlag('--template'), style: getFlag('--style') });
     break;
   default:
     console.log(`
   fuckSlides — no-bullshit HTML presentations
 
   Commands:
-    fuckslides create <name>          Scaffold a new presentation (--template charcoal|paper)
+    fuckslides create <name>          Scaffold a new presentation (--template charcoal|paper, or --style <name>)
+    fuckslides style list|add|use     Reusable design systems: list, install (<path|git-url>), apply to this deck
     fuckslides import <file …>        Convert PDF or images to slides (requires ANTHROPIC_API_KEY)
     fuckslides serve                  Open presentation in browser with player
     fuckslides pdf                    Export all slides to PDF

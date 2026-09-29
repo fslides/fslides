@@ -48,6 +48,10 @@ cd <deck-name> && npm install && fslides serve
 
 - Map content to the medium: big numbers get big type, comparisons get
   side-by-side layouts, processes get animated sequences — not walls of bullets.
+- If `fslides.config.js` has `style: '<name>'`, follow
+  `.claude/skills/fslides-style-<name>/SKILL.md` and its reference slides.
+  To start a deck in a known look: `fslides style list`, then
+  `fslides create <deck> --style <name>`.
 - Unless the user has a design system, default to: dark background (#0d0f14),
   one accent color, Inter + JetBrains Mono, staggered fade-up reveals.
 - Don't rebuild what the player provides (navigation, overview, notes,

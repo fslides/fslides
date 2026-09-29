@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>fslides — skills</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ui.css">
+  <style>
+    main { max-width: 1100px; margin: 0 auto; }
+    .sec { margin: 34px 0 10px; font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--fg); }
+    .sec::before { content: '## '; color: var(--acc); font-weight: 400; }
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 14px 0 8px; }
+    .how div { border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; background: var(--panel); font-size: 0.92rem; color: var(--dim); line-height: 1.5; }
+    .how b { display: block; font-family: var(--mono); font-size: 0.88rem; color: var(--fg); margin-bottom: 6px; }
+    .how b span { color: var(--acc); }
+    .skill { border: 1px solid var(--line); border-radius: 8px; padding: 22px 24px; margin: 16px 0 40px; background: var(--panel); }
+    .skill .top { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .skill h3 { font-family: var(--mono); font-size: 1rem; font-weight: 700; color: var(--fg); margin: 0; }
+    .skill .tag { font-family: var(--mono); font-size: 0.88rem; color: var(--acc-hi); border: 1px solid var(--line2); border-radius: 4px; padding: 1px 8px; }
+    .skill .desc { color: var(--dim); font-size: 0.95rem; margin: 8px 0 14px; max-width: 760px; line-height: 1.5; }
+    .previews { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .previews img { width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--line); border-radius: 6px; display: block; background: #fff; }
+    .inside { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 28px; margin: 0 0 16px; padding: 0; list-style: none; font-size: 0.92rem; color: var(--dim); }
+    .inside li::before { content: '> '; color: var(--acc); font-family: var(--mono); }
+    .skill pre, main > pre { padding: 10px 14px; margin: 6px 0; }
+    .note { font-size: 0.92rem; color: var(--faint); }
+    @media (max-width: 800px) { .how, .previews, .inside { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="bar">
+    <a class="wordmark" href="/">fslides</a>
+    <nav>
+      <a href="/">deck</a>
+      <a href="/docs/">docs</a>
+      <a href="/templates/">templates</a>
+      <a href="/skills/" class="here">skills</a>
+      <a href="/dashboard/">~/decks</a>
+      <a href="https://github.com/fslides/fslides">github</a>
+    </nav>
+  </header>
+  <main>
+    <div class="page-head"><h1>skills</h1></div>
+    <p class="page-sub">A template gives you three slides. A <strong>style skill</strong> gives your agent the whole design system: atmosphere, palette, type, layout, motion, and the rules a brand team would enforce. Install it once, and every slide written in the deck stays on-brand, by you or by Claude.</p>
+
+    <div class="sec">how it works</div>
+    <div class="how">
+      <div><b><span>1.</span> install</b>A style is a folder with a design brief (<code>SKILL.md</code>), shared CSS/JS, and reference slides. Install it from a path or a git repo.</div>
+      <div><b><span>2.</span> start or apply</b>Create a deck from the style's starter slides, or apply it to a deck you already have. Your slides are never overwritten by <code>use</code>.</div>
+      <div><b><span>3.</span> your agent follows it</b>The brief is installed as a project skill in <code>.claude/skills/</code>. Claude Code picks it up automatically for every slide it writes in that deck.</div>
+    </div>
+    <pre><span class="p">$</span> fslides style add &lt;path | git-url[#subdir]&gt;   <span class="c"># install into ~/.fslides/styles</span>
+<span class="p">$</span> fslides style list                            <span class="c"># what you have</span>
+<span class="p">$</span> fslides create my-deck --style &lt;name&gt;        <span class="c"># new deck from the style (scaffold --style works too)</span>
+<span class="p">$</span> fslides style use &lt;name&gt;                     <span class="c"># apply to the deck you're in</span></pre>
+
+    <div class="sec">catalog</div>
+
+    <div class="skill">
+      <div class="top"><h3>elastic-web</h3><span class="tag">Elastic teams</span></div>
+      <p class="desc">The Elastic 2026 web language: a white canvas, the flat Elastic palette, Inter with IBM Plex Mono callouts, isometric solids that assemble themselves, dot-matrix fields and big blue stats. It was extracted from the Elastic Observability deck.</p>
+      <div class="previews">
+        <img src="/skills/elastic-web/cover.jpg" alt="elastic-web cover slide" loading="lazy">
+        <img src="/skills/elastic-web/platform.jpg" alt="elastic-web platform graphic slide" loading="lazy">
+        <img src="/skills/elastic-web/stats.jpg" alt="elastic-web proof point slide" loading="lazy">
+      </div>
+      <ul class="inside">
+        <li>Design brief: atmosphere, grid, type scale, palette roles</li>
+        <li>Isometric engine: solids, footprints, callouts, draw order</li>
+        <li>Motion rules that survive PDF export</li>
+        <li>Copy rules and component patterns</li>
+        <li>Starter slides: cover, platform, proof point, closing</li>
+        <li>The official Elastic platform graphic, rebuilt to spec</li>
+      </ul>
+      <pre><span class="p">$</span> fslides style add &lt;elastic-style-repo&gt;#collaterals/fslides-styles/elastic-web
+<span class="p">$</span> fslides create my-deck --style elastic-web</pre>
+      <p class="note">This style is distributed from an internal Elastic repository, so you need access to it to install.</p>
+    </div>
+
+    <div class="sec">make your own</div>
+    <p class="page-sub" style="margin-top:6px">Any deck with a look worth repeating can become a style. Four pieces:</p>
+    <pre>my-style/
+├── style.json   <span class="c"># { "name", "description", "starter": { "slides": [...], "labels": [...] } }</span>
+├── SKILL.md     <span class="c"># the brief: frontmatter name + description, then the rules</span>
+├── assets/      <span class="c"># shared CSS/JS → copied to &lt;slidesDir&gt;/style/</span>
+└── slides/      <span class="c"># starter + reference slides (link style/… for assets)</span></pre>
+    <p class="note">Write the brief the way you'd brief a designer: what the deck should feel like, the exact tokens, and the mistakes you've already seen. Full format in <a href="/agents.md" style="color:var(--acc-hi)">agents.md</a>.</p>
+  </main>
+  <footer class="statusline">
+    <span class="mode">FSLIDES</span>
+    <span class="seg-item"><a href="https://github.com/fslides/fslides">github</a></span>
+    <span class="seg-item"><a href="https://www.npmjs.com/package/fslides">npm</a></span>
+    <span class="grow"></span>
+    <span class="seg-item">api <span id="sl-api" class="faint">…</span></span>
+    <span class="seg-item faint">v0.5</span>
+  </footer>
+  <script>
+    fetch('https://api.fslides.dev/healthz').then(r => {
+      document.getElementById('sl-api').textContent = r.ok ? 'ok' : 'down';
+      document.getElementById('sl-api').className = r.ok ? 'ok' : '';
+    }).catch(() => { document.getElementById('sl-api').textContent = 'down'; });
+  </script>
+<script src="/new-deck.js" defer></script>
+</body>
+</html>

@@ -30,10 +30,11 @@ function applyTemplate(destDir, templateName, slidesSubdir) {
   return manifest;
 }
 
-module.exports = function create(name, templateName) {
-  if (!name) { console.error('Usage: fuckslides create <name> [--template charcoal|paper|minimal]'); process.exit(1); }
+module.exports = function create(name, templateName, styleName) {
+  if (!name) { console.error('Usage: fuckslides create <name> [--template charcoal|paper|minimal] [--style <name|path>]'); process.exit(1); }
   // designed by default — 'minimal' gives the bare canvas
-  templateName = templateName === 'minimal' ? null : (templateName || 'charcoal');
+  // a style brings its own starter slides, so it replaces the default template
+  templateName = styleName || templateName === 'minimal' ? null : (templateName || 'charcoal');
 
   const dest = path.resolve(process.cwd(), name);
   if (fs.existsSync(dest)) { console.error(`❌  Directory "${name}" already exists.`); process.exit(1); }
@@ -52,6 +53,7 @@ module.exports = function create(name, templateName) {
 
   copyDir(tmpl, dest);
   if (templateName) applyTemplate(dest, templateName, 'slides');
+  if (styleName) require('./style').apply(dest, styleName, { starter: true });
 
   // Patch package.json name
   const pkgPath = path.join(dest, 'package.json');
