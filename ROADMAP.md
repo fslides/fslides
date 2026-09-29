@@ -281,6 +281,14 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
 - [ ] Built-in styles: port charcoal/paper templates to styles
 - [ ] `fslides style extract` to draft a style from an existing deck
 
+## Phase 2.12 — Content density dial (2026-09-29)
+- [x] `config.density` opt-in → toolbar dial (1–5, `-`/`+`, per-deck localStorage,
+      `?density=N`). Runtime in fuckslides.js: `data-d` / `data-dmax` visibility,
+      `html[data-density]` + `--density` for layout, FLIP-animated moves,
+      `fslides:density` event. Thumbnails honor the level; `pdf --density N`.
+- [x] First adopter: the Elastic Observability deck, all slides authored at 1–5.
+- [ ] Presenter view mirrors the level; per-slide default overrides
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:

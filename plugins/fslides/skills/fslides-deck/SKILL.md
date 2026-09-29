@@ -52,6 +52,9 @@ cd <deck-name> && npm install && fslides serve
   `.claude/skills/fslides-style-<name>/SKILL.md` and its reference slides.
   To start a deck in a known look: `fslides style list`, then
   `fslides create <deck> --style <name>`.
+- If the config has `density`, author all five levels (`data-d`, `data-dmax`,
+  `html[data-density]` layout): 1 = one visual or quote, 2 = title + minimum,
+  3 = default, 4–5 = more context. See the density section of the spec.
 - Unless the user has a design system, default to: dark background (#0d0f14),
   one accent color, Inter + JetBrains Mono, staggered fade-up reveals.
 - Don't rebuild what the player provides (navigation, overview, notes,

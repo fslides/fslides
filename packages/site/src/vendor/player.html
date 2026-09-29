@@ -807,7 +807,17 @@
     }
     #editor-save-msg { color: #34D399; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
     #editor-save-msg.show { opacity: 1; }
-  </style>
+  
+/* content density dial */
+.density { display:inline-flex; align-items:center; gap:3px; padding:0 10px; height:32px; color:rgba(255,255,255,0.75); font-family:'Inter',-apple-system,sans-serif; font-size:0.82rem; font-weight:600; }
+.density .d-bar.on { background:#F05000; }
+.density .density-lbl { margin-right:5px; }
+.density .d-bar { width:6px; border:0; padding:0; outline:none; border-radius:2px; background:rgba(255,255,255,.18); cursor:pointer; transition:background .15s, transform .15s; }
+.density .d-bar[data-l="1"] { height:8px; } .density .d-bar[data-l="2"] { height:11px; } .density .d-bar[data-l="3"] { height:14px; } .density .d-bar[data-l="4"] { height:17px; } .density .d-bar[data-l="5"] { height:20px; }
+.density .d-bar:hover { transform:scaleY(1.12); background:rgba(255,255,255,.55); }
+.density .d-bar.on:hover { background:#FF6A1A; }
+.density .density-val { font:600 .7rem/1 ui-monospace,Menlo,monospace; opacity:.7; margin-left:5px; min-width:.6em; }
+</style>
 </head>
 <body>
 
@@ -892,6 +902,7 @@
         <div class="sc-row">previous slide<span class="keys"><kbd class="sck">←</kbd></span></div>
         <div class="sc-row">overview grid<span class="keys"><kbd class="sck">G</kbd></span></div>
         <div class="sc-row">filmstrip<span class="keys"><kbd class="sck">T</kbd></span></div>
+        <div class="sc-row">less / more text (density decks)<span class="keys"><kbd class="sck">−</kbd><kbd class="sck">+</kbd></span></div>
         <div class="sc-row">present fullscreen<span class="keys"><kbd class="sck">F</kbd></span></div>
         <div class="sc-row">present in window — no overlays<span class="keys"><kbd class="sck">W</kbd></span></div>
       </div>
@@ -944,6 +955,12 @@
     <span class="nav-label">Filmstrip</span>
   </button>
   <div class="nav-sep"></div>
+  <div class="density" id="density" data-tip="Content density: less ↔ more text · − / +" style="display:none">
+    <span class="nav-label density-lbl">Density</span>
+    <button class="d-bar" data-l="1" aria-label="Density 1"></button><button class="d-bar" data-l="2" aria-label="Density 2"></button><button class="d-bar" data-l="3" aria-label="Density 3"></button><button class="d-bar" data-l="4" aria-label="Density 4"></button><button class="d-bar" data-l="5" aria-label="Density 5"></button>
+    <span class="density-val" id="density-val">3</span>
+  </div>
+  <div class="nav-sep" id="density-sep" style="display:none"></div>
   <button class="nav-btn" id="btn-voice" data-tip="Play / pause narration — V" style="display:none">
     <svg id="voice-icon-play" viewBox="0 0 16 16" fill="currentColor"><path d="M4 3.5v9l8-4.5-8-4.5z"/></svg>
     <svg id="voice-icon-pause" viewBox="0 0 16 16" fill="currentColor" style="display:none"><rect x="3.5" y="3" width="3.2" height="10" rx="0.8"/><rect x="9.3" y="3" width="3.2" height="10" rx="0.8"/></svg>
@@ -1056,6 +1073,32 @@ const LABELS_DEFAULT = window.FUCKSLIDES_LABELS || SLIDES_DEFAULT.map(s => s.rep
 const DISABLED_DEFAULT = window.FUCKSLIDES_DISABLED || [];
 
 const LS_KEY = 'fs-slide-order-' + (window.FUCKSLIDES_NAME || 'default');
+
+// ── content density (1–5): deck opt-in via config.density ──
+const DENSITY_CFG = (() => { const d = window.FUCKSLIDES_DENSITY; if (!d) return null; if (d === true) return { default: 3 }; if (typeof d === 'number') return { default: d }; return Object.assign({ default: 3 }, d); })();
+const DENSITY_KEY = 'fs-density-' + (window.FUCKSLIDES_NAME || 'default');
+function densityInit() {
+  if (!DENSITY_CFG) return;
+  const clamp = v => Math.max(1, Math.min(5, Math.round(+v) || 3));
+  const q = new URLSearchParams(location.search).get('density');
+  window.FUCKSLIDES_DENSITY_LEVEL = clamp(q || localStorage.getItem(DENSITY_KEY) || DENSITY_CFG.default);
+  const box = document.getElementById('density'), val = document.getElementById('density-val');
+  box.style.display = ''; document.getElementById('density-sep').style.display = '';
+  const paint = () => { const L = window.FUCKSLIDES_DENSITY_LEVEL; val.textContent = L; box.querySelectorAll('.d-bar').forEach(b => b.classList.toggle('on', +b.dataset.l <= L)); };
+  window.setDensity = L => {
+    L = clamp(L); if (L === window.FUCKSLIDES_DENSITY_LEVEL) return;
+    window.FUCKSLIDES_DENSITY_LEVEL = L; localStorage.setItem(DENSITY_KEY, L); paint();
+    document.querySelectorAll('iframe').forEach(f => { try { if (f.srcdoc) f.contentDocument.documentElement.dataset.density = L; else f.contentWindow.postMessage({ type: 'fslides:density', level: L }, '*'); } catch (_) {} });
+    if (typeof showToast === 'function') showToast('Density ' + L + (L === DENSITY_CFG.default ? ' · default' : ''));
+  };
+  box.addEventListener('click', e => { const b = e.target.closest('.d-bar'); if (b) { e.stopPropagation(); window.setDensity(+b.dataset.l); } });
+  paint();
+}
+function densityHead() {
+  if (!DENSITY_CFG) return '';
+  return '<script>document.documentElement.dataset.density=' + window.FUCKSLIDES_DENSITY_LEVEL + '<\/script><style>' + (() => { const r = []; for (let L = 1; L <= 5; L++) for (let k = 1; k <= 5; k++) { if (k > L) r.push('html[data-density="' + L + '"] [data-d="' + k + '"]'); if (k < L) r.push('html[data-density="' + L + '"] [data-dmax="' + k + '"]'); } return r.join(','); })() + '{display:none!important}</style>';
+}
+densityInit();
 
 let slides = loadOrder();
 let labels = slides.map(s => LABELS_DEFAULT[SLIDES_DEFAULT.indexOf(s)] || s.replace('.html', ''));
@@ -1251,7 +1294,7 @@ const thumbObserver = new IntersectionObserver(entries => {
         .then(r => r.text())
         .then(html => {
           const noJs = html.replace(/<script\b[\s\S]*?<\/script>/gi, '');
-          fr.srcdoc = noJs.replace('</head>', THUMB_FREEZE + '\n</head>');
+          fr.srcdoc = noJs.replace('</head>', THUMB_FREEZE + densityHead() + '\n</head>');
         })
         .catch(() => { fr.src = src; });
     }
@@ -1383,7 +1426,7 @@ function buildFilmstrip() {
     fr.setAttribute('scrolling', 'no');
     if (window.FUCKSLIDES_EXPORT && window.FUCKSLIDES_CONTENTS && window.FUCKSLIDES_CONTENTS[slide]) {
       const _h = window.FUCKSLIDES_CONTENTS[slide].replace(/<script\b[\s\S]*?<\/script>/gi, '');
-      fr.srcdoc = _h.replace('<\/head>', THUMB_FREEZE + '\n<\/head>');
+      fr.srcdoc = _h.replace('<\/head>', THUMB_FREEZE + densityHead() + '\n<\/head>');
     } else {
       fr.src = slide;
     }
@@ -1496,7 +1539,7 @@ function buildShelf() {
           : fetch(slide).then(r => r.text()))
           .then(html => {
             const noJs = html.replace(/<script\b[\s\S]*?<\/script>/gi, '');
-            fr.srcdoc = noJs.replace('</head>', THUMB_FREEZE + '\n</head>');
+            fr.srcdoc = noJs.replace('</head>', THUMB_FREEZE + densityHead() + '\n</head>');
           })
           .catch(() => { fr.src = slide; });
 
@@ -1645,6 +1688,8 @@ function handleKey(key) {
   if (key === 'd' || key === 'D') { if (!ovOpen) { toggleDraw(); return; } }
   if (key === 'c' || key === 'C') { timerToggle(); return; }
   if (key === 'r' || key === 'R') { timerReset(); return; }
+  if (DENSITY_CFG && (key === '-' || key === '_')) { window.setDensity(window.FUCKSLIDES_DENSITY_LEVEL - 1); return; }
+  if (DENSITY_CFG && (key === '+' || key === '=')) { window.setDensity(window.FUCKSLIDES_DENSITY_LEVEL + 1); return; }
   if (key === 'z' || key === 'Z') { transitionEnabled = !transitionEnabled; showToast(transitionEnabled ? 'Transitions on' : 'Transitions off'); return; }
   if (key === 'Escape') {
     if (laserMode) { deactivateLaser(); return; }

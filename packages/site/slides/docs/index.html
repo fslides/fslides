@@ -44,6 +44,13 @@
 labels: [ 'Cover',      'The Big Idea' ],</pre>
     <p>Start from a designed <a href="/templates/">template</a>, or from scratch. The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
 
+    <h2 id="density">Content density</h2>
+    <p>Let your audience choose how much they read. Add <code>density: { default: 3 }</code> to <code>fslides.config.js</code> and the player shows a <strong>density dial</strong> (1 to 5, keys <kbd>-</kbd> <kbd>+</kbd>). At 1 a slide is one visual or a quote, at 2 a title and the essentials, 3 is the slide as designed, and 4 to 5 reveal more context. The layout reorganizes itself as the level changes.</p>
+    <pre>&lt;p data-d="4"&gt;shown at density 4 and above&lt;/p&gt;
+&lt;p data-dmax="1"&gt;shown only at density 1&lt;/p&gt;
+html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* per-level layout */</span></pre>
+    <p>Exports follow the default level; <code>fslides pdf --density 5</code> exports the full version. Details in <a href="/agents.md">agents.md</a>.</p>
+
     <h2 id="styles">Styles &amp; skills</h2>
     <p>A <strong>style</strong> packages a deck's design system so the next deck looks the same: a design brief (<code>SKILL.md</code>), shared CSS/JS, and reference slides. Applying one installs the brief as a project skill, so your agent follows it for every slide it writes.</p>
     <pre><span class="p">$</span> fslides style add &lt;path | git-url[#subdir]&gt;
@@ -78,7 +85,7 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
       <tr><td><code>fslides create &lt;name&gt; --style &lt;s&gt;</code></td><td>New deck from a style's starter slides</td></tr>
       <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder (what CI publishes)</td></tr>
       <tr><td><code>fslides export [out.html]</code></td><td>Single self-contained HTML file</td></tr>
-      <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports</td></tr>
+      <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports (<code>pdf --density N</code>)</td></tr>
     </table>
 
     <h2 id="contributing">Contributing to a deck</h2>

@@ -41,7 +41,7 @@ async function launchBrowser() {
   }
 }
 
-module.exports = async function exportPdf(config) {
+module.exports = async function exportPdf(config, opts = {}) {
   const cwd      = process.cwd();
   const slidesDir = path.join(cwd, config.slidesDir || 'slides');
   const outFile   = path.join(cwd, config.name ? `${config.name}.pdf` : 'presentation.pdf');
@@ -54,13 +54,22 @@ module.exports = async function exportPdf(config) {
 
   for (let i = 0; i < config.slides.length; i++) {
     const file    = config.slides[i];
-    const url     = `file://${path.join(slidesDir, file)}`;
+    const dcfg    = config.density, dlev = opts.density || (dcfg && (typeof dcfg === 'object' ? dcfg.default : typeof dcfg === 'number' ? dcfg : 3));
+    const url     = `file://${path.join(slidesDir, file)}` + (dlev ? `?density=${dlev}` : '');
     const tmpPdf  = path.join(tmpDir, `slide-${String(i).padStart(3, '0')}.pdf`);
     const override = overrides[file] || {};
     process.stdout.write(`  [${String(i + 1).padStart(2)}/${config.slides.length}] ${file}`);
 
     const page = await browser.newPage();
     await page.setViewport({ width: WIDTH, height: HEIGHT, deviceScaleFactor: 1 });
+    if (dlev) await page.evaluateOnNewDocument(L => {
+      // file:// pages can't load /js/fuckslides.js, so apply density here before slide scripts run
+      window.FUCKSLIDES_DENSITY_LEVEL = L;
+      const r = []; for (let a = 1; a <= 5; a++) for (let k = 1; k <= 5; k++) { if (k > a) r.push(`html[data-density="${a}"] [data-d="${k}"]`); if (k < a) r.push(`html[data-density="${a}"] [data-dmax="${k}"]`); }
+      const apply = () => { const h = document.documentElement; if (!h || h.dataset.density) return !!h; h.dataset.density = L; h.style.setProperty('--density', L);
+        const st = document.createElement('style'); st.textContent = r.join(',') + '{display:none!important}'; h.appendChild(st); return true; };
+      if (!apply()) new MutationObserver((_, o) => { if (apply()) o.disconnect(); }).observe(document, { childList: true, subtree: true });
+    }, dlev);
 
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });

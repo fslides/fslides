@@ -117,13 +117,43 @@ and the Notes panel while presenting.
 | `fslides build [dir]` | Deployable static folder (player + slides + assets) — what CI publishes |
 | `fslides scaffold <name>` | New deck as a GitHub repo: files + CI + Pages + comments wired |
 | `fslides export [out.html]` | Single self-contained HTML file |
-| `fslides pdf` / `pptx` / `gif <slide>` | Format exports |
+| `fslides pdf` / `pptx` / `gif <slide>` | Format exports (`pdf --density N` for density decks) |
 | `fslides add-slide <name>` | Scaffold one slide file |
 | `fslides style list \| add <path\|git-url> \| use <name>` | Reusable design systems (styles), see below |
 
 Starting from nothing: `npm install -g fslides && fslides scaffold <name>`
 (requires the GitHub CLI, authenticated). For a local-only deck use
 `fslides create <name>` instead.
+
+## Content density (1–5)
+
+Decks can let the audience choose how much text they see. Opt in with
+`density: { default: 3 }` in `fslides.config.js`; the player then shows a
+density dial in the toolbar (keys `-` / `+`), remembered per deck, with
+`?density=N` as a URL override. `fslides pdf` exports at the default level, or
+`fslides pdf --density N`.
+
+Author every slide so that level 5 contains the maximum content:
+
+| Level | What the slide shows |
+|---|---|
+| 1 | One self-explanatory visual, or a single quote. Nothing else. |
+| 2 | The title plus minimal content (the visual and one key element). |
+| 3 | The default: the slide as designed. |
+| 4 | More text or illustration: context, mechanism, examples. |
+| 5 | Everything: the deeper how and why. |
+
+Markup, handled by `/js/fuckslides.js`:
+
+- `data-d="4"`: element shown at density ≥ 4.
+- `data-dmax="1"`: element shown only at density ≤ 1 (for example, a quote that replaces the text at level 1).
+- `html[data-density="2"] .x { … }`: per-level layout, or read `var(--density)`.
+- Moves between levels animate automatically. Give moved elements a CSS transition for transforms and sizes.
+- Slide scripts can react: `addEventListener('fslides:density', e => e.detail.level)`, or read `document.documentElement.dataset.density`.
+
+Reorganize rather than cram: at low levels, let the visual grow into the freed
+space; at high levels, shrink or reposition it to make room. Never let content
+overlap at any level.
 
 ## Styles: reusable design systems
 

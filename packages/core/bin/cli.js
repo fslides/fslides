@@ -41,7 +41,7 @@ switch (cmd) {
     require('./import')(args);
     break;
   case 'pdf':
-    require('./pdf')(loadConfig(process.cwd()));
+    require('./pdf')(loadConfig(process.cwd()), { density: getFlag('--density') && +getFlag('--density') });
     break;
   case 'pptx':
     require('./pptx')(loadConfig(process.cwd()));
@@ -84,7 +84,7 @@ switch (cmd) {
     fuckslides style list|add|use     Reusable design systems: list, install (<path|git-url>), apply to this deck
     fuckslides import <file …>        Convert PDF or images to slides (requires ANTHROPIC_API_KEY)
     fuckslides serve                  Open presentation in browser with player
-    fuckslides pdf                    Export all slides to PDF
+    fuckslides pdf                    Export all slides to PDF (--density 1-5 when the deck uses density)
     fuckslides pptx                   Export all slides to PowerPoint (.pptx)
     fuckslides gif <slide>            Export a slide to animated GIF
     fuckslides export [output.html]   Bundle into a single self-contained HTML file
