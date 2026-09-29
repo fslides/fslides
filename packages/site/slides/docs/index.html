@@ -46,10 +46,11 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
 
     <h2 id="density">Content density</h2>
     <p>Let your audience choose how much they read. Add <code>density: { default: 3 }</code> to <code>fslides.config.js</code> and the player shows a <strong>density dial</strong> (1 to 5, keys <kbd>-</kbd> <kbd>+</kbd>). At 1 a slide is one visual or a quote, at 2 a title and the essentials, 3 is the slide as designed, and 4 to 5 reveal more context. The layout reorganizes itself as the level changes.</p>
+    <p>The level is <strong>saved per slide, in the slide itself</strong> (<code>&lt;html data-density="3"&gt;</code>). Turn the dial while running <code>fslides serve</code> and the slide file is updated, so the choice travels with the deck: into builds, single-file exports, hosted decks and PDFs. Viewers can still adjust it for themselves.</p>
     <pre>&lt;p data-d="4"&gt;shown at density 4 and above&lt;/p&gt;
 &lt;p data-dmax="1"&gt;shown only at density 1&lt;/p&gt;
 html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* per-level layout */</span></pre>
-    <p>Exports follow the default level; <code>fslides pdf --density 5</code> exports the full version. Details in <a href="/agents.md">agents.md</a>.</p>
+    <p>Each slide exports at its saved level; <code>fslides pdf --density 5</code> forces the full version everywhere. Details in <a href="/agents.md">agents.md</a>.</p>
 
     <h2 id="styles">Styles &amp; skills</h2>
     <p>A <strong>style</strong> packages a deck's design system so the next deck looks the same: a design brief (<code>SKILL.md</code>), shared CSS/JS, and reference slides. Applying one installs the brief as a project skill, so your agent follows it for every slide it writes.</p>

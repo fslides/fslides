@@ -130,17 +130,27 @@ document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe
   st.textContent = css.join(',') + '{display:none!important}';
   (document.head || root).appendChild(st);
 
+  // Priority: ?density=N, then the player (forced level or a viewer's session
+  // change), then the level saved in this slide's own <html data-density>,
+  // then the deck default, then 3.
   function initial() {
     const q = new URLSearchParams(location.search).get('density');
     if (q) return clamp(q);
-    try { if (window.parent !== window && window.parent.FUCKSLIDES_DENSITY_LEVEL) return clamp(window.parent.FUCKSLIDES_DENSITY_LEVEL); } catch (_) {}
+    try {
+      const p = window.parent;
+      if (p !== window && p.fsDensityFor) { const v = p.fsDensityFor(window); if (v) return clamp(v); }
+    } catch (_) {}
     if (window.FUCKSLIDES_DENSITY_LEVEL) return clamp(window.FUCKSLIDES_DENSITY_LEVEL);
-    return clamp(root.dataset.densityDefault || 3);
+    const own = root.getAttribute('data-density');
+    if (own) return clamp(own);
+    try { const d = window.parent.fsDensityDefault; if (d) return clamp(d); } catch (_) {}
+    return 3;
   }
+  const report = L => { if (window.parent !== window) window.parent.postMessage({ type: 'fslides:density-level', level: L }, '*'); };
   const shows = (el, L) => L >= (+el.dataset.d || 1) && L <= (+el.dataset.dmax || 5);
   let level = initial();
   function put(L) {
-    root.dataset.density = L; root.style.setProperty('--density', L);
+    root.dataset.density = L; root.style.setProperty('--density', L); report(L);
     window.dispatchEvent(new CustomEvent('fslides:density', { detail: { level: L } }));
   }
   put(level);

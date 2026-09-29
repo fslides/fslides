@@ -129,9 +129,15 @@ Starting from nothing: `npm install -g fslides && fslides scaffold <name>`
 
 Decks can let the audience choose how much text they see. Opt in with
 `density: { default: 3 }` in `fslides.config.js`; the player then shows a
-density dial in the toolbar (keys `-` / `+`), remembered per deck, with
-`?density=N` as a URL override. `fslides pdf` exports at the default level, or
-`fslides pdf --density N`.
+density dial in the toolbar (keys `-` / `+`).
+
+**The level is set per slide and lives in the slide's HTML**: `<html data-density="3">`.
+In `fslides serve` the dial writes that attribute back to the slide file (no
+reload), so it's committed with the deck and carries into `build`, `export`
+(single HTML file), hosted decks and `pdf`. A slide without the attribute uses
+the deck default. Viewers of a shared deck can still move the dial for
+themselves; that change isn't saved. `?density=N` or `fslides pdf --density N`
+forces one level for every slide.
 
 Author every slide so that level 5 contains the maximum content:
 

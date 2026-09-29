@@ -287,7 +287,9 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       `html[data-density]` + `--density` for layout, FLIP-animated moves,
       `fslides:density` event. Thumbnails honor the level; `pdf --density N`.
 - [x] First adopter: the Elastic Observability deck, all slides authored at 1–5.
-- [ ] Presenter view mirrors the level; per-slide default overrides
+- [x] Per-slide level saved in the slide's `<html data-density>`: the serve dial writes it
+      (`/api/save-density`, no live reload), and it carries into build, export, hosted and pdf.
+- [ ] Presenter view mirrors the level
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
