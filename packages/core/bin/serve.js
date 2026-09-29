@@ -1,8 +1,10 @@
 'use strict';
 
-const http = require('http');
-const fs   = require('fs');
-const path = require('path');
+const http   = require('http');
+const fs     = require('fs');
+const path   = require('path');
+const os     = require('os');
+const crypto = require('crypto');
 const { execSync } = require('child_process');
 
 const MIME = {
@@ -16,10 +18,51 @@ const MIME = {
 const AUDIO_EXTS = ['.webm', '.m4a', '.mp3', '.ogg', '.wav', '.mp4'];
 
 module.exports = function serve(config) {
-  const cwd       = process.cwd();
-  const slidesDir = path.join(cwd, config.slidesDir || 'slides');
-  const pkgDir    = path.join(__dirname, '..');
-  const PORT      = config.port || 3000;
+  const cwd        = process.cwd();
+  const slidesDir  = path.join(cwd, config.slidesDir || 'slides');
+  const pkgDir     = path.join(__dirname, '..');
+  const PORT       = config.port || 3000;
+  const strictPort = config.strictPort === true;
+  const MAX_PORT_ATTEMPTS = 20;
+
+  // ── Duplicate-serve guard ───────────────────────────────────────────────
+  // One lockfile per deck directory (keyed by cwd, stored outside the repo
+  // so it never needs a .gitignore entry). Running `fslides serve` twice in
+  // the same deck — a second terminal tab, a re-run after Ctrl-C didn't land —
+  // reuses the already-running instance instead of racing it for a port.
+  const lockDir  = path.join(os.tmpdir(), 'fslides-serve-locks');
+  const lockFile = path.join(lockDir, crypto.createHash('sha1').update(cwd).digest('hex') + '.json');
+
+  function isPidAlive(pid) {
+    try { process.kill(pid, 0); return true; } catch (_) { return false; }
+  }
+
+  function readLock() {
+    try { return JSON.parse(fs.readFileSync(lockFile, 'utf8')); } catch (_) { return null; }
+  }
+
+  function writeLock(port) {
+    try {
+      fs.mkdirSync(lockDir, { recursive: true });
+      fs.writeFileSync(lockFile, JSON.stringify({ pid: process.pid, port, cwd }), 'utf8');
+    } catch (_) { /* best-effort; a missed lock just means no dedup this run */ }
+  }
+
+  function clearLock() {
+    try { if (readLock()?.pid === process.pid) fs.unlinkSync(lockFile); } catch (_) {}
+  }
+
+  const existing = readLock();
+  if (existing && existing.pid !== process.pid && isPidAlive(existing.pid)) {
+    const url = `http://localhost:${existing.port}`;
+    console.log(`\n  fuckSlides · already serving "${config.name || 'presentation'}" from this directory (pid ${existing.pid})\n  ${url}\n`);
+    try { execSync(`open "${url}"`); } catch (_) {}
+    return;
+  }
+
+  for (const sig of ['exit', 'SIGINT', 'SIGTERM']) {
+    process.on(sig, () => { clearLock(); if (sig !== 'exit') process.exit(); });
+  }
 
   // Inject slide manifest into player.html so the player knows the deck
   const slidesJson   = JSON.stringify(config.slides);
@@ -470,16 +513,33 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
     fs.createReadStream(filePath).pipe(res);
   });
 
-  server.on('error', e => {
-    if (e.code === 'EADDRINUSE') {
-      console.error(`\n  ❌  Port ${PORT} is already in use.\n  Run: lsof -ti :${PORT} | xargs kill -9\n`);
-    } else console.error(e);
-    process.exit(1);
-  });
+  // Tries PORT, then PORT+1, PORT+2, ... so multiple decks can `fslides serve`
+  // at once without manual config.port juggling. Opt out with `strictPort: true`
+  // in fslides.config.js to fail fast on the exact port instead (e.g. CI, or a
+  // fixed port other tooling depends on).
+  function listen(port, attemptsLeft) {
+    server.once('error', e => {
+      if (e.code === 'EADDRINUSE' && !strictPort && attemptsLeft > 0) {
+        listen(port + 1, attemptsLeft - 1);
+        return;
+      }
+      if (e.code === 'EADDRINUSE') {
+        const hint = strictPort
+          ? `  Run: lsof -ti :${port} | xargs kill -9\n`
+          : `  Every port from ${PORT} to ${port} is taken. Run: lsof -ti :${PORT}-${port} | xargs kill -9\n`;
+        console.error(`\n  ❌  Port ${port} is already in use.\n${hint}`);
+      } else {
+        console.error(e);
+      }
+      process.exit(1);
+    });
+    server.listen(port, () => {
+      const url = `http://localhost:${port}`;
+      writeLock(port);
+      console.log(`\n  fuckSlides · "${config.name || 'presentation'}"\n  ${url}${port !== PORT ? `  (port ${PORT} was busy)` : ''}\n`);
+      try { execSync(`open "${url}"`); } catch(e) {}
+    });
+  }
 
-  server.listen(PORT, () => {
-    const url = `http://localhost:${PORT}`;
-    console.log(`\n  fuckSlides · "${config.name || 'presentation'}"\n  ${url}\n`);
-    try { execSync(`open "${url}"`); } catch(e) {}
-  });
+  listen(PORT, MAX_PORT_ATTEMPTS);
 };
