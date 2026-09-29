@@ -122,10 +122,11 @@ Send a PR when you're happy.
 `, 'utf8');
 
   // designed by default — 'minimal' gives the bare canvas
-  const tpl = opts.template === 'minimal' ? null : (opts.template || 'charcoal');
+  const tpl = opts.style || opts.template === 'minimal' ? null : (opts.template || 'charcoal');
   if (tpl) {
     require('./create').applyTemplate(dir, tpl, 'slides');
   }
+  if (opts.style) require('./style').apply(dir, opts.style, { starter: true });
 
   // ── 2. git + GitHub repo ──
   const vis = opts.private ? '--private' : '--public';

@@ -271,6 +271,16 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       Auth-redirect cache poisoning from the #20 outage fixed (#26/#27:
       cache-busted every sign-in URL + no-store on gateway redirects).
 
+## Phase 2.11 — Styles as skills (2026-09-29)
+- [x] `fslides style add|list|use` + `create/scaffold --style`: a style is a
+      directory (style.json, SKILL.md brief, assets/, starter slides). Applying
+      it copies assets to `<slidesDir>/style/`, records `style:` in the config,
+      and installs the brief as a project skill (`.claude/skills/fslides-style-<name>/`)
+      so any agent in the deck follows it. Registry: `~/.fslides/styles/`,
+      then `packages/core/styles/` (built-ins, none shipped yet).
+- [ ] Built-in styles: port charcoal/paper templates to styles
+- [ ] `fslides style extract` to draft a style from an existing deck
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:

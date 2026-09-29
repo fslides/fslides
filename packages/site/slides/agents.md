@@ -119,10 +119,36 @@ and the Notes panel while presenting.
 | `fslides export [out.html]` | Single self-contained HTML file |
 | `fslides pdf` / `pptx` / `gif <slide>` | Format exports |
 | `fslides add-slide <name>` | Scaffold one slide file |
+| `fslides style list \| add <path\|git-url> \| use <name>` | Reusable design systems (styles), see below |
 
 Starting from nothing: `npm install -g fslides && fslides scaffold <name>`
 (requires the GitHub CLI, authenticated). For a local-only deck use
 `fslides create <name>` instead.
+
+## Styles: reusable design systems
+
+A **style** packages a deck's look (atmosphere, palette, type, layout,
+components, motion rules) so new decks stay consistent. It is a directory:
+
+```
+my-style/
+├── style.json   # { name, description, starter: { slides, labels } }
+├── SKILL.md     # the design brief agents follow (skill frontmatter)
+├── assets/      # shared CSS/JS, copied to <slidesDir>/style/
+└── slides/      # starter + reference slides
+```
+
+- `fslides style add <path | git-url[#subdir]>` installs into `~/.fslides/styles/`.
+- `fslides style list` shows installed and built-in styles.
+- `fslides create <deck> --style <name>` (or `scaffold --style`) starts a deck
+  from the style's starter slides.
+- `fslides style use <name>` applies a style to an existing deck without
+  touching its slides.
+
+Applying a style writes `style: '<name>'` into the config and installs the
+brief as a project skill at `.claude/skills/fslides-style-<name>/`, with the
+reference slides next to it. **If a deck's config names a style, read that
+SKILL.md before editing any slide and follow it over the defaults here.**
 
 ## Features you get for free (don't rebuild these)
 
