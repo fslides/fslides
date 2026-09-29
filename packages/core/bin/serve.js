@@ -41,6 +41,7 @@ window.FUCKSLIDES_LABELS    = ${labelsJson};
 window.FUCKSLIDES_NAME      = ${nameJson};
 window.FUCKSLIDES_TITLE     = ${titleJson};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
+window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density || null)};
 window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
 window.FUCKSLIDES_NAV       = ${JSON.stringify(config.nav || [])};

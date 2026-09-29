@@ -111,6 +111,7 @@ window.FUCKSLIDES_LABELS    = ${labelsJson};
 window.FUCKSLIDES_NAME      = ${JSON.stringify(config.name || 'presentation')};
 window.FUCKSLIDES_TITLE     = ${JSON.stringify(config.title || config.name || 'presentation')};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
+window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density || null)};
 window.FUCKSLIDES_HUB_URL   = ${JSON.stringify(hubUrl)};
 </script>${HUB_BTN_SCRIPT(hubUrl)}`;
 

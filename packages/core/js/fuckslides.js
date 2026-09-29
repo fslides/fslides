@@ -113,3 +113,66 @@ const counterObserver = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.5 });
 document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe(el));
+
+// ── Content density (1–5) ────────────────────────────────────────────────
+// Authoring: data-d="4" shows an element at density ≥ 4; data-dmax="2" shows
+// it only at density ≤ 2. Layout per level: html[data-density="1"] .x { … }
+// or var(--density). Slide JS can listen: addEventListener('fslides:density').
+(function () {
+  const root = document.documentElement;
+  const clamp = v => Math.max(1, Math.min(5, Math.round(+v) || 3));
+  const css = [];
+  for (let L = 1; L <= 5; L++) for (let k = 1; k <= 5; k++) {
+    if (k > L) css.push(`html[data-density="${L}"] [data-d="${k}"]`);
+    if (k < L) css.push(`html[data-density="${L}"] [data-dmax="${k}"]`);
+  }
+  const st = document.createElement('style');
+  st.textContent = css.join(',') + '{display:none!important}';
+  (document.head || root).appendChild(st);
+
+  function initial() {
+    const q = new URLSearchParams(location.search).get('density');
+    if (q) return clamp(q);
+    try { if (window.parent !== window && window.parent.FUCKSLIDES_DENSITY_LEVEL) return clamp(window.parent.FUCKSLIDES_DENSITY_LEVEL); } catch (_) {}
+    if (window.FUCKSLIDES_DENSITY_LEVEL) return clamp(window.FUCKSLIDES_DENSITY_LEVEL);
+    return clamp(root.dataset.densityDefault || 3);
+  }
+  const shows = (el, L) => L >= (+el.dataset.d || 1) && L <= (+el.dataset.dmax || 5);
+  let level = initial();
+  function put(L) {
+    root.dataset.density = L; root.style.setProperty('--density', L);
+    window.dispatchEvent(new CustomEvent('fslides:density', { detail: { level: L } }));
+  }
+  put(level);
+
+  const EASE = 'cubic-bezier(.2,.7,.2,1)';
+  function change(to) {
+    to = clamp(to);
+    const from = level;
+    if (to === from) return;
+    level = to;
+    const tagged = [...document.querySelectorAll('[data-d],[data-dmax]')];
+    const leaving = tagged.filter(el => shows(el, from) && !shows(el, to));
+    const entering = tagged.filter(el => !shows(el, from) && shows(el, to));
+    const fades = leaving.map(el => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, fill: 'forwards' }));
+    setTimeout(() => {
+      const movers = [...new Set(document.querySelectorAll('[data-flip], body > *, body > * > *'))]
+        .filter(el => !/^(SCRIPT|STYLE|LINK)$/.test(el.tagName) && !leaving.includes(el) && !entering.includes(el));
+      const first = new Map(movers.map(el => [el, el.getBoundingClientRect()]));
+      put(to);
+      fades.forEach(a => a.cancel());
+      const k = (document.body.getBoundingClientRect().width / 1280) || 1;
+      movers.forEach(el => {
+        const a = first.get(el), b = el.getBoundingClientRect();
+        if (!b.width && !b.height) return;
+        const dx = (a.left - b.left) / k, dy = (a.top - b.top) / k;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'translate(0,0)' }], { duration: 520, easing: EASE, composite: 'add' });
+      });
+      entering.forEach((el, i) => el.animate([{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'translateY(0)' }],
+        { duration: 420, delay: 140 + Math.min(i, 8) * 40, easing: EASE, fill: 'backwards', composite: 'add' }));
+    }, leaving.length ? 170 : 0);
+  }
+  window.addEventListener('message', e => { if (e.data && e.data.type === 'fslides:density') change(e.data.level); });
+  window.fslides = Object.assign(window.fslides || {}, { density: { get level() { return level; }, set: change } });
+})();

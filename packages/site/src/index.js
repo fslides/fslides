@@ -542,6 +542,7 @@ window.FUCKSLIDES_LABELS     = ${JSON.stringify(config.labels || (config.slides 
 window.FUCKSLIDES_NAME       = ${JSON.stringify(name)};
 window.FUCKSLIDES_TITLE      = ${JSON.stringify(config.title || name)};
 window.FUCKSLIDES_DISABLED   = ${JSON.stringify(config.disabled || [])};
+window.FUCKSLIDES_DENSITY    = ${JSON.stringify(config.density || null)};
 window.FUCKSLIDES_NOTES      = ${notes};
 window.FUCKSLIDES_RECORDINGS = null;
 window.FUCKSLIDES_REPO       = ${JSON.stringify(owner + '/' + repo)};

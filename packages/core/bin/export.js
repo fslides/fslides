@@ -118,6 +118,7 @@ window.FUCKSLIDES_LABELS    = ${safeJson(config.labels || config.slides.map(s =>
 window.FUCKSLIDES_NAME      = ${safeJson(config.name || 'presentation')};
 window.FUCKSLIDES_TITLE     = ${safeJson(config.title || config.name || 'presentation')};
 window.FUCKSLIDES_DISABLED  = ${safeJson(config.disabled || [])};
+window.FUCKSLIDES_DENSITY    = ${safeJson(config.density || null)};
 window.FUCKSLIDES_EXPORT    = true;
 window.FUCKSLIDES_CONTENTS  = ${safeJson(slideContents)};
 </script>`;
