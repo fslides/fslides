@@ -42,6 +42,7 @@ window.FUCKSLIDES_NAME      = ${nameJson};
 window.FUCKSLIDES_TITLE     = ${titleJson};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
 window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density || null)};
+window.FUCKSLIDES_DENSITY_EDIT = true;
 window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
 window.FUCKSLIDES_NAV       = ${JSON.stringify(config.nav || [])};
@@ -107,7 +108,9 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
   }
 
   let reloadDebounce = null;
+  let quietUntil = 0;   // density saves rewrite a slide in place; don't reload the player for them
   function scheduleReload() {
+    if (Date.now() < quietUntil) return;
     clearTimeout(reloadDebounce);
     // Coalesce the burst of fs events a single editor save can fire (write + rename).
     reloadDebounce = setTimeout(broadcastReload, 120);
@@ -169,6 +172,29 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
           fs.writeFileSync(target, content, 'utf8');
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ ok: true }));
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ ok: false, error: e.message }));
+        }
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && urlPath === '/api/save-density') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const { file, level } = JSON.parse(body);
+          const L = Math.max(1, Math.min(5, Math.round(+level)));
+          const target = path.join(slidesDir, path.basename(file));
+          const src = fs.readFileSync(target, 'utf8');
+          const out = src.replace(/<html\b([^>]*)>/i, (m, attrs) => `<html${attrs.replace(/\s+data-density="[^"]*"/i, '')} data-density="${L}">`);
+          if (out === src && !/<html\b/i.test(src)) throw new Error('slide has no <html> tag');
+          quietUntil = Date.now() + 1000;
+          fs.writeFileSync(target, out, 'utf8');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ ok: true, level: L }));
         } catch (e) {
           res.writeHead(500, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ ok: false, error: e.message }));
