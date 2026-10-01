@@ -21,6 +21,8 @@ module.exports = {
   // port: 3000,                              // optional, for `serve`
   // liveReload: false,                       // optional, disable SSE reload on `serve`
   // disabled: [],                            // optional, slides to skip
+  // onSave: async ({ changes }) => {},       // optional, `serve` post-save hook (see below)
+  // onSaveCommand: 'python tools/on_save.py',// optional, same, as a shell command
 };
 ```
 
@@ -36,6 +38,14 @@ Each slide in `slides/` is a standalone HTML fragment — author as normal HTML/
 | `fslides export [out.html]` | **Bundle the whole deck into ONE self-contained HTML file** (see below) |
 | `fslides pdf` / `pptx` / `gif` | Export to those formats |
 | `fslides publish` | Publish to GitHub Pages |
+
+## Save hooks (`serve`)
+
+Edits made in the player's editor are written straight to `slides/`. To react to them (sync to another source, commit, lint, call an agent) set `onSave` (in-process function) and/or `onSaveCommand` (shell command, run from the deck dir) in the config. Saves are debounced (`onSaveDebounceMs`, default 500) so a burst fires the hook once. Hooks never block or fail a save; errors are logged. Runs are serialised. Slides saved with unchanged content are ignored. `fslides serve --no-hooks` disables them.
+
+Payload: `{ deck, deckDir, slidesDir, changes: [{ file, path, before, after }] }`. `before` is the content before the first save in the burst, `after` the content after the last.
+
+`onSaveCommand` gets that payload as JSON on stdin, plus env: `FSLIDES_DECK`, `FSLIDES_DECK_DIR`, `FSLIDES_SLIDES_DIR`, `FSLIDES_CHANGED_FILES` (newline-separated), `FSLIDES_BEFORE_DIR` (temp dir with each changed slide's pre-save copy, removed afterwards).
 
 ## Deployment — the important part
 

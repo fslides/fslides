@@ -4,6 +4,7 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const createSaveHooks = require('./save-hooks');
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
@@ -20,6 +21,7 @@ module.exports = function serve(config) {
   const slidesDir = path.join(cwd, config.slidesDir || 'slides');
   const pkgDir    = path.join(__dirname, '..');
   const PORT      = config.port || 3000;
+  const saveHooks = createSaveHooks(config, { cwd, slidesDir, disabled: process.argv.includes('--no-hooks') });
 
   // Inject slide manifest into player.html so the player knows the deck
   const slidesJson   = JSON.stringify(config.slides);
@@ -169,7 +171,9 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
         try {
           const { file, content } = JSON.parse(body);
           const target = path.join(slidesDir, path.basename(file));
+          const before = fs.existsSync(target) ? fs.readFileSync(target, 'utf8') : '';
           fs.writeFileSync(target, content, 'utf8');
+          saveHooks.record(path.basename(file), before, content);
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ ok: true }));
         } catch (e) {
@@ -193,6 +197,7 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
           if (out === src && !/<html\b/i.test(src)) throw new Error('slide has no <html> tag');
           quietUntil = Date.now() + 1000;
           fs.writeFileSync(target, out, 'utf8');
+          saveHooks.record(path.basename(file), src, out);
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ ok: true, level: L }));
         } catch (e) {

@@ -291,6 +291,12 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       (`/api/save-density`, no live reload), and it carries into build, export, hosted and pdf.
 - [ ] Presenter view mirrors the level
 
+## Phase 2.13 — Save hooks (2026-10-01)
+- [x] `serve` runs `config.onSave` / `config.onSaveCommand` after editor saves: debounced,
+      batched `changes` with before/after, non-blocking, `--no-hooks` to disable. See USAGE.md.
+- [ ] Surface hook output/status in the player's save toast
+- [ ] Optional blocking mode (hook can reject or rewrite a save)
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:
