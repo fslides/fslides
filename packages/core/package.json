@@ -16,7 +16,7 @@
     "index.js"
   ],
   "scripts": {
-    "test": "echo ok"
+    "test": "node --test test/save-hooks.test.js"
   },
   "keywords": [
     "presentation",
