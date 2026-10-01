@@ -52,6 +52,15 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
 html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* per-level layout */</span></pre>
     <p>Each slide exports at its saved level; <code>fslides pdf --density 5</code> forces the full version everywhere. Details in <a href="/agents.md">agents.md</a>.</p>
 
+    <h2 id="gslides">Google Slides &amp; editable PowerPoint</h2>
+    <p>Hand a deck to someone who lives in Google Slides or PowerPoint, and they get <strong>real objects, not screenshots</strong>: every text box with its fonts, weights, colors and links, every box, rule and table cell as a shape, and the speaker notes from <code>notes.json</code>. Charts, SVG illustrations, images and gradients come along as transparent pictures you can move and resize.</p>
+    <pre><span class="p">$</span> fslides gslides                    <span class="c"># build + upload to Google Drive as Google Slides</span>
+<span class="p">$</span> fslides gslides --no-upload        <span class="c"># only build the editable .pptx</span>
+<span class="p">$</span> fslides pptx --editable            <span class="c"># editable PowerPoint (keeps character spacing)</span>
+<span class="p">$</span> fslides gslides --density 3        <span class="c"># every slide at one density level</span></pre>
+    <p><strong>Uploading</strong> uses your Google sign-in: run <code>gcloud auth login --enable-gdrive-access</code> once (or set <code>GOOGLE_OAUTH_TOKEN</code>). The deck lands in your Drive, private until you share it. Without credentials, open the <code>.pptx</code> from Drive with Google Slides: same result.</p>
+    <p>How it works: each slide is loaded in headless Chrome, animations are run to their end, and every painted element is rebuilt from the browser's own layout. Line breaks are kept exactly where the browser put them, so text never re-wraps in Slides. Disabled slides are skipped, and each slide exports at its saved density. Slides that animate for longer than 3 seconds can ask for more time with <code>pdfOverrides: { 'slide.html': { wait: 2000 } }</code>. Tips for slides that convert well are in <a href="/agents.md">agents.md</a>.</p>
+
     <h2 id="styles">Styles &amp; skills</h2>
     <p>A <strong>style</strong> packages a deck's design system so the next deck looks the same: a design brief (<code>SKILL.md</code>), shared CSS/JS, and reference slides. Applying one installs the brief as a project skill, so your agent follows it for every slide it writes.</p>
     <pre><span class="p">$</span> fslides style add &lt;path | git-url[#subdir]&gt;
@@ -87,6 +96,8 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
       <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder (what CI publishes)</td></tr>
       <tr><td><code>fslides export [out.html]</code></td><td>Single self-contained HTML file</td></tr>
       <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports (<code>pdf --density N</code>)</td></tr>
+      <tr><td><code>fslides gslides</code></td><td>Editable deck uploaded to Google Slides (<a href="#gslides">details</a>)</td></tr>
+      <tr><td><code>fslides pptx --editable</code></td><td>Editable PowerPoint: real text boxes, shapes, notes</td></tr>
     </table>
 
     <h2 id="contributing">Contributing to a deck</h2>

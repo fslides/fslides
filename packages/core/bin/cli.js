@@ -44,8 +44,15 @@ switch (cmd) {
     require('./pdf')(loadConfig(process.cwd()), { density: getFlag('--density') && +getFlag('--density') });
     break;
   case 'pptx':
-    require('./pptx')(loadConfig(process.cwd()));
+    if (args.includes('--editable')) require('./editable').buildEditable(loadConfig(process.cwd()), { density: getFlag('--density') && +getFlag('--density') });
+    else require('./pptx')(loadConfig(process.cwd()));
     break;
+  case 'gslides': {
+    const cfg = loadConfig(process.cwd()), ed = require('./editable');
+    ed.buildEditable(cfg, { density: getFlag('--density') && +getFlag('--density'), target: 'gslides' })
+      .then(f => args.includes('--no-upload') ? null : ed.uploadToSlides(f, cfg.title || cfg.name || 'presentation'));
+    break;
+  }
   case 'gif':
     require('./gif')(loadConfig(process.cwd()), args[0]);
     break;
@@ -86,6 +93,9 @@ switch (cmd) {
     fuckslides serve                  Open presentation in browser with player
     fuckslides pdf                    Export all slides to PDF (--density 1-5 when the deck uses density)
     fuckslides pptx                   Export all slides to PowerPoint (.pptx)
+    fuckslides pptx --editable        Editable PowerPoint: real text boxes, shapes and pictures
+    fuckslides gslides                Editable deck, uploaded to Google Drive as Google Slides
+                                      (--no-upload to only build the .pptx; --density N)
     fuckslides gif <slide>            Export a slide to animated GIF
     fuckslides export [output.html]   Bundle into a single self-contained HTML file
     fuckslides add-slide <name>       Add a new slide (--template title|stat|quote|split|bullets|cover)

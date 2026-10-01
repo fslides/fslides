@@ -56,6 +56,8 @@ Slides are self-contained HTML on a fixed 1280×720 canvas. The player scales, n
 | `fslides build [dir]` | Deployable static folder — what CI publishes |
 | `fslides export [out.html]` | Single self-contained HTML file (works from `file://`) |
 | `fslides pdf` / `pptx` / `gif <slide>` | Format exports |
+| `fslides gslides` | Editable deck in Google Slides: real text boxes and shapes, not screenshots |
+| `fslides pptx --editable` | Editable PowerPoint, same objects |
 | `fslides add-slide <name>` | Scaffold one slide |
 | `fslides publish` | Push a single-file export to a `gh-pages` branch |
 

@@ -291,6 +291,21 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       (`/api/save-density`, no live reload), and it carries into build, export, hosted and pdf.
 - [ ] Presenter view mirrors the level
 
+## Phase 2.13 — Editable export: Google Slides and PowerPoint (2026-10-01)
+- [x] `fslides pptx --editable` / `fslides gslides`: each slide rebuilt from the browser's
+      layout as native objects (text runs with named font weights, shapes, lines, isolated
+      transparent pictures for svg/canvas/img/gradients), notes, disabled slides skipped,
+      per-slide density or `--density N`. Browser line breaks kept as soft breaks; line
+      spacing as a multiple of each run's size (Slides re-bases exact spacing on 18 pt);
+      negative tracking compensated for Slides; fslides runtime chrome excluded; Chrome
+      relaunched once if it drops a page.
+- [x] Upload: Drive multipart upload with conversion to Google Slides, token from
+      `GOOGLE_OAUTH_TOKEN` or `gcloud auth print-access-token`, manual import fallback.
+      Verified on the Elastic Observability deck (34 slides, ~970 text boxes) against
+      Google's own thumbnails.
+- [ ] Simple svg (lines, rects, text) as native shapes instead of pictures
+- [ ] Tables as native table objects
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:
