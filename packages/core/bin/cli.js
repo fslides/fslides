@@ -56,9 +56,14 @@ switch (cmd) {
   case 'gif':
     require('./gif')(loadConfig(process.cwd()), args[0]);
     break;
-  case 'serve':
-    require('./serve')(loadConfig(process.cwd()));
+  case 'serve': {
+    const cfg = loadConfig(process.cwd());
+    const portFlag = getFlag('--port');
+    if (portFlag) cfg.port = parseInt(portFlag, 10);
+    if (args.includes('--strict-port')) cfg.strictPort = true;
+    require('./serve')(cfg);
     break;
+  }
   case 'hub':
     require('./hub')(args[0]);
     break;
@@ -91,6 +96,8 @@ switch (cmd) {
     fuckslides style list|add|use     Reusable design systems: list, install (<path|git-url>), apply to this deck
     fuckslides import <file …>        Convert PDF or images to slides (requires ANTHROPIC_API_KEY)
     fuckslides serve                  Open presentation in browser with player
+                                       (--port <n>, --strict-port to fail instead of
+                                       trying the next free port)
     fuckslides pdf                    Export all slides to PDF (--density 1-5 when the deck uses density)
     fuckslides pptx                   Export all slides to PowerPoint (.pptx)
     fuckslides pptx --editable        Editable PowerPoint: real text boxes, shapes and pictures
