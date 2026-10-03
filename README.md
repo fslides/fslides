@@ -71,6 +71,20 @@ Slides are HTML — the native language of every coding agent. The one-page spec
 
 Then: *"make me a deck about X"* — the skill scaffolds the repo, writes the slides, fills the speaker notes, and publishes.
 
+The plugin ships seven skills, each one you can ask for by name or just by describing the job:
+
+| Skill | Ask for it when you want to… |
+|---|---|
+| `fslides-deck` | create or edit a deck from nothing, source material or an existing deck |
+| `fslides-density` | let the audience choose how much text each slide shows (levels 1 to 5) |
+| `fslides-export` | get editable Google Slides or PowerPoint, a PDF, or one HTML file |
+| `fslides-style` | apply, reuse or package a design system |
+| `fslides-clean-deck` | make a deck crisper: better titles, fewer words, no decorative motion |
+| `fslides-verify` | look at slides at all five densities, count words, catch overlaps |
+| `fslides-live-demo` | build a slide that calls a real API on stage, with a safe fallback |
+
+Examples: *"export this deck to Google Slides"*, *"my titles feel generic, tighten them"*, *"add a live demo slide that searches the web"*.
+
 ## Docs & links
 
 - **Docs**: [fslides.dev/docs](https://fslides.dev/docs)

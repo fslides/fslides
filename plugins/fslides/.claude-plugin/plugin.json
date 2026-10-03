@@ -1,6 +1,9 @@
 {
   "name": "fslides",
-  "description": "Author fslides presentations: scaffold deck repos, write HTML slides, speaker notes, and publish to GitHub Pages.",
-  "version": "0.1.0",
-  "author": { "name": "fslides", "url": "https://fslides.dev" }
+  "description": "Author, tighten, verify and export fslides presentations: scaffold deck repos, write HTML slides, content density, styles, live demo slides, editable Google Slides and PowerPoint export.",
+  "version": "0.2.0",
+  "author": {
+    "name": "fslides",
+    "url": "https://fslides.dev"
+  }
 }

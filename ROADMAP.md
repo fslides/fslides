@@ -306,6 +306,14 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
 - [ ] Simple svg (lines, rects, text) as native shapes instead of pictures
 - [ ] Tables as native table objects
 
+## Phase 2.14 — Claude Code skills pack (2026-10-02)
+- [x] The `fslides` plugin grows from one skill to seven (0.2.0): `fslides-deck`,
+      `fslides-density`, `fslides-export`, `fslides-style`, `fslides-clean-deck`,
+      `fslides-verify` (ships `strip.js` and `words.js`, run from a deck directory) and
+      `fslides-live-demo`. Install: `/plugin marketplace add fslides/fslides`.
+- [ ] Skills catalog page on fslides.dev for the plugin skills (the existing page lists styles)
+- [ ] `fslides-notes`: speaker-note drafting from slide content
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:
