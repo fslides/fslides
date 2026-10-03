@@ -63,6 +63,11 @@ export default {
 
     // ── app origin (fslides.dev / www) ──
 
+    // the style catalog was renamed from /skills/ to /kits/ ("skills" collided with Claude Code skills)
+    if (url.pathname === '/skills' || url.pathname.startsWith('/skills/')) {
+      return Response.redirect(`https://${host}/kits` + url.pathname.slice('/skills'.length) + url.search, 301);
+    }
+
     // Defense in depth: a reserved subdomain reached here (e.g. api.fslides.dev
     // if the gateway zone route is absent). Return 404 — never pretty-URL-redirect
     // reserved names like /auth/login into deck space.
