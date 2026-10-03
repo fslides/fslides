@@ -62,3 +62,16 @@ cd <deck-name> && npm install && fslides serve
   narration playback, comments) — slides contain only their own content.
 - Recordings in `slides/recordings/` are user-created narration: never delete
   or overwrite them without explicit confirmation.
+
+## Related skills (same plugin)
+
+Reach for the focused skill when the task matches:
+
+| Task | Skill |
+|---|---|
+| Choose how much each slide shows (levels 1 to 5) | `fslides-density` |
+| Google Slides, PowerPoint, PDF, one HTML file | `fslides-export` |
+| Apply, reuse or package a design system | `fslides-style` |
+| Crisper titles, fewer words, no decorative motion | `fslides-clean-deck` |
+| Look at slides at all five densities, count words | `fslides-verify` |
+| A slide that calls a real API on stage | `fslides-live-demo` |

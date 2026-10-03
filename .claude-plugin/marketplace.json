@@ -8,7 +8,8 @@
     {
       "name": "fslides",
       "source": "./plugins/fslides",
-      "description": "Author fslides presentations — decks that live in git repos, slides that are plain HTML, published to GitHub Pages with narration and element-anchored comments."
+      "description": "Author, tighten, verify and export fslides presentations \u2014 decks that live in git repos, slides that are plain HTML. Seven skills: deck authoring, content density, styles, clean-up, verification, live demo slides, and editable Google Slides / PowerPoint export."
     }
-  ]
+  ],
+  "description": "Skills for authoring, tightening, verifying and exporting fslides presentations with Claude Code."
 }

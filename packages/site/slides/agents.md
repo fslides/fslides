@@ -118,12 +118,43 @@ and the Notes panel while presenting.
 | `fslides scaffold <name>` | New deck as a GitHub repo: files + CI + Pages + comments wired |
 | `fslides export [out.html]` | Single self-contained HTML file |
 | `fslides pdf` / `pptx` / `gif <slide>` | Format exports (`pdf --density N` for density decks) |
+| `fslides gslides` | Editable deck uploaded to Google Drive as Google Slides (`--no-upload`, `--density N`) |
+| `fslides pptx --editable` | Editable PowerPoint: real text boxes, shapes, pictures, notes |
 | `fslides add-slide <name>` | Scaffold one slide file |
 | `fslides style list \| add <path\|git-url> \| use <name>` | Reusable design systems (styles), see below |
 
 Starting from nothing: `npm install -g fslides && fslides scaffold <name>`
 (requires the GitHub CLI, authenticated). For a local-only deck use
 `fslides create <name>` instead.
+
+## Editable export: Google Slides and PowerPoint
+
+`fslides gslides` rebuilds every slide from native objects and uploads the result to
+Google Drive, which converts it into a real Google Slides deck. `fslides pptx --editable`
+writes the same objects as a PowerPoint file. The classic `fslides pptx` is still one
+screenshot per slide.
+
+What becomes what:
+- Text (including `::before` / `::after` content, form values, links) → text boxes with
+  runs: font family and weight (`Inter SemiBold`, `IBM Plex Mono Medium`…), size, color,
+  italic, underline, super/subscript, hyperlinks. Line breaks are copied from the browser,
+  so nothing re-wraps.
+- Background colors, borders, rounded corners, circles → shapes; single-side borders and
+  rules → lines.
+- `svg`, `canvas`, `img`, `video`, `iframe` and CSS gradients → transparent pictures at
+  2× resolution, captured in isolation (their extent includes overflowing svg labels).
+- `notes.json` → speaker notes. Disabled slides are skipped; each slide uses its saved
+  density (or `--density N`).
+
+Authoring for a clean conversion:
+- Put words in HTML, not in `<svg><text>` or canvas: HTML text stays editable, svg text
+  becomes part of a picture.
+- Let entrance animations settle within 3 s, or set `pdfOverrides: { 'x.html': { wait: 2000 } }`.
+  Looping animations are captured wherever they are at that moment.
+- Google Slides has no letter spacing: negative tracking is compensated by sizing the run
+  down slightly; positive tracking is dropped. PowerPoint keeps it (`pptx --editable`).
+- Upload credentials: `gcloud auth login --enable-gdrive-access` once, or `GOOGLE_OAUTH_TOKEN`.
+  Set `PUPPETEER_EXECUTABLE_PATH` if the bundled Chrome is unavailable.
 
 ## Content density (1–5)
 
