@@ -205,7 +205,8 @@ my-style/
 └── slides/      # starter + reference slides
 ```
 
-- `fslides style add <path | git-url[#subdir]>` installs into `~/.fslides/styles/`.
+- `fslides kit add <path | git-url[#subdir]>` installs into `~/.fslides/styles/`. A packaged style is called
+  a **kit** on fslides.dev; `fslides kit` and `fslides style` are the same command.
 - `fslides style list` shows installed and built-in styles.
 - `fslides create <deck> --style <name>` (or `scaffold --style`) starts a deck
   from the style's starter slides.

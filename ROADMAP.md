@@ -311,8 +311,15 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       `fslides-density`, `fslides-export`, `fslides-style`, `fslides-clean-deck`,
       `fslides-verify` (ships `strip.js` and `words.js`, run from a deck directory) and
       `fslides-live-demo`. Install: `/plugin marketplace add fslides/fslides`.
-- [ ] Skills catalog page on fslides.dev for the plugin skills (the existing page lists styles)
+- [ ] Catalog entry on fslides.dev for the Claude Code plugin skills (kept separate from the kits catalog)
 - [ ] `fslides-notes`: speaker-note drafting from slide content
+
+## Phase 2.15 — "Kits" rename (2026-10-02)
+- [x] The style catalog page `/skills/` is now `/kits/`: "skills" collided with the Claude Code
+      plugin skills. `/skills/*` redirects (301) to `/kits/*`. Nav, docs, agents.md and README wording
+      updated; `fslides kit` is an alias of `fslides style`. A kit is the packaged style: design brief,
+      assets and starter slides. (The brief is still installed as a project skill under
+      `.claude/skills/fslides-style-<name>/`, so agents pick it up.)
 
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 

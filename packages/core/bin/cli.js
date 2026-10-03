@@ -35,6 +35,7 @@ switch (cmd) {
     require('./create')(args[0], getFlag('--template'), getFlag('--style'));
     break;
   case 'style':
+  case 'kit':   // "kit" is the public name for a style package; both commands do the same
     require('./style')(args);
     break;
   case 'import':
@@ -88,7 +89,8 @@ switch (cmd) {
 
   Commands:
     fuckslides create <name>          Scaffold a new presentation (--template charcoal|paper, or --style <name>)
-    fuckslides style list|add|use     Reusable design systems: list, install (<path|git-url>), apply to this deck
+    fuckslides kit list|add|use       Reusable design systems (kits): list, install (<path|git-url>), apply to this deck
+                                      (fslides style is the same command)
     fuckslides import <file …>        Convert PDF or images to slides (requires ANTHROPIC_API_KEY)
     fuckslides serve                  Open presentation in browser with player
     fuckslides pdf                    Export all slides to PDF (--density 1-5 when the deck uses density)

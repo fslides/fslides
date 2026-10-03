@@ -7,9 +7,10 @@ description: >-
   is a directory with a design brief, shared CSS/JS and reference slides.
 ---
 
-# fslides styles
+# fslides styles (kits)
 
-A **style** packages a deck's look so the next deck matches it:
+A **style** packages a deck's look so the next deck matches it. On fslides.dev it is called a **kit**
+(browse the catalog at https://fslides.dev/kits/); `fslides kit` and `fslides style` are the same command:
 
 ```
 my-style/

@@ -18,7 +18,7 @@
       <a href="/">deck</a>
       <a href="/docs/" class="here">docs</a>
       <a href="/templates/">templates</a>
-      <a href="/skills/">skills</a>
+      <a href="/kits/">kits</a>
       <a href="/dashboard/">~/decks</a>
       <a href="/agents.md">agents.md</a>
       <a href="https://github.com/fslides/fslides">github</a>
@@ -61,11 +61,11 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
     <p><strong>Uploading</strong> uses your Google sign-in: run <code>gcloud auth login --enable-gdrive-access</code> once (or set <code>GOOGLE_OAUTH_TOKEN</code>). The deck lands in your Drive, private until you share it. Without credentials, open the <code>.pptx</code> from Drive with Google Slides: same result.</p>
     <p>How it works: each slide is loaded in headless Chrome, animations are run to their end, and every painted element is rebuilt from the browser's own layout. Line breaks are kept exactly where the browser put them, so text never re-wraps in Slides. Disabled slides are skipped, and each slide exports at its saved density. Slides that animate for longer than 3 seconds can ask for more time with <code>pdfOverrides: { 'slide.html': { wait: 2000 } }</code>. Tips for slides that convert well are in <a href="/agents.md">agents.md</a>.</p>
 
-    <h2 id="styles">Styles &amp; skills</h2>
-    <p>A <strong>style</strong> packages a deck's design system so the next deck looks the same: a design brief (<code>SKILL.md</code>), shared CSS/JS, and reference slides. Applying one installs the brief as a project skill, so your agent follows it for every slide it writes.</p>
-    <pre><span class="p">$</span> fslides style add &lt;path | git-url[#subdir]&gt;
-<span class="p">$</span> fslides create my-deck --style &lt;name&gt;   <span class="c"># or apply: fslides style use &lt;name&gt;</span></pre>
-    <p>Browse the <a href="/skills/">skills catalog</a>, or package your own: see <a href="/agents.md">agents.md</a> for the format.</p>
+    <h2 id="kits">Kits</h2>
+    <p>A <strong>kit</strong> packages a deck's design system so the next deck looks the same: a design brief, shared CSS/JS, and reference slides. Applying one installs the brief where your agent reads it (a project skill), so every slide it writes follows the look. <code>fslides kit</code> and <code>fslides style</code> are the same command.</p>
+    <pre><span class="p">$</span> fslides kit add &lt;path | git-url[#subdir]&gt;
+<span class="p">$</span> fslides create my-deck --style &lt;name&gt;   <span class="c"># or apply: fslides kit use &lt;name&gt;</span></pre>
+    <p>Browse the <a href="/kits/">kits catalog</a>, or package your own: see <a href="/agents.md">agents.md</a> for the format.</p>
 
     <h2 id="claude-skills">Claude Code skills</h2>
     <p>Install the plugin once and ask for the job by name, or just describe it:</p>
@@ -107,7 +107,7 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
       <tr><td><code>fslides scaffold &lt;name&gt;</code></td><td>New deck as a GitHub repo — files, CI, Pages, comments wired</td></tr>
       <tr><td><code>fslides create &lt;name&gt;</code></td><td>New local-only deck</td></tr>
       <tr><td><code>fslides add-slide &lt;name&gt;</code></td><td>Scaffold one slide file</td></tr>
-      <tr><td><code>fslides style list | add | use</code></td><td>Install and apply design-system styles (<a href="/skills/">skills</a>)</td></tr>
+      <tr><td><code>fslides kit list | add | use</code></td><td>Install and apply design-system kits (<a href="/kits/">catalog</a>); <code>fslides style</code> is the same</td></tr>
       <tr><td><code>fslides create &lt;name&gt; --style &lt;s&gt;</code></td><td>New deck from a style's starter slides</td></tr>
       <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder (what CI publishes)</td></tr>
       <tr><td><code>fslides export [out.html]</code></td><td>Single self-contained HTML file</td></tr>

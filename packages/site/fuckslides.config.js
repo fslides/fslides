@@ -11,7 +11,7 @@ module.exports = {
     ]},
     { label: 'docs',      href: '/docs/' },
     { label: 'templates', href: '/templates/' },
-    { label: 'skills',    href: '/skills/' },
+    { label: 'kits',      href: '/kits/' },
     { label: '~/decks',   href: '/dashboard/' },
     { label: 'github',    href: 'https://github.com/fslides/fslides' },
   ],
