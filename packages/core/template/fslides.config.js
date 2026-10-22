@@ -11,7 +11,7 @@ module.exports = {
     'Title',
   ],
 
-  // density: { default: 3 },  // content-density dial (1–5) in the player; author with data-d / data-dmax
+  // density: { default: 3 },  // content-density dial (1–5), on by default; `false` hides it. Author with data-d / data-dmax
 
   // liveReload: false,  // fslides serve: disable SSE reload (or open with ?noreload=1)
 

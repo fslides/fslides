@@ -100,7 +100,7 @@ window.FUCKSLIDES_LABELS     = ${JSON.stringify(config.labels || config.slides.m
 window.FUCKSLIDES_NAME       = ${JSON.stringify(name)};
 window.FUCKSLIDES_TITLE      = ${JSON.stringify(config.title || name)};
 window.FUCKSLIDES_DISABLED   = ${JSON.stringify(config.disabled || [])};
-window.FUCKSLIDES_DENSITY    = ${JSON.stringify(config.density || null)};
+window.FUCKSLIDES_DENSITY    = ${JSON.stringify(config.density ?? null)};
 window.FUCKSLIDES_NOTES      = ${notesDat};
 window.FUCKSLIDES_RECORDINGS = ${JSON.stringify(recordings)};
 window.FUCKSLIDES_REPO       = ${JSON.stringify(repo)};
@@ -115,9 +115,11 @@ window.FUCKSLIDES_SELECTION  = ${JSON.stringify(config.selection !== false)};
     ? 'data:image/png;base64,' + fs.readFileSync(logoPath).toString('base64')
     : '';
 
+  const deckTitle = String(config.title || name)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   let html = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');
   html = html
-    .replace(/<title>[^<]*<\/title>/, `<title>${config.title || name}</title>`)
+    .replace(/<title>[^<]*<\/title>/, () => `<title>${deckTitle}</title>`)
     .replace('</head>', snippet + '\n</head>')
     .replace(/<script src="\/js\/fuckslides\.js"><\/script>/g, `<script>${fsJs}</script>`);
   if (logoDat) html = html.replace(/src="\/logo\.png"/g, `src="${logoDat}"`);

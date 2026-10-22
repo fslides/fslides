@@ -4,13 +4,13 @@
 
 **[fslides.dev](https://fslides.dev)** · the site is an fslides deck — press → when you get there
 
-A presentation framework for developers. Every slide is a **plain HTML file** in a **git repo**. fslides provides everything around your slides: a player with keyboard navigation and overview, speaker notes, **voice/camera narration**, **element-anchored review comments backed by GitHub issues**, live reload, an in-browser editor, and one-command publishing to GitHub Pages.
+A presentation framework for developers. Every slide is a **plain HTML file** in a **git repo**. fslides provides everything around your slides: a player with keyboard navigation and overview, speaker notes, **voice/camera narration**, **element-anchored review comments backed by GitHub issues**, live reload, an in-browser editor, and hosting where `git push` is publishing.
 
 No build step. No proprietary format. No lock-in. A deck from this year opens in ten years.
 
 ```bash
 npm install -g fslides
-fslides scaffold my-deck     # GitHub repo + CI + live Pages URL + comments, one command
+fslides scaffold my-deck     # GitHub repo + live deck URL + comments, one command
 cd my-deck && npm install
 fslides serve                # author with live reload
 ```
@@ -27,10 +27,10 @@ my-deck/
 │   ├── cover.html           # ← a slide is just this. any HTML/CSS/JS.
 │   ├── topic.html
 │   └── recordings/          # narration (git-lfs tracked in scaffolded decks)
-└── .github/workflows/       # push to main → fslides build → GitHub Pages
+└── package.json
 ```
 
-Slides are self-contained HTML on a fixed 1280×720 canvas. The player scales, navigates, and presents them. Push to `main` and CI publishes the deck. That's the whole model.
+Slides are self-contained HTML on a fixed 1280×720 canvas. The player scales, navigates, and presents them. Push to `main` and the deck is live at `{owner}.fslides.dev/{repo}/` within a minute, rendered straight from the repo: no CI, no build, nothing stored. That's the whole model. Prefer your own hosting? `fslides build` emits a static folder for GitHub Pages, Netlify or S3.
 
 *(Older decks using `fuckslides.config.js` keep working — both filenames are read.)*
 
@@ -50,10 +50,10 @@ Slides are self-contained HTML on a fixed 1280×720 canvas. The player scales, n
 
 | Command | |
 |---|---|
-| `fslides scaffold <name>` | New deck as a GitHub repo — files, CI, Pages, comments wired (`--template`, `--private`, `--org`) |
+| `fslides scaffold <name>` | New deck as a GitHub repo — files, live hosted URL, comments wired (`--template`, `--private`, `--org`) |
 | `fslides create <name>` | New local-only deck (`--template charcoal\|paper`) |
 | `fslides serve` | Local player: live reload, notes, narration, comments |
-| `fslides build [dir]` | Deployable static folder — what CI publishes |
+| `fslides build [dir]` | Deployable static folder for self-hosting (GitHub Pages, Netlify, S3) |
 | `fslides export [out.html]` | Single self-contained HTML file (works from `file://`) |
 | `fslides pdf` / `pptx` / `gif <slide>` | Format exports |
 | `fslides gslides` | Editable deck in Google Slides: real text boxes and shapes, not screenshots |

@@ -59,14 +59,15 @@ module.exports = function create(name, templateName, styleName) {
   const pkgPath = path.join(dest, 'package.json');
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
   pkg.name = name;
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
+  pkg.devDependencies = { fslides: '^' + require('../package.json').version };
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 
   console.log(`
 ✅  Created presentation: ${name}
 
   cd ${name}
   npm install
-  fuckslides serve
+  fslides serve
 `);
 };
 

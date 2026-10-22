@@ -11,7 +11,8 @@
     html, body { width: 100%; height: 100vh; overflow: hidden; background: #22242C; }
 
     #slide-wrapper { position: absolute; width: 1280px; height: 720px; transform-origin: top left; }
-    #slide-frame { position: absolute; inset: 0; width: 1280px; height: 720px; border: none; display: block; background: #0d0f14; }
+    #slide-frame, #slide-frame-b { position: absolute; inset: 0; width: 1280px; height: 720px; border: none; display: block; background: #0d0f14; z-index: 0; }
+    #slide-frame.front, #slide-frame-b.front { z-index: 1; }
     #transition-fade { position: absolute; inset: 0; background: #0d0f14; opacity: 0; transition: opacity 0.18s ease; pointer-events: none; z-index: 6; }
     #interaction-overlay { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
     #interaction-overlay.active { pointer-events: auto; cursor: crosshair; }
@@ -822,7 +823,8 @@
 <body>
 
 <div id="slide-wrapper">
-  <iframe id="slide-frame"></iframe>
+  <iframe id="slide-frame" class="front"></iframe>
+  <iframe id="slide-frame-b" tabindex="-1"></iframe>
   <div id="anchor-layer"></div>
   <div id="transition-fade"></div>
   <div id="interaction-overlay"></div>
@@ -902,7 +904,7 @@
         <div class="sc-row">previous slide<span class="keys"><kbd class="sck">←</kbd></span></div>
         <div class="sc-row">overview grid<span class="keys"><kbd class="sck">G</kbd></span></div>
         <div class="sc-row">filmstrip<span class="keys"><kbd class="sck">T</kbd></span></div>
-        <div class="sc-row">less / more text (density decks)<span class="keys"><kbd class="sck">−</kbd><kbd class="sck">+</kbd></span></div>
+        <div class="sc-row">less / more text (density)<span class="keys"><kbd class="sck">−</kbd><kbd class="sck">+</kbd></span></div>
         <div class="sc-row">present fullscreen<span class="keys"><kbd class="sck">F</kbd></span></div>
         <div class="sc-row">present in window — no overlays<span class="keys"><kbd class="sck">W</kbd></span></div>
       </div>
@@ -924,7 +926,7 @@
         <div class="sc-row">draw on the slide<span class="keys"><kbd class="sck">D</kbd></span></div>
         <div class="sc-row">talk timer start / pause<span class="keys"><kbd class="sck">C</kbd></span></div>
         <div class="sc-row">reset timer<span class="keys"><kbd class="sck">R</kbd></span></div>
-        <div class="sc-row">transitions on / off<span class="keys"><kbd class="sck">Z</kbd></span></div>
+        <div class="sc-row">fade transition (off by default)<span class="keys"><kbd class="sck">Z</kbd></span></div>
       </div>
     </div>
     <div class="sc-foot"><kbd class="sck">H</kbd> toggles this · <kbd class="sck">esc</kbd> closes anything, always<span id="sc-report"></span></div>
@@ -1074,8 +1076,8 @@ const DISABLED_DEFAULT = window.FUCKSLIDES_DISABLED || [];
 
 const LS_KEY = 'fs-slide-order-' + (window.FUCKSLIDES_NAME || 'default');
 
-// ── content density (1–5): deck opt-in via config.density ──
-const DENSITY_CFG = (() => { const d = window.FUCKSLIDES_DENSITY; if (!d) return null; if (d === true) return { default: 3 }; if (typeof d === 'number') return { default: d }; return Object.assign({ default: 3 }, d); })();
+// ── content density (1–5): on by default, `density: false` in the config turns it off ──
+const DENSITY_CFG = (() => { const d = window.FUCKSLIDES_DENSITY; if (d === false) return null; if (d == null || d === true) return { default: 3 }; if (typeof d === 'number') return { default: d }; return Object.assign({ default: 3 }, d); })();
 function densityInit() {
   if (!DENSITY_CFG) return;
   const clamp = v => Math.max(1, Math.min(5, Math.round(+v) || 3));
@@ -1134,7 +1136,13 @@ function saveOrder() { _ls.setItem(LS_KEY, JSON.stringify(slides)); }
 function isDefaultOrder() { return slides.every((s, i) => s === SLIDES_DEFAULT[i]); }
 
 const slideWrapper  = document.getElementById('slide-wrapper');
-const frame         = document.getElementById('slide-frame');
+// Double-buffered: the next slide loads into the back iframe while the current
+// one stays painted, then they swap — a hard cut with no blank frame between
+// documents. `frame` is always the newest (possibly still loading) slide.
+const frames        = [document.getElementById('slide-frame'), document.getElementById('slide-frame-b')];
+let frame           = frames[0];
+let shownFrame      = frames[0];
+let frameLoadGen    = 0;
 const transitionFade = document.getElementById('transition-fade');
 const counter   = document.getElementById('nav-counter');
 const btnPrev   = document.getElementById('btn-prev');
@@ -1189,8 +1197,38 @@ const fsTrack   = document.getElementById('filmstrip-track');
 
 let idx = parseInt(location.hash.slice(1)) || 0;
 let ovOpen = false, fsOpen = false, thumbsBuilt = false, fsBuilt = false, ovFocus = 0;
-let navLocked = false, transitionEnabled = true, firstLoad = true;
+let navLocked = false, transitionEnabled = false, firstLoad = true;
 if (idx < 0 || idx >= slides.length) idx = 0;
+
+// Load into the back buffer (or the buffer still loading from a rapid previous
+// navigation), and bring it to the front once its document has painted.
+function loadIntoFrame(setSource, onShown) {
+  const target = frame !== shownFrame ? frame : frames.find(f => f !== shownFrame);
+  const gen = ++frameLoadGen;
+  frame = target;
+  let done = false;
+  const show = () => {
+    if (done || gen !== frameLoadGen) return;
+    done = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== frameLoadGen) return;
+      const prev = shownFrame;
+      target.classList.add('front');
+      shownFrame = target;
+      if (prev !== target) {
+        prev.classList.remove('front');
+        if (document.activeElement === prev) target.focus();
+        // stop the old slide's media/scripts; it's hidden behind the new one
+        prev.removeAttribute('srcdoc');
+        prev.src = 'about:blank';
+      }
+      if (onShown) onShown();
+    }));
+  };
+  target.addEventListener('load', show, { once: true });
+  setTimeout(show, 1500);
+  setSource(target);
+}
 
 function go(newIdx) {
   navLocked = false;
@@ -1203,12 +1241,16 @@ function go(newIdx) {
   idx = i;
   location.replace('#' + idx);
 
-  const loadSlide = () => {
-    if (window.FUCKSLIDES_EXPORT && window.FUCKSLIDES_CONTENTS) {
-      frame.srcdoc = window.FUCKSLIDES_CONTENTS[slides[idx]] || '';
-    } else {
-      frame.src = slides[idx];
-    }
+  const loadSlide = (onShown) => {
+    const slide = slides[idx];
+    loadIntoFrame(f => {
+      if (window.FUCKSLIDES_EXPORT && window.FUCKSLIDES_CONTENTS) {
+        f.srcdoc = window.FUCKSLIDES_CONTENTS[slide] || '';
+      } else {
+        f.removeAttribute('srcdoc');
+        f.src = slide;
+      }
+    }, onShown);
     const active = slides.filter(s => !disabled.has(s));
     const activeIdx = active.indexOf(slides[idx]);
     counter.textContent = (activeIdx + 1) + ' / ' + active.length;
@@ -1225,18 +1267,7 @@ function go(newIdx) {
   if (transitionEnabled && !firstLoad) {
     transitionFade.style.opacity = '1';
     setTimeout(() => {
-      loadSlide();
-      // reveal only once the new document has painted — dropping the veil
-      // after a fixed 2-rAF delay flashed the iframe's blank frame while
-      // the slide was still loading (visible as a blink before the fade)
-      let revealed = false;
-      const reveal = () => {
-        if (revealed) return;
-        revealed = true;
-        requestAnimationFrame(() => requestAnimationFrame(() => { transitionFade.style.opacity = '0'; }));
-      };
-      frame.addEventListener('load', reveal, { once: true });
-      setTimeout(reveal, 700);
+      loadSlide(() => { transitionFade.style.opacity = '0'; });
     }, 160);
   } else {
     loadSlide();
@@ -2048,7 +2079,7 @@ async function saveEditor(andReload) {
     const d = await r.json();
     if (d.ok) {
       showSaved();
-      if (andReload) frame.src = file;
+      if (andReload) loadIntoFrame(f => { f.src = file; });
     }
   } catch (_) {}
 }
@@ -2962,7 +2993,8 @@ if (REPO) {
     if (selection.length) commentOnSelection();
     else commentsPickBtn.textContent = 'Select or right-click an element on the slide first';
   });
-  frame.addEventListener('load', () => {
+  frames.forEach(f => f.addEventListener('load', () => {
+    if (f !== frame) return;                   // the retired buffer blanking itself
     attachSlideInteractions();                 // selection live immediately
     // navigated here from the inbox? open the thread from cache, no refetch wait
     if (pendingThreadKey) {
@@ -2974,7 +3006,7 @@ if (REPO) {
       }
     }
     setTimeout(refreshComments, 400);          // pins after slide scripts settle
-  });
+  }));
 }
 
 // ── Voice-over / video narration ─────────────────────────────────────────────

@@ -4,7 +4,7 @@ description: >-
   Create and edit fslides presentations — decks that live in git repos where
   every slide is a plain HTML file on a fixed 1280×720 canvas. Use whenever the
   user wants a slide deck or presentation: starting from NOTHING (fslides
-  scaffold creates the GitHub repo, CI, and live GitHub Pages URL in one
+  scaffold creates the GitHub repo and a live hosted deck URL in one
   command), from source material, or by improving an existing deck (a directory
   containing fslides.config.js). Covers slides, speaker notes, narration,
   element-anchored review comments, and publishing. Full spec at
@@ -25,7 +25,7 @@ schema, hard rules — is one page: read it before your first slide.
 
 ```bash
 npm install -g fslides           # once
-fslides scaffold <deck-name>     # GitHub repo + CI + Pages + comments, one command
+fslides scaffold <deck-name>     # GitHub repo + live deck URL + comments, one command
 # (requires gh CLI authenticated; use `fslides create <name>` for local-only)
 cd <deck-name> && npm install && fslides serve
 ```
@@ -41,8 +41,9 @@ cd <deck-name> && npm install && fslides serve
    Notes panel.
 4. `fslides serve` live-reloads on save. Verify rendering there or with a
    headless-browser screenshot; don't guess.
-5. Ship: commit and push — the scaffolded CI publishes to GitHub Pages via
-   `fslides build`.
+5. Ship: commit and push to `main` — the deck is live at
+   `{owner}.fslides.dev/{repo}/` within a minute, rendered straight from the
+   repo. Keep the config a literal object so hosting can parse it.
 
 ## Judgment calls
 
@@ -52,7 +53,7 @@ cd <deck-name> && npm install && fslides serve
   `.claude/skills/fslides-style-<name>/SKILL.md` and its reference slides.
   To start a deck in a known look: `fslides style list`, then
   `fslides create <deck> --style <name>`.
-- If the config has `density`, author all five levels (`data-d`, `data-dmax`,
+- Unless the config has `density: false`, author all five levels (`data-d`, `data-dmax`,
   `html[data-density]` layout): 1 = one visual or quote, 2 = title + minimum,
   3 = default, 4–5 = more context. Each slide's chosen level lives in its
   `<html data-density="N">`; keep it when editing. See the density section of the spec.

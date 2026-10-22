@@ -4,10 +4,11 @@
 // published deck:
 //   1. creates a GitHub repo (via the gh CLI)
 //   2. populates it: template slides, config (with repo wired for comments),
-//      package.json, README, and a Pages workflow that runs `fslides build`
-//   3. enables GitHub Pages (workflow build) and pushes
+//      package.json, README (and .gitattributes for LFS narration)
+//   3. pushes — the deck is live at {owner}.fslides.dev/{name}/, rendered
+//      straight from the repo (no workflow, no build)
 // The result: teammates clone and edit slides like code, viewers watch the
-// deck on Pages, and slide comments land in the repo's issues.
+// hosted deck, and slide comments land in the repo's issues.
 
 const fs   = require('fs');
 const path = require('path');

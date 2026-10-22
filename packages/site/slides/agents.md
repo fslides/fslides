@@ -18,8 +18,12 @@ my-deck/
 │   ├── cover.html           # one file per slide — self-contained HTML
 │   ├── topic.html
 │   └── recordings/          # per-slide narration (webm/mp4), managed by the player
-└── .github/workflows/pages.yml   # CI: fslides build _site → GitHub Pages
 ```
+
+Publishing: push to `main` and the deck is live at `{owner}.fslides.dev/{repo}/`,
+rendered straight from the repo (no CI, no build). The config must be a literal
+object (`module.exports = { … }`) for hosting to parse it. `fslides build` emits
+a static folder for self-hosting on GitHub Pages, Netlify or S3.
 
 ## The manifest (`fslides.config.js`)
 
@@ -114,8 +118,8 @@ and the Notes panel while presenting.
 | Command | Purpose |
 |---|---|
 | `fslides serve` | Author/present locally: live reload, notes editing, narration recording, comments |
-| `fslides build [dir]` | Deployable static folder (player + slides + assets) — what CI publishes |
-| `fslides scaffold <name>` | New deck as a GitHub repo: files + CI + Pages + comments wired |
+| `fslides build [dir]` | Deployable static folder (player + slides + assets) for self-hosting |
+| `fslides scaffold <name>` | New deck as a GitHub repo: files + live hosted URL + comments wired |
 | `fslides export [out.html]` | Single self-contained HTML file |
 | `fslides pdf` / `pptx` / `gif <slide>` | Format exports (`pdf --density N` for density decks) |
 | `fslides gslides` | Editable deck uploaded to Google Drive as Google Slides (`--no-upload`, `--density N`) |
@@ -158,9 +162,10 @@ Authoring for a clean conversion:
 
 ## Content density (1–5)
 
-Decks can let the audience choose how much text they see. Opt in with
-`density: { default: 3 }` in `fslides.config.js`; the player then shows a
-density dial in the toolbar (keys `-` / `+`).
+Decks let the audience choose how much text they see. The player shows a
+density dial in the toolbar (keys `-` / `+`) by default; set the starting level
+with `density: { default: 3 }` in `fslides.config.js`, or turn it off with
+`density: false`.
 
 **The level is set per slide and lives in the slide's HTML**: `<html data-density="3">`.
 In `fslides serve` the dial writes that attribute back to the slide file (no

@@ -57,7 +57,7 @@ The single server-side component. Cloudflare Workers (stateless, ~free, global).
 - [x] Landing live at **fslides.dev** (2026-07-24) — a 6-slide fslides deck served as Worker static assets (`packages/site`), comments wired to fslides/fslides via the gateway; www works too
 - [x] Docs page live at fslides.dev/docs (quickstart, slides, player, narration, comments, commands, contributing) — 2026-07-24
 - [x] Template gallery live at fslides.dev/templates — `charcoal` + `paper` designed starters, `--template` flag on create/scaffold (2026-07-24)
-- [ ] Signed-in dashboard: list your decks (repos containing `fuckslides.config.js`), link to live Pages
+- [x] Signed-in dashboard: list your decks (repos containing an fslides config), link to the live deck — shipped as the profile page (Phase 2.5)
 - [ ] Docs: quickstart, recording/narration guide, commenting guide, contributor guide (incl. git-lfs note)
 
 **Design system:** `packages/site/slides/ui.css` ("terminal precision": mono-forward, 12-14px, hairline borders, dense rows) — applied to dashboard/docs/templates 2026-07-24 after Baha rejected the first-pass look as too big/crude/not dev-likable. Landing deck slides keep large type (correct for slides); align them to this identity in a future pass.
@@ -173,28 +173,6 @@ after Baha asked why storage was needed at all. Nothing is stored:
 - [x] `fslides-monorepo` CLI skill (claude/issue-13-20260727-0603): scans the
       working tree for sub-deck configs and writes the `.fslides` manifest —
       the migration path for existing repos.
-
-## Phase 2.8 — Open hosting with reputation isolation (2026-07-27, Baha's call)
-Invite-only is a launch posture, not a product. Adopted the github.io model:
-- [x] Owner subdomains: decks serve at {owner}.fslides.dev/{repo} (wildcard
-      route on the zone; first-level = free Universal SSL). decks.fslides.dev
-      and fslides.dev/owner/repo 301 to the new scheme; owner root redirects
-      to their fslides.dev profile
-- [x] PUBLISHERS allowlist DELETED — any repo carrying an fslides config
-      renders. Opt-in = the config itself; attackers can only burn their own
-      subdomain
-- [x] Abuse killswitch: env DENYLIST (comma owners or owner/repo) → 410;
-      one commit to main disables an abuser
-- [x] Report path: /-/report?deck=owner/repo on the app origin → prefilled
-      GitHub abuse issue; linked from every deck's H cheatsheet footer
-- [x] All deck responses X-Robots-Tag: noindex (decks are for sharing, not SEO)
-- [ ] Public Suffix List: PR adding fslides.dev (private section) — once
-      merged + propagated, browsers/Safe Browsing treat each owner subdomain
-      as an independent site (blast radius = one owner, like github.io)
-- [ ] BAHA (DNS, Cloudflare dash → fslides.dev → DNS): wildcard record
-      (Type A, name `*`, IPv4 192.0.2.1, Proxied ON) + later a TXT record
-      `_psl` pointing at the PSL PR URL. security@fslides.dev live (2026-07-28).
-- Backlog: rate limiting rules, proactive Safe Browsing monitoring
 
 ## Phase 2.7 — Issue-driven development (2026-07-26, Baha's process)
 Prompting in a terminal doesn't scale and isn't traceable. The loop now:
@@ -371,6 +349,20 @@ Candidates, unvalidated:
 - [x] Renamed config to `fslides.config.js` (legacy read forever); scaffold/create/templates write the new name (2026-07-24)
 - [x] scaffold sets git identity from the gh account when missing (2026-07-24)
 - [x] README rewritten for the fslides/fslides era (2026-07-24)
+- [x] Hosted-era cleanup (2026-10-21): README, agents.md, USAGE, site docs and the `fslides-deck`
+      skill no longer describe a Pages CI workflow (scaffold hasn't written one since Phase 2.5);
+      `fslides hub` finds decks under either config name (it only knew the legacy one); deck
+      titles HTML-escaped in `serve` and `build`; `styles/` added to the npm `files` list so
+      built-in kits ship; the site's own config renamed to `fslides.config.js`; `fslides create`'s
+      package.json depended on `fuck-slides` and ran `fuckslides serve` — now `fslides` pinned to the
+      CLI's own version
+- [x] Slide changes are a hard cut by default (0.7.2): the fade read as a flash when leafing
+      through, and even with it off the iframe showed its blank background for a frame between
+      documents. The player now double-buffers two iframes — the next slide loads behind the
+      current one and swaps in once painted. The fade is opt-in with `Z`
+- [x] Content density on by default (0.7.3): the dial shows in every deck and `pdf` /
+      `gslides` apply levels without config; `density: false` opts out (was opt-in via
+      `config.density`)
 - Note for contributors: `git-lfs` required to fetch narration in cloned decks
 - npm publish requires interactive 2FA; local installs of fresh versions need `--min-release-age=0` (global 7-day cooldown is intentional)
 

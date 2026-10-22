@@ -37,9 +37,15 @@ function resolveGithubRepo(url) {
 }
 
 // ── Discovery ───────────────────────────────────────────────────────────────
-// Scans one level deep for directories containing fuckslides.config.js or index.html.
+// Scans one level deep for directories containing fslides.config.js (or the
+// legacy fuckslides.config.js) or index.html.
 
 const SKIP_DIRS = new Set(['.git', 'node_modules', '.DS_Store', 'dist', 'build', '.cache']);
+
+function findConfig(dirPath) {
+  return ['fslides.config.js', 'fuckslides.config.js']
+    .map(f => path.join(dirPath, f)).find(p => fs.existsSync(p)) || null;
+}
 
 function discoverEntries(scanDir) {
   if (!fs.existsSync(scanDir)) return [];
@@ -47,9 +53,10 @@ function discoverEntries(scanDir) {
     .filter(e => e.isDirectory() && !SKIP_DIRS.has(e.name) && !e.name.startsWith('.'))
     .map(e => {
       const dirPath = path.join(scanDir, e.name);
-      const hasConfig = fs.existsSync(path.join(dirPath, 'fuckslides.config.js'));
-      const hasIndex  = fs.existsSync(path.join(dirPath, 'index.html'));
-      return (hasConfig || hasIndex) ? { folderName: e.name, dirPath, hasConfig } : null;
+      const configPath = findConfig(dirPath);
+      const hasConfig  = !!configPath;
+      const hasIndex   = fs.existsSync(path.join(dirPath, 'index.html'));
+      return (hasConfig || hasIndex) ? { folderName: e.name, dirPath, hasConfig, configPath } : null;
     })
     .filter(Boolean)
     .sort((a, b) => b.folderName.localeCompare(a.folderName)); // newest-first for date-prefixed names
@@ -80,7 +87,7 @@ const HUB_BTN_SCRIPT = (hubUrl) => `
 </script>`;
 
 function buildPresentation(entry, hubUrl, pkgDir) {
-  const { folderName, dirPath, hasConfig } = entry;
+  const { folderName, dirPath, hasConfig, configPath } = entry;
 
   if (!hasConfig) {
     const indexHtml  = fs.readFileSync(path.join(dirPath, 'index.html'), 'utf8');
@@ -96,7 +103,6 @@ function buildPresentation(entry, hubUrl, pkgDir) {
     };
   }
 
-  const configPath = path.join(dirPath, 'fuckslides.config.js');
   try {
     delete require.cache[require.resolve(configPath)];
     const config = require(configPath);
@@ -111,7 +117,7 @@ window.FUCKSLIDES_LABELS    = ${labelsJson};
 window.FUCKSLIDES_NAME      = ${JSON.stringify(config.name || 'presentation')};
 window.FUCKSLIDES_TITLE     = ${JSON.stringify(config.title || config.name || 'presentation')};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
-window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density || null)};
+window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density ?? null)};
 window.FUCKSLIDES_HUB_URL   = ${JSON.stringify(hubUrl)};
 </script>${HUB_BTN_SCRIPT(hubUrl)}`;
 
@@ -328,11 +334,12 @@ module.exports = function hub(input) {
 
     if (!fs.existsSync(dirPath)) { res.writeHead(404); res.end('Not found'); return; }
 
-    const hasConfig = fs.existsSync(path.join(dirPath, 'fuckslides.config.js'));
-    const hasIndex  = fs.existsSync(path.join(dirPath, 'index.html'));
+    const configPath = findConfig(dirPath);
+    const hasConfig  = !!configPath;
+    const hasIndex   = fs.existsSync(path.join(dirPath, 'index.html'));
     if (!hasConfig && !hasIndex) { res.writeHead(404); res.end('Not found'); return; }
 
-    const preso = buildPresentation({ folderName: slug, dirPath, hasConfig }, hubUrl, pkgDir);
+    const preso = buildPresentation({ folderName: slug, dirPath, hasConfig, configPath }, hubUrl, pkgDir);
     if (!preso) { res.writeHead(500); res.end('Could not build presentation'); return; }
 
     // /<slug>  or  /<slug>/  → serve player / standalone page

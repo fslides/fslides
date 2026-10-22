@@ -45,7 +45,7 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
     <p>Start from a designed <a href="/templates/">template</a>, or from scratch. The full slide skeleton and hard rules live in <a href="/agents.md">agents.md</a> — written for AI agents, equally correct for humans. Which hints at the fastest authoring path: <strong>point Claude (or any agent) at your deck repo</strong> and describe the slide you want. HTML in, HTML out — there's a packaged skill: <code>/plugin marketplace add fslides/fslides</code> in Claude Code.</p>
 
     <h2 id="density">Content density</h2>
-    <p>Let your audience choose how much they read. Add <code>density: { default: 3 }</code> to <code>fslides.config.js</code> and the player shows a <strong>density dial</strong> (1 to 5, keys <kbd>-</kbd> <kbd>+</kbd>). At 1 a slide is one visual or a quote, at 2 a title and the essentials, 3 is the slide as designed, and 4 to 5 reveal more context. The layout reorganizes itself as the level changes.</p>
+    <p>Let your audience choose how much they read. Every deck's player shows a <strong>density dial</strong> (1 to 5, keys <kbd>-</kbd> <kbd>+</kbd>); <code>density: { default: 3 }</code> in <code>fslides.config.js</code> sets the starting level and <code>density: false</code> hides it. At 1 a slide is one visual or a quote, at 2 a title and the essentials, 3 is the slide as designed, and 4 to 5 reveal more context. The layout reorganizes itself as the level changes.</p>
     <p>The level is <strong>saved per slide, in the slide itself</strong> (<code>&lt;html data-density="3"&gt;</code>). Turn the dial while running <code>fslides serve</code> and the slide file is updated, so the choice travels with the deck: into builds, single-file exports, hosted decks and PDFs. Viewers can still adjust it for themselves.</p>
     <pre>&lt;p data-d="4"&gt;shown at density 4 and above&lt;/p&gt;
 &lt;p data-dmax="1"&gt;shown only at density 1&lt;/p&gt;
@@ -104,12 +104,12 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
     <table>
       <tr><th>Command</th><th>What it does</th></tr>
       <tr><td><code>fslides serve</code></td><td>Local player: live reload, notes, narration recording, comments</td></tr>
-      <tr><td><code>fslides scaffold &lt;name&gt;</code></td><td>New deck as a GitHub repo — files, CI, Pages, comments wired</td></tr>
+      <tr><td><code>fslides scaffold &lt;name&gt;</code></td><td>New deck as a GitHub repo — files, live hosted URL, comments wired</td></tr>
       <tr><td><code>fslides create &lt;name&gt;</code></td><td>New local-only deck</td></tr>
       <tr><td><code>fslides add-slide &lt;name&gt;</code></td><td>Scaffold one slide file</td></tr>
       <tr><td><code>fslides kit list | add | use</code></td><td>Install and apply design-system kits (<a href="/kits/">catalog</a>); <code>fslides style</code> is the same</td></tr>
       <tr><td><code>fslides create &lt;name&gt; --style &lt;s&gt;</code></td><td>New deck from a style's starter slides</td></tr>
-      <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder (what CI publishes)</td></tr>
+      <tr><td><code>fslides build [dir]</code></td><td>Deployable static folder for self-hosting (GitHub Pages, Netlify, S3)</td></tr>
       <tr><td><code>fslides export [out.html]</code></td><td>Single self-contained HTML file</td></tr>
       <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports (<code>pdf --density N</code>)</td></tr>
       <tr><td><code>fslides gslides</code></td><td>Editable deck uploaded to Google Slides (<a href="#gslides">details</a>)</td></tr>
@@ -121,7 +121,7 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
 <span class="p">$</span> npm install &amp;&amp; npm run serve</pre>
     <ul>
       <li>Install <code>git-lfs</code> (<code>brew install git-lfs</code>) to fetch narration recordings</li>
-      <li>Edit slides like code; open a PR; CI publishes on merge</li>
+      <li>Edit slides like code; open a PR; the merge to <code>main</code> is live within a minute</li>
     </ul>
   </main>
   <footer class="statusline">

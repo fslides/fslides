@@ -41,7 +41,7 @@ window.FUCKSLIDES_LABELS    = ${labelsJson};
 window.FUCKSLIDES_NAME      = ${nameJson};
 window.FUCKSLIDES_TITLE     = ${titleJson};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
-window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density || null)};
+window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density ?? null)};
 window.FUCKSLIDES_DENSITY_EDIT = true;
 window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
@@ -50,9 +50,11 @@ window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
 window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
 </script>`;
 
+  const deckTitle = String(config.title || config.name || 'Presentation')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const playerTemplate = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');
   const playerHtml     = playerTemplate
-    .replace(/<title>[^<]*<\/title>/, `<title>${config.title || config.name || 'Presentation'}</title>`)
+    .replace(/<title>[^<]*<\/title>/, () => `<title>${deckTitle}</title>`)
     .replace('</head>', configSnippet + '\n</head>');
 
   // Inject slide manifest into each slide too (for standalone keyboard nav)

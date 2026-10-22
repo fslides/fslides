@@ -217,9 +217,9 @@ function isolate(id, mode) {
 
 // Density: same mechanics as `fslides pdf` (file:// pages cannot load /js/fuckslides.js)
 function densityScript(config, force) {
-  const dcfg = config.density, def = dcfg && (typeof dcfg === 'object' ? (dcfg.default || 3) : typeof dcfg === 'number' ? dcfg : 3);
-  if (!dcfg && !force) return null;
-  return { force: force || null, def: def || 3 };
+  const dcfg = config.density, def = dcfg && typeof dcfg === 'object' ? (dcfg.default || 3) : typeof dcfg === 'number' ? dcfg : 3;
+  if (dcfg === false && !force) return null;
+  return { force: force || null, def };
 }
 
 async function buildEditable(config, opts = {}) {

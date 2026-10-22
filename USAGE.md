@@ -7,13 +7,13 @@ Quick reference for using `fslides` (this repo, aka "fuckslides") — a no-bulls
 `fslides` is a **globally-installed** CLI (`npm install -g fslides`). It is **not repo-scoped** — run it from any directory that is a "deck".
 
 A **deck** is a folder containing:
-- `fuckslides.config.js` — the deck manifest
+- `fslides.config.js` — the deck manifest (legacy name `fuckslides.config.js` also read)
 - `slides/` — one HTML file per slide (+ optional `slides/shared.css` for shared styles)
 
 ## Config shape
 
 ```js
-// fuckslides.config.js
+// fslides.config.js
 module.exports = {
   name: 'Deck Title',                         // also the exported filename
   slides: ['01-title.html', '02-intro.html'], // order matters
@@ -35,7 +35,7 @@ Each slide in `slides/` is a standalone HTML fragment — author as normal HTML/
 | `fslides serve` | Local dev server + live reload (default `:3000`) — for authoring / presenting live |
 | `fslides export [out.html]` | **Bundle the whole deck into ONE self-contained HTML file** (see below) |
 | `fslides pdf` / `pptx` / `gif` | Export to those formats |
-| `fslides publish` | Publish to GitHub Pages |
+| `fslides publish` | Push a single-file export to a `gh-pages` branch |
 
 ## Deployment — the important part
 

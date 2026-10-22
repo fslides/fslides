@@ -1,6 +1,6 @@
 {
   "name": "fslides",
-  "version": "0.7.1",
+  "version": "0.7.3",
   "description": "A no-bullshit HTML presentation framework",
   "bin": {
     "fslides": "bin/cli.js"
@@ -13,6 +13,7 @@
     "js/",
     "template/",
     "templates/",
+    "styles/",
     "index.js"
   ],
   "scripts": {

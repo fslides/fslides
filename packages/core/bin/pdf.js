@@ -54,9 +54,9 @@ module.exports = async function exportPdf(config, opts = {}) {
 
   for (let i = 0; i < config.slides.length; i++) {
     const file    = config.slides[i];
-    const dcfg    = config.density, ddef = dcfg && (typeof dcfg === 'object' ? (dcfg.default || 3) : typeof dcfg === 'number' ? dcfg : 3);
+    const dcfg    = config.density, ddef = dcfg && typeof dcfg === 'object' ? (dcfg.default || 3) : typeof dcfg === 'number' ? dcfg : 3;
     const dforce  = opts.density || null;       // --density N: one level for every slide
-    const dlev    = dcfg || dforce ? { force: dforce, def: ddef || 3 } : null;
+    const dlev    = dcfg !== false || dforce ? { force: dforce, def: ddef } : null;
     const url     = `file://${path.join(slidesDir, file)}` + (dforce ? `?density=${dforce}` : '');
     const tmpPdf  = path.join(tmpDir, `slide-${String(i).padStart(3, '0')}.pdf`);
     const override = overrides[file] || {};
