@@ -50,6 +50,19 @@
     #bar-hint { font-size: 0.62rem; color: rgba(255,255,255,0.18); flex-shrink: 0; }
     .bar-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.1); flex-shrink: 0; }
 
+    /* ── Ask Exa (fslides serve + EXA_API_KEY) ── */
+    #ask-section { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px; border-top: 1px solid rgba(255,255,255,0.07); max-height: 46vh; }
+    #ask-section[hidden] { display: none; }
+    .ask-row { display: flex; gap: 6px; }
+    #ask-input { flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 7px 9px; color: #fff; font: 0.85rem/1.3 'Inter', -apple-system, sans-serif; outline: none; }
+    #ask-input:focus { border-color: rgba(56,189,248,0.6); }
+    .ask-btn { background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.4); color: #38BDF8; border-radius: 6px; padding: 6px 10px; font: 600 0.88rem/1 'SF Mono', 'Fira Code', monospace; cursor: pointer; white-space: nowrap; }
+    .ask-btn:disabled { opacity: 0.4; cursor: default; }
+    #ask-out { overflow-y: auto; min-height: 0; font-size: 0.9rem; line-height: 1.55; color: rgba(255,255,255,0.8); white-space: pre-wrap; }
+    #ask-out .cites { margin-top: 6px; white-space: normal; }
+    #ask-out .cites a { display: block; font: 500 0.88rem/1.5 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.45); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ask-hint { font: 500 0.88rem/1.4 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.28); }
+
     #waiting { display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; gap: 12px; color: rgba(255,255,255,0.3); font-size: 0.85rem; }
     #waiting p { font-size: 0.7rem; color: rgba(255,255,255,0.2); }
   </style>
@@ -77,6 +90,12 @@
     <div id="notes-section">
       <div class="panel-label">Notes</div>
       <div id="notes-text"><span id="notes-placeholder">No notes for this slide.</span></div>
+    </div>
+    <div id="ask-section" hidden>
+      <div class="panel-label">Ask Exa</div>
+      <div class="ask-row"><input id="ask-input" placeholder="A question from the room…" autocomplete="off"><button class="ask-btn" id="ask-go">Ask</button></div>
+      <div id="ask-out"><span class="ask-hint">Cited answer from the live web. Only you see this.</span></div>
+      <div class="ask-row"><button class="ask-btn" id="ask-slide" disabled>+ Backup slide after this one</button></div>
     </div>
   </div>
 
@@ -140,8 +159,49 @@ function scaleCurrentFrame() {
 scaleCurrentFrame();
 scaleFrame(nxtFrame, nxtWrap);
 
+// ── Ask Exa: answered by `fslides serve` (the key never reaches the browser)
+const askSection = document.getElementById('ask-section');
+const askInput = document.getElementById('ask-input'), askOut = document.getElementById('ask-out');
+const askGo = document.getElementById('ask-go'), askSlide = document.getElementById('ask-slide');
+let currentSlide = null, lastAnswer = null;
+fetch('/api/exa/status').then(r => r.json()).then(d => { if (d.key) askSection.hidden = false; }).catch(() => {});
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function showAnswer(a) {
+  lastAnswer = a;
+  askOut.innerHTML = esc(a.answer) + ((a.citations || []).length
+    ? '<div class="cites">' + a.citations.slice(0, 5).map((c, i) => `<a href="${esc(c.url)}" target="_blank" rel="noopener">[${i + 1}] ${esc(c.title || c.url)}</a>`).join('') + '</div>' : '');
+  askSlide.disabled = false;
+}
+async function ask() {
+  const q = askInput.value.trim();
+  if (!q) return;
+  askGo.disabled = true; askSlide.disabled = true;
+  askOut.innerHTML = '<span class="ask-hint">asking Exa…</span>';
+  try {
+    const r = await fetch('/api/exa/answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, slide: currentSlide }) });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || r.status);
+    showAnswer({ query: q, answer: d.answer, citations: d.citations });
+  } catch (e) { askOut.innerHTML = `<span class="ask-hint">Ask failed: ${esc(e.message)}</span>`; }
+  finally { askGo.disabled = false; }
+}
+askGo.addEventListener('click', ask);
+askInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ask(); } });
+askSlide.addEventListener('click', async () => {
+  if (!lastAnswer) return;
+  askSlide.disabled = true;
+  try {
+    const r = await fetch('/api/exa/backup-slide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...lastAnswer, after: currentSlide }) });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || r.status);
+    askSlide.textContent = `✓ ${d.file} added (skipped)`;
+    setTimeout(() => { askSlide.textContent = '+ Backup slide after this one'; }, 4000);
+  } catch (e) { askSlide.textContent = 'Failed: ' + e.message; askSlide.disabled = false; }
+});
+
 const bc = new BroadcastChannel('fuckslides-presenter');
 bc.onmessage = ({ data }) => {
+  if (data.type === 'answer') { showAnswer(data); askInput.value = data.query || ''; return; }
   if (data.type !== 'state') return;
 
   if (!connected) {
@@ -154,6 +214,7 @@ bc.onmessage = ({ data }) => {
 
   // Current slide
   const curSlide = slides[idx];
+  currentSlide = curSlide;
   if (curFrame.src !== location.origin + '/' + curSlide) curFrame.src = curSlide;
 
   // Next slide

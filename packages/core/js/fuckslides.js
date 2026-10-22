@@ -186,3 +186,116 @@ document.querySelectorAll('[data-target]').forEach(el => counterObserver.observe
   window.addEventListener('message', e => { if (e.data && e.data.type === 'fslides:density') change(e.data.level); });
   window.fslides = Object.assign(window.fslides || {}, { density: { get level() { return level; }, set: change } });
 })();
+
+// ── Citations + audience fills ───────────────────────────────────────────
+// data-cite="s1 s2" → superscript marker, hover card, and a footnote at
+// density 5 (sources.json via window.FUCKSLIDES_SOURCES, here or in the
+// player). data-fill="key" → text from tailor.json. Opt out of footnotes with
+// <html data-footnotes="off">, of one marker with data-cite-marker="off".
+/*<fslides-cite>*/
+(function () {
+  function deckData(name) {
+    if (window[name]) return window[name];
+    try { if (window.parent !== window && window.parent[name]) return window.parent[name]; } catch (_) {}
+    return null;
+  }
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const when = d => { const m = /^(\d{4})-(\d{2})/.exec(d || ''); return m ? MONTHS[+m[2] - 1] + ' ' + m[1] : ''; };
+  const STATUS = { ok: ['#22c55e', 'verified'], stale: ['#f59e0b', 'stale'], changed: ['#f59e0b', 'number not found'], broken: ['#ef4444', 'unreachable'] };
+
+  function fills() {
+    const T = deckData('FUCKSLIDES_TAILOR') || {};
+    document.querySelectorAll('[data-fill]').forEach(el => {
+      const v = T[el.dataset.fill];
+      if (v != null && typeof v !== 'object' && !el.dataset.filled) { el.textContent = String(v); el.dataset.filled = '1'; }
+    });
+  }
+
+  function cites() {
+    const els = [...document.querySelectorAll('[data-cite]')];
+    if (!els.length || document.querySelector('.fs-cite')) return;
+    const S = deckData('FUCKSLIDES_SOURCES') || {};
+    const order = [];
+    els.forEach(el => el.dataset.cite.split(/[\s,]+/).filter(Boolean).forEach(id => { if (!order.includes(id)) order.push(id); }));
+    const num = id => order.indexOf(id) + 1;
+
+    const st = document.createElement('style');
+    st.textContent = `
+      .fs-cite { font: 600 clamp(9px, .42em, 15px)/1 ui-monospace, SFMono-Regular, Menlo, monospace; vertical-align: super; margin-left: .12em; opacity: .5; cursor: pointer; letter-spacing: 0; text-decoration: none; color: inherit; }
+      .fs-cite:hover { opacity: 1; }
+      .fs-cite-card { position: fixed; z-index: 99999; width: 340px; padding: 12px 14px; border-radius: 8px; background: #111317; color: #e8e8ea; border: 1px solid rgba(255,255,255,.1);
+        box-shadow: 0 12px 40px rgba(0,0,0,.45); font: 13px/1.45 -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; text-align: left; letter-spacing: 0; text-transform: none; pointer-events: auto; }
+      .fs-cite-card .fs-src + .fs-src { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); }
+      .fs-cite-card .fs-meta { font: 500 11px/1.3 ui-monospace, Menlo, monospace; color: #9a9ca5; display: flex; gap: 6px; align-items: center; }
+      .fs-cite-card .fs-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+      .fs-cite-card .fs-title { font-weight: 600; margin: 3px 0 4px; color: #fff; }
+      .fs-cite-card .fs-quote { color: #c4c6cc; font-size: 12px; border-left: 2px solid rgba(255,255,255,.18); padding-left: 8px; }
+      .fs-cite-card a { color: inherit; text-decoration: none; }
+      .fs-footnotes { position: absolute; left: 48px; right: 48px; bottom: 14px; display: flex; flex-wrap: wrap; gap: 2px 16px; font: 10.5px/1.35 -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; opacity: .6; z-index: 5; letter-spacing: 0; text-transform: none; }
+      .fs-footnotes span b { font-family: ui-monospace, Menlo, monospace; margin-right: 4px; }
+      html[data-footnotes="off"] .fs-footnotes { display: none !important; }`;
+    document.head.appendChild(st);
+
+    els.forEach(el => {
+      if (el.dataset.citeMarker === 'off') return;
+      const ids = el.dataset.cite.split(/[\s,]+/).filter(Boolean);
+      const sup = document.createElement('sup');
+      sup.className = 'fs-cite';
+      sup.dataset.ids = ids.join(' ');
+      sup.textContent = ids.map(num).join(',');
+      el.appendChild(sup);
+    });
+
+    let card = null, hideT = null;
+    function srcHtml(id) {
+      const s = S[id];
+      if (!s) return `<div class="fs-src"><div class="fs-meta">[${num(id)}] ${esc(id)}</div><div class="fs-title">Not in sources.json</div></div>`;
+      const stat = s.status && STATUS[s.status];
+      return `<div class="fs-src"><a href="${esc(s.url)}" target="_blank" rel="noopener">
+        <div class="fs-meta">[${num(id)}] ${esc(s.publisher || '')}${s.published ? ' · ' + when(s.published) : ''}${stat ? ` · <span class="fs-dot" style="background:${stat[0]}"></span>${stat[1]}${s.checked ? ' ' + esc(s.checked) : ''}` : ''}</div>
+        <div class="fs-title">${esc(s.title || s.url)}</div>
+        ${s.quote ? `<div class="fs-quote">${esc(s.quote.length > 240 ? s.quote.slice(0, 237) + '…' : s.quote)}</div>` : ''}</a></div>`;
+    }
+    function show(sup) {
+      clearTimeout(hideT);
+      if (!card) {
+        card = document.createElement('div');
+        card.className = 'fs-cite-card';
+        card.addEventListener('mouseenter', () => clearTimeout(hideT));
+        card.addEventListener('mouseleave', hide);
+        document.body.appendChild(card);
+      }
+      card.innerHTML = sup.dataset.ids.split(' ').map(srcHtml).join('');
+      const r = sup.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+      const cw = 340, ch = card.offsetHeight;
+      card.style.left = Math.max(8, Math.min(W - cw - 8, r.left - 20)) + 'px';
+      card.style.top = (r.bottom + ch + 10 < H ? r.bottom + 6 : Math.max(8, r.top - ch - 6)) + 'px';
+      card.style.display = 'block';
+    }
+    function hide() { hideT = setTimeout(() => { if (card) card.style.display = 'none'; }, 160); }
+    document.addEventListener('mouseover', e => { const s = e.target.closest && e.target.closest('.fs-cite'); if (s) show(s); });
+    document.addEventListener('mouseout', e => { if (e.target.closest && e.target.closest('.fs-cite')) hide(); });
+    document.addEventListener('click', e => {
+      const s = e.target.closest && e.target.closest('.fs-cite');
+      if (!s) return;
+      e.preventDefault(); e.stopPropagation();
+      const src = S[s.dataset.ids.split(' ')[0]];
+      if (src && src.url) window.open(src.url, '_blank', 'noopener');
+    }, true);
+
+    const fn = document.createElement('div');
+    fn.className = 'fs-footnotes';
+    fn.setAttribute('data-d', '5');
+    fn.innerHTML = order.map(id => {
+      const s = S[id];
+      const label = s ? [s.publisher, when(s.published)].filter(Boolean).join(', ') + (s.title ? ' — ' + s.title : '') : id;
+      return `<span><b>${num(id)}</b>${esc(label.length > 110 ? label.slice(0, 107) + '…' : label)}</span>`;
+    }).join('');
+    document.body.appendChild(fn);
+  }
+
+  function run() { fills(); cites(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
+})();
+/*</fslides-cite>*/

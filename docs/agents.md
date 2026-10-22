@@ -13,6 +13,10 @@ Live copy: https://fslides.dev/agents.md · Source: https://github.com/fslides/f
 my-deck/
 ├── fslides.config.js     # the manifest (legacy name fuckslides.config.js also read)
 ├── notes.json               # per-slide speaker notes: { "<slide>.html": "…" }
+├── sources.json             # citation registry: { "s1": { url, title, publisher, published, quote } }
+├── tailor.json              # optional per-audience values for data-fill="key"
+├── research/                # Exa briefs: <topic>.md, verify.md, fresh.md, audience.md, deepen/
+├── .fslides/                # local only (gitignored): Exa cache, verify / fresh state
 ├── package.json             # devDependency: fslides; scripts: serve/build/pdf
 ├── slides/
 │   ├── cover.html           # one file per slide — self-contained HTML
@@ -126,6 +130,11 @@ and the Notes panel while presenting.
 | `fslides pptx --editable` | Editable PowerPoint: real text boxes, shapes, pictures, notes |
 | `fslides add-slide <name>` | Scaffold one slide file |
 | `fslides style list \| add <path\|git-url> \| use <name>` | Reusable design systems (styles), see below |
+| `fslides research "<topic>"` | Exa: cited research brief in `research/`, sources in `sources.json` |
+| `fslides verify` | Exa: re-check every cited claim live, fact-check uncited numbers (`--ci`) |
+| `fslides deepen [slide]` | Exa: cited density 4–5 candidates per slide |
+| `fslides tailor --company X` | Exa: audience brief + `tailor.json` values for `data-fill` |
+| `fslides fresh` | Exa: newer sources since the deck was checked (`--monitors --webhook URL`) |
 
 Starting from nothing: `npm install -g fslides && fslides scaffold <name>`
 (requires the GitHub CLI, authenticated). For a local-only deck use
@@ -197,6 +206,69 @@ Reorganize rather than cram: at low levels, let the visual grow into the freed
 space; at high levels, shrink or reposition it to make room. Never let content
 overlap at any level.
 
+## Sources, citations and Exa
+
+Every number on a slide should have a source. fslides keeps them in `sources.json`
+and uses [Exa](https://exa.ai) to find, re-check and extend them. Exa produces cited
+facts; **you still write the slides**. Never ask it for slide copy or layout.
+
+Cite the element that carries the claim, using ids from `sources.json`:
+
+```html
+<div class="stat" data-cite="s1">40%</div>
+<p data-cite="s1 s4">of enterprise apps will embed agents by 2026</p>
+```
+
+```json
+{ "s1": { "url": "https://www.gartner.com/…", "title": "Gartner Predicts 40% …",
+          "publisher": "gartner.com", "published": "2025-08-26", "quote": "…exact passage…" } }
+```
+
+The runtime adds a small superscript marker with a hover card (publisher, date, the
+exact passage, the verify status). Clicking the marker opens the source. The player's
+Sources panel (key `S`) lists the current slide's or the whole deck's sources. At
+density 5, every slide prints its footnotes along the bottom edge (leave about 40px).
+Opt-outs: `data-cite-marker="off"` on one element, or `<html data-footnotes="off">`
+for a slide. Citations work in `serve`, `build`, `export`, `pdf`, editable exports and
+hosted decks.
+
+The Exa commands use the user's own key, locally: `export EXA_API_KEY=...`. The key
+never leaves the machine and never reaches a browser. Hosted decks show citations but
+never call Exa. Every command takes `--dry-run` (shows the calls and the estimated
+cost, no key needed). Responses are cached in `.fslides/cache/`, so re-runs are free
+(`--no-cache` forces new calls).
+
+- `fslides research "<topic>"` (`--depth fast|deep`, `--domains a.com,b.com`,
+  `--since YYYY-MM-DD`): summary, key facts with figures, angles and sources in
+  `research/<slug>.md`, and new `sN` entries in `sources.json`. Write slides from it.
+  Keep each figure exactly as the source states it.
+- `fslides verify`: every cited page is re-fetched live, and every number in the claim
+  must still be on it (`changed` if not, `broken` if the page is gone, `stale` if it is
+  older than 18 months, set with `--stale-days`). Uncited numbers are fact-checked with
+  Exa's answer endpoint (`--max-answers 20`; `--add` puts supporting pages in
+  `sources.json`). Outputs `research/verify.md`, status dots in the hover cards and
+  Sources panel, and counts on the overview thumbnails. `--ci` exits 1 on broken,
+  changed or unconfirmed claims (`--strict`: stale too). Run it before presenting.
+  This checks facts; the `fslides-verify` skill checks rendering. Do both.
+- `fslides deepen <slide …>` (or `--all`): `research/deepen/<slide>.json` with level-4
+  (context) and level-5 (caveats, methodology) candidates, each already cited. Add
+  the good ones as `data-d="4"` / `data-d="5"` elements with their `data-cite`.
+- `fslides tailor --company X [--domain x.com]`: `research/audience.md` (who they are,
+  last 90 days of news) and `tailor.json`. Mark changing text with
+  `<span data-fill="company">your team</span>` (the text is the fallback); describe
+  other keys in the config: `tailor: { useCase: 'their most relevant use case' }`.
+  `serve` fills live; `build`, `export` and `pdf` bake the values in.
+- `fslides fresh`: searches every cited claim again for pages published since the last
+  check; `research/fresh.md` and a banner plus "new" badges in `serve`.
+  `--monitors --webhook https://…` creates daily Exa Monitors instead (Exa requires a
+  public webhook); `fslides fresh --monitors` later pulls their runs.
+- Live Q&A: with `EXA_API_KEY` set where `fslides serve` runs, key `A` in the player
+  (or the presenter view's Ask box) answers a question from the room with citations.
+  "+ Backup slide" writes `slides/qa-N.html` after the current slide, skipped, with its
+  sources registered. Override the look with `slides/_qa-template.html` using
+  `{{question}} {{answer}} {{cite}} {{sources}} {{date}}`. Questions are logged to
+  `research/qa.md` for follow-up.
+
 ## Styles: reusable design systems
 
 A **style** packages a deck's look (atmosphere, palette, type, layout,
@@ -232,6 +304,8 @@ SKILL.md before editing any slide and follow it over the defaults here.**
   thread to it; threads are GitHub issues on `config.repo` titled
   `💬 Slide: <file>`. Comment bodies may carry a hidden
   `<!--fslides-anchor {…}-->` header — preserve it if you edit comments.
+- **Citations**: `data-cite` markers, hover cards, the Sources panel and level-5
+  footnotes come from the runtime. Don't hand-write footnotes or source lists.
 - **Player chrome**: toolbar, overview grid, filmstrip, PDF-ready layout — all
   from the framework. A slide should only ever contain its own content.
 

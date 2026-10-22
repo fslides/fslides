@@ -299,6 +299,35 @@ Invite-only is a launch posture, not a product. Adopted the github.io model:
       assets and starter slides. (The brief is still installed as a project skill under
       `.claude/skills/fslides-style-<name>/`, so agents pick it up.)
 
+## Phase 2.16 — Exa inside fslides (2026-10-21, 0.8.0)
+Exa produces cited facts, fslides keeps them true; Exa never writes slide design.
+Bring-your-own `EXA_API_KEY`, local only (no gateway proxy); hosted decks show
+citations but never call Exa.
+- [x] `bin/exa.js`: fetch client (search, contents, answer, deep research with output
+      schema, monitors), `.fslides/cache/` keyed by request, cost from `costDollars`,
+      `--dry-run` cost estimates, missing-key help. `.fslides/` gitignored in scaffolds.
+- [x] `sources.json` registry + `data-cite="s1"`: runtime marker, hover card, verify
+      status, level-5 footnotes (opt-outs `data-cite-marker="off"`,
+      `<html data-footnotes="off">`). Loaded by serve (per request), hub, build, export,
+      the site worker, and injected into pdf / editable renders.
+- [x] Player Sources panel (key `S`, this slide / deck), verify counts on overview
+      thumbnails, "new" badges + banner from `fslides fresh`.
+- [x] `fslides verify`: live re-fetch (`maxAgeHours: 0`) of cited pages and number
+      matching (40% ↔ 40 percent, $8.4B ↔ 8.4 billion), stale threshold, answer-based
+      fact-check of uncited numbers with `--add`, `research/verify.md`, `--ci` / `--strict`.
+- [x] `fslides research` (deep search + structured output → brief + sources),
+      `fslides deepen` (cited density 4–5 candidates), `fslides tailor` (audience brief,
+      `data-fill` + `tailor.json`, baked into build / export / pdf), `fslides fresh`
+      (date-filtered re-search, or Exa Monitors with `--monitors --webhook`).
+- [x] Live Ask: `/api/exa/answer` + `/api/exa/backup-slide` in serve; Ask in the player
+      (key `A`) and the presenter view; backup slides inserted skipped after the current
+      slide (`_qa-template.html` override), questions logged to `research/qa.md`.
+- [x] Skills: `fslides-research`, `fslides-sources`, `fslides-tailor`; density skill
+      covers `deepen`. `presenter.html` added to the npm package files (was missing).
+- [ ] Run verify / deepen on the Exa first-meeting deck with a real key
+- [ ] Monitors webhook receiver on api.fslides.dev (would make `fresh` push-based)
+- [ ] Inline "cite this" in the editor: select a number, search Exa, pick a source
+
 ## Phase 3 — Paid tier (only after 1–2 real teams use it)
 
 Candidates, unvalidated:

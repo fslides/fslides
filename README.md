@@ -60,6 +60,13 @@ Slides are self-contained HTML on a fixed 1280×720 canvas. The player scales, n
 | `fslides pptx --editable` | Editable PowerPoint, same objects |
 | `fslides add-slide <name>` | Scaffold one slide |
 | `fslides publish` | Push a single-file export to a `gh-pages` branch |
+| `fslides research "<topic>"` | Cited research brief with [Exa](https://exa.ai), sources in `sources.json` |
+| `fslides verify` | Re-check every cited claim against the live page; fact-check uncited numbers (`--ci`) |
+| `fslides deepen [slide]` | Cited level-4/5 detail candidates for the density dial |
+| `fslides tailor --company X` | Audience brief + per-company values for `data-fill` text |
+| `fslides fresh` | Newer sources since the deck was last checked |
+
+The Exa commands use your own `EXA_API_KEY`, locally (`--dry-run` shows calls and cost without one). Slides cite with `data-cite="s1"`; the player renders markers, hover cards, a Sources panel (`S`) and footnotes at density 5, everywhere the deck goes.
 
 ## Author with AI
 
@@ -71,7 +78,7 @@ Slides are HTML — the native language of every coding agent. The one-page spec
 
 Then: *"make me a deck about X"* — the skill scaffolds the repo, writes the slides, fills the speaker notes, and publishes.
 
-The plugin ships seven skills, each one you can ask for by name or just by describing the job:
+The plugin ships ten skills, each one you can ask for by name or just by describing the job:
 
 | Skill | Ask for it when you want to… |
 |---|---|
@@ -82,6 +89,9 @@ The plugin ships seven skills, each one you can ask for by name or just by descr
 | `fslides-clean-deck` | make a deck crisper: better titles, fewer words, no decorative motion |
 | `fslides-verify` | look at slides at all five densities, count words, catch overlaps |
 | `fslides-live-demo` | build a slide that calls a real API on stage, with a safe fallback |
+| `fslides-research` | research a topic with Exa and write slides from cited facts |
+| `fslides-sources` | cite, fact-check and refresh the deck's numbers; answer questions live |
+| `fslides-tailor` | tailor one deck to a company: audience brief and per-company values |
 
 Examples: *"export this deck to Google Slides"*, *"my titles feel generic, tighten them"*, *"add a live demo slide that searches the web"*.
 

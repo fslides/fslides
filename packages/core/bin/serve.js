@@ -4,6 +4,33 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { deckSources, loadTailor, loadState, applyFills, safeJson, loadSources, saveSources, addSource, slideTitle, escHtml } = require('./sources');
+const { hasKey, createClient } = require('./exa');
+
+// backup slide for a live Q&A answer; a deck can override it with
+// slides/_qa-template.html using {{question}} {{answer}} {{cite}} {{sources}} {{date}}
+const QA_TEMPLATE = `<!DOCTYPE html>
+<html lang="en" data-density="3">
+<head>
+<meta charset="UTF-8">
+<style>
+  html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
+  body { background: #0d0f14; color: #f2f2f4; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; position: relative; }
+  .kicker { position: absolute; left: 96px; top: 84px; font: 600 15px/1 ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; color: #F05000; }
+  h1 { position: absolute; left: 96px; right: 96px; top: 124px; margin: 0; font-size: 46px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+  .answer { position: absolute; left: 96px; right: 160px; top: 330px; margin: 0; font-size: 26px; line-height: 1.5; color: rgba(242,242,244,.82); }
+  .src { position: absolute; left: 96px; bottom: 64px; font: 500 15px/1.3 ui-monospace, Menlo, monospace; color: rgba(242,242,244,.45); }
+</style>
+</head>
+<body>
+  <div class="kicker">Q&amp;A · {{date}}</div>
+  <h1>{{question}}</h1>
+  <p class="answer" data-cite="{{cite}}">{{answer}}</p>
+  <div class="src" data-dmax="4">Sources: {{sources}}</div>
+  <script src="/js/fuckslides.js"></script>
+</body>
+</html>
+`;
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
@@ -21,12 +48,6 @@ module.exports = function serve(config) {
   const pkgDir    = path.join(__dirname, '..');
   const PORT      = config.port || 3000;
 
-  // Inject slide manifest into player.html so the player knows the deck
-  const slidesJson   = JSON.stringify(config.slides);
-  const labelsJson   = JSON.stringify(config.labels || config.slides.map(s => s.replace('.html', '')));
-  const nameJson     = JSON.stringify(config.name || 'presentation');
-  const titleJson    = JSON.stringify(config.title || config.name || 'presentation');
-  const disabledJson = JSON.stringify(config.disabled || []);
   let repo = config.repo || null;
   if (!repo) {
     try {
@@ -35,12 +56,15 @@ module.exports = function serve(config) {
       if (m) repo = m[1] + '/' + m[2];
     } catch (_) {}
   }
-  const configSnippet = `<script>
-window.FUCKSLIDES_SLIDES    = ${slidesJson};
-window.FUCKSLIDES_LABELS    = ${labelsJson};
-window.FUCKSLIDES_NAME      = ${nameJson};
-window.FUCKSLIDES_TITLE     = ${titleJson};
-window.FUCKSLIDES_DISABLED  = ${disabledJson};
+  // Rendered per request: sources.json / tailor.json / .fslides reports change
+  // while serve runs (fslides verify, research, tailor), and so does the order.
+  function configSnippet() {
+    return `<script>
+window.FUCKSLIDES_SLIDES    = ${JSON.stringify(config.slides)};
+window.FUCKSLIDES_LABELS    = ${JSON.stringify(config.labels || config.slides.map(s => s.replace('.html', '')))};
+window.FUCKSLIDES_NAME      = ${JSON.stringify(config.name || 'presentation')};
+window.FUCKSLIDES_TITLE     = ${JSON.stringify(config.title || config.name || 'presentation')};
+window.FUCKSLIDES_DISABLED  = ${JSON.stringify(config.disabled || [])};
 window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density ?? null)};
 window.FUCKSLIDES_DENSITY_EDIT = true;
 window.FUCKSLIDES_REPO      = ${JSON.stringify(repo)};
@@ -48,19 +72,43 @@ window.FUCKSLIDES_GATEWAY   = ${JSON.stringify(config.gateway || null)};
 window.FUCKSLIDES_NAV       = ${JSON.stringify(config.nav || [])};
 window.FUCKSLIDES_SELECTION = ${JSON.stringify(config.selection !== false)};
 window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
+window.FUCKSLIDES_SOURCES   = ${safeJson(deckSources(cwd))};
+window.FUCKSLIDES_TAILOR    = ${safeJson(loadTailor(cwd))};
+window.FUCKSLIDES_VERIFY    = ${safeJson(verifySummary())};
+window.FUCKSLIDES_FRESH     = ${safeJson(freshSummary())};
+window.FUCKSLIDES_EXA       = ${JSON.stringify(hasKey())};
 </script>`;
+  }
+
+  // per-slide verify counts for thumbnail badges: { 'x.html': { stale, broken, unverified, ok } }
+  function verifySummary() {
+    const v = loadState(cwd, 'verify');
+    if (!v) return null;
+    return { at: v.at, slides: v.slides || {}, claims: v.claims || {} };
+  }
+  function freshSummary() {
+    const f = loadState(cwd, 'fresh');
+    if (!f) return null;
+    return { at: f.at, count: (f.items || []).length, slides: [...new Set((f.items || []).flatMap(i => i.slides || []))] };
+  }
 
   const deckTitle = String(config.title || config.name || 'Presentation')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const playerTemplate = fs.readFileSync(path.join(pkgDir, 'player.html'), 'utf8');
-  const playerHtml     = playerTemplate
+  const renderPlayer = () => playerTemplate
     .replace(/<title>[^<]*<\/title>/, () => `<title>${deckTitle}</title>`)
-    .replace('</head>', configSnippet + '\n</head>');
+    .replace('</head>', () => configSnippet() + '\n</head>');
 
-  // Inject slide manifest into each slide too (for standalone keyboard nav)
+  // Inject slide manifest into each slide too (for standalone keyboard nav),
+  // plus sources so markers render when a slide is opened on its own, and
+  // bake tailor fills so thumbnails (scripts stripped) show them too
   function injectSlideManifest(html) {
-    const tag = `<script>window.FUCKSLIDES_SLIDES=${slidesJson};</script>`;
-    return html.includes('</head>') ? html.replace('</head>', tag + '\n</head>') : html;
+    const tailor = loadTailor(cwd);
+    html = applyFills(html, tailor);
+    let tag = `<script>window.FUCKSLIDES_SLIDES=${JSON.stringify(config.slides)};`;
+    if (/\bdata-(cite|fill)=/.test(html)) tag += `window.FUCKSLIDES_SOURCES=${safeJson(deckSources(cwd))};window.FUCKSLIDES_TAILOR=${safeJson(tailor)};`;
+    tag += '</script>';
+    return html.includes('</head>') ? html.replace('</head>', () => tag + '\n</head>') : html;
   }
 
   const cfgPath   = ['fslides.config.js', 'fuckslides.config.js']
@@ -135,9 +183,102 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
   if (config.liveReload !== false) {
     watchPath(slidesDir, true);
     watchPath(cfgPath, false);
+    // research / verify / tailor / fresh write these while serve runs
+    const DECK_DATA = new Set(['sources.json', 'tailor.json']);
+    try { fs.watch(cwd, (_, f) => { if (DECK_DATA.has(f)) scheduleReload(); }); } catch (_) {}
+    const stateDir = path.join(cwd, '.fslides');
+    try { fs.mkdirSync(stateDir, { recursive: true }); fs.watch(stateDir, (_, f) => { if (f === 'verify.json' || f === 'fresh.json') scheduleReload(); }); } catch (_) {}
   }
 
   const allCommentsCache = { data: null, at: 0 };
+
+  function writeOrder(newSlides, newLabels, newDisabled) {
+    let src = fs.readFileSync(cfgPath, 'utf8');
+    const fmt = arr => '[\n    ' + arr.map(s => `'${s.replace(/'/g, "\\'")}'`).join(',\n    ') + ',\n  ]';
+    src = src.replace(/slides:\s*\[[^\]]*\]/, `slides: ${fmt(newSlides)}`);
+    if (/labels:\s*\[/.test(src)) src = src.replace(/labels:\s*\[[^\]]*\]/, `labels: ${fmt(newLabels)}`);
+    else if (config.labels) src = src.replace(/};/, `  labels: ${fmt(newLabels)},\n};`);
+    if (newDisabled !== undefined) {
+      const disabledFmt = `disabled: ${fmt(newDisabled)}`;
+      if (/disabled\s*:/.test(src)) {
+        src = src.replace(/disabled:\s*\[[^\]]*\]/, disabledFmt);
+      } else {
+        src = src.replace(/};/, `  ${disabledFmt},\n};`);
+      }
+      config.disabled = newDisabled;
+    }
+    fs.writeFileSync(cfgPath, src, 'utf8');
+    config.slides = newSlides;
+    if (config.labels || /labels:\s*\[/.test(src)) config.labels = newLabels;
+  }
+
+  function readBody(req) {
+    return new Promise((resolve, reject) => {
+      let body = '';
+      req.on('data', c => { body += c; });
+      req.on('end', () => { try { resolve(JSON.parse(body || '{}')); } catch (e) { reject(e); } });
+    });
+  }
+  const sendJson = (res, code, data) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(data)); };
+
+  // live Ask: the key stays in this process; the browser only gets answers
+  async function exaAnswer(req, res) {
+    try {
+      const { query, slide } = await readBody(req);
+      if (!query || !String(query).trim()) return sendJson(res, 400, { error: 'empty question' });
+      const exa = createClient({ cwd, throwOnMissingKey: true, quiet: true });
+      let context = '';
+      if (slide) {
+        const p = path.join(slidesDir, path.basename(slide));
+        if (fs.existsSync(p)) context = slideTitle(fs.readFileSync(p, 'utf8'));
+      }
+      const a = await exa.answer(String(query).slice(0, 500), {
+        text: true,
+        systemPrompt: `An audience member asked this during a live presentation${config.title ? ' titled "' + config.title + '"' : ''}${context ? ', on the slide "' + context + '"' : ''}. Answer in 2–4 plain sentences a presenter can read aloud. Lead with the direct answer and the key number. No markdown.`,
+      });
+      const citations = (a.citations || []).slice(0, 8).map(c => ({ title: c.title, url: c.url, publishedDate: c.publishedDate, text: (c.text || '').slice(0, 1500) }));
+      const log = path.join(cwd, 'research', 'qa.md');
+      fs.mkdirSync(path.dirname(log), { recursive: true });
+      fs.appendFileSync(log, `\n## ${String(query).trim()}\n_${new Date().toISOString().slice(0, 16).replace('T', ' ')}${slide ? ' · ' + slide : ''}_\n\n${a.answer}\n\n${citations.map(c => `- [${c.title || c.url}](${c.url})`).join('\n')}\n`);
+      sendJson(res, 200, { answer: typeof a.answer === 'string' ? a.answer : JSON.stringify(a.answer), citations, cost: a.costDollars && a.costDollars.total });
+    } catch (e) {
+      sendJson(res, e.code === 'NO_KEY' ? 501 : 502, { error: e.code === 'NO_KEY' ? 'EXA_API_KEY is not set where fslides serve runs' : e.message });
+    }
+  }
+
+  // turn an answer into a skipped backup slide right after the current one
+  async function exaBackupSlide(req, res) {
+    try {
+      const { query, answer, citations = [], after } = await readBody(req);
+      if (!query || !answer) return sendJson(res, 400, { error: 'query and answer required' });
+      const sources = loadSources(cwd);
+      const ids = citations.slice(0, 4).map(c => addSource(sources, c, { quote: (c.text || '').slice(0, 400) }));
+      saveSources(cwd, sources);
+      let n = 1;
+      while (fs.existsSync(path.join(slidesDir, `qa-${n}.html`)) || config.slides.includes(`qa-${n}.html`)) n++;
+      const file = `qa-${n}.html`;
+      const tplPath = path.join(slidesDir, '_qa-template.html');
+      const tpl = fs.existsSync(tplPath) ? fs.readFileSync(tplPath, 'utf8') : QA_TEMPLATE;
+      const cite = ids.join(' ');
+      const html = tpl
+        .replace(/\{\{question\}\}/g, () => escHtml(query))
+        .replace(/\{\{answer\}\}/g, () => escHtml(answer))
+        .replace(/\{\{cite\}\}/g, () => cite)
+        .replace(/\{\{sources\}\}/g, () => ids.map(id => escHtml(sources[id].publisher)).join(' · '))
+        .replace(/\{\{date\}\}/g, () => new Date().toISOString().slice(0, 10));
+      quietUntil = Date.now() + 1500;   // never reload a player mid-talk
+      fs.writeFileSync(path.join(slidesDir, file), html, 'utf8');
+      const at = Math.max(0, config.slides.indexOf(path.basename(after || '')));
+      const labels = config.labels || config.slides.map(s => s.replace('.html', ''));
+      const nextSlides = [...config.slides], nextLabels = [...labels];
+      nextSlides.splice(at + 1, 0, file);
+      nextLabels.splice(at + 1, 0, 'Q&A: ' + String(query).slice(0, 40));
+      writeOrder(nextSlides, nextLabels, [...(config.disabled || []), file]);
+      sendJson(res, 200, { ok: true, file, ids });
+    } catch (e) {
+      sendJson(res, 500, { error: e.message });
+    }
+  }
 
   const server = http.createServer((req, res) => {
     let urlPath = req.url.split('?')[0];
@@ -153,6 +294,10 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
       req.on('close', () => sseClients.delete(res));
       return;
     }
+
+    if (req.method === 'POST' && urlPath === '/api/exa/answer') { exaAnswer(req, res); return; }
+    if (req.method === 'POST' && urlPath === '/api/exa/backup-slide') { exaBackupSlide(req, res); return; }
+    if (req.method === 'GET' && urlPath === '/api/exa/status') { sendJson(res, 200, { key: hasKey() }); return; }
 
     if (req.method === 'GET' && urlPath === '/api/source') {
       const fileParam = new URL(req.url, 'http://localhost').searchParams.get('file');
@@ -211,22 +356,7 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
       req.on('end', () => {
         try {
           const { slides: newSlides, labels: newLabels, disabled: newDisabled } = JSON.parse(body);
-          let src = fs.readFileSync(cfgPath, 'utf8');
-          const fmt = arr => '[\n    ' + arr.map(s => `'${s.replace(/'/g, "\\'")}'`).join(',\n    ') + ',\n  ]';
-          src = src.replace(/slides:\s*\[[^\]]*\]/, `slides: ${fmt(newSlides)}`);
-          src = src.replace(/labels:\s*\[[^\]]*\]/, `labels: ${fmt(newLabels)}`);
-          if (newDisabled !== undefined) {
-            const disabledFmt = `disabled: ${fmt(newDisabled)}`;
-            if (/disabled\s*:/.test(src)) {
-              src = src.replace(/disabled:\s*\[[^\]]*\]/, disabledFmt);
-            } else {
-              src = src.replace(/};/, `  ${disabledFmt},\n};`);
-            }
-            config.disabled = newDisabled;
-          }
-          fs.writeFileSync(cfgPath, src, 'utf8');
-          config.slides = newSlides;
-          config.labels  = newLabels;
+          writeOrder(newSlides, newLabels, newDisabled);
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ ok: true }));
         } catch (e) {
@@ -429,7 +559,7 @@ window.FUCKSLIDES_LIVE_RELOAD = ${JSON.stringify(config.liveReload !== false)};
 
     if (urlPath === '/' || urlPath === '/player.html') {
       res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(playerHtml);
+      res.end(renderPlayer());
       return;
     }
 

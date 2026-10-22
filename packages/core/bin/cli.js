@@ -24,6 +24,11 @@ function loadConfig(cwd) {
   return require(cfgPath);
 }
 
+function exaFail(e) {
+  console.error(`\n  ❌  ${e.message}\n`);
+  process.exit(1);
+}
+
 // parse --template flag for add-slide
 function getFlag(flag) {
   const i = args.indexOf(flag);
@@ -65,7 +70,7 @@ switch (cmd) {
     break;
   case 'export': {
     const outArg = args[0] && !args[0].startsWith('-') ? args[0] : undefined;
-    require('./export')(loadConfig(process.cwd()), outArg ? path.join(process.cwd(), outArg) : undefined);
+    require('./export')(loadConfig(process.cwd()), outArg ? path.resolve(process.cwd(), outArg) : undefined);
     break;
   }
   case 'add-slide':
@@ -79,6 +84,21 @@ switch (cmd) {
     break;
   case 'share':
     require('./share')(args);
+    break;
+  case 'verify':
+    require('./verify')(loadConfig(process.cwd()), args).catch(exaFail);
+    break;
+  case 'research':
+    require('./research')(args).catch(exaFail);
+    break;
+  case 'deepen':
+    require('./deepen')(loadConfig(process.cwd()), args).catch(exaFail);
+    break;
+  case 'tailor':
+    require('./tailor')(loadConfig(process.cwd()), args).catch(exaFail);
+    break;
+  case 'fresh':
+    require('./fresh')(loadConfig(process.cwd()), args).catch(exaFail);
     break;
   case 'scaffold':
     require('./scaffold')(args[0], { private: args.includes('--private'), org: getFlag('--org'), template: getFlag('--template'), style: getFlag('--style') });
@@ -105,5 +125,14 @@ switch (cmd) {
     fuckslides build [outDir]         Build a deployable folder (player + slides + assets)
     fuckslides scaffold <name>        Create a GitHub repo for a new deck: files, CI to Pages, comments wired (--private, --org <org>)
     fuckslides hub [path|github-url]  Serve all presentations from a hub manifest
+
+  Exa — cited facts, with your own EXA_API_KEY, locally (--dry-run: calls + cost, no key needed):
+    fuckslides research "<topic>"     Research brief + sources.json entries (--depth fast|deep, --out name)
+    fuckslides verify                 Re-check every cited claim live, fact-check uncited numbers
+                                      (--ci exit 1 on problems, --strict counts stale, --add, --slide x)
+    fuckslides deepen [slide]         Cited level-4/5 density candidates per slide → research/deepen/
+    fuckslides tailor --company X     Audience brief + tailor.json values for data-fill (--domain x.com)
+    fuckslides fresh                  What changed since the deck's sources were checked
+                                      (--since YYYY-MM-DD, --monitors --webhook URL for Exa Monitors)
 `);
 }

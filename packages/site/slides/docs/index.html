@@ -52,6 +52,21 @@ labels: [ 'Cover',      'The Big Idea' ],</pre>
 html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* per-level layout */</span></pre>
     <p>Each slide exports at its saved level; <code>fslides pdf --density 5</code> forces the full version everywhere. Details in <a href="/agents.md">agents.md</a>.</p>
 
+    <h2 id="sources">Sources, citations &amp; Exa</h2>
+    <p>Every number on a slide should have a source. Mark the element that carries the claim with <code>data-cite</code>, using ids from <code>sources.json</code> at the deck root:</p>
+    <pre>&lt;div class="stat" data-cite="s1"&gt;40%&lt;/div&gt;
+{ "s1": { "url": "https://…", "title": "…", "publisher": "gartner.com", "published": "2025-08-26" } }</pre>
+    <p>The player adds a small marker with a hover card (publisher, date, the exact passage, whether it was verified), a <strong>Sources panel</strong> (<kbd>S</kbd>), and at density 5 the footnotes along the bottom of the slide. All of it travels into builds, exports, PDFs and hosted decks.</p>
+    <p><a href="https://exa.ai">Exa</a> finds the sources and keeps them true. It produces cited facts; it never writes your slides.</p>
+    <pre><span class="p">$</span> export EXA_API_KEY=…                      <span class="c"># your key, used locally only</span>
+<span class="p">$</span> fslides research "agent adoption 2026"   <span class="c"># cited brief in research/, sources in sources.json</span>
+<span class="p">$</span> fslides verify                           <span class="c"># re-check every cited number on the live page</span>
+<span class="p">$</span> fslides deepen 04-pricing                <span class="c"># cited detail for density levels 4 and 5</span>
+<span class="p">$</span> fslides tailor --company monday.com      <span class="c"># audience brief + values for data-fill text</span>
+<span class="p">$</span> fslides fresh                            <span class="c"># newer sources since the last check</span></pre>
+    <p><code>verify</code> fetches each cited page fresh and checks the claim's numbers are still on it (40% and "40 percent" both count), flags sources older than 18 months, and fact-checks numbers nobody cited. Its findings show up as badges on the overview thumbnails; <code>--ci</code> fails the build on broken or changed claims. Every command takes <code>--dry-run</code> to show the calls and the cost first, and results are cached, so running a command again costs nothing.</p>
+    <p>On stage, with the key set where <code>fslides serve</code> runs: press <kbd>A</kbd> (or use the presenter view) to answer a question from the room with citations, and turn the answer into a backup slide in one click. Your key never reaches the browser, and hosted decks never call Exa.</p>
+
     <h2 id="gslides">Google Slides &amp; editable PowerPoint</h2>
     <p>Hand a deck to someone who lives in Google Slides or PowerPoint, and they get <strong>real objects, not screenshots</strong>: every text box with its fonts, weights, colors and links, every box, rule and table cell as a shape, and the speaker notes from <code>notes.json</code>. Charts, SVG illustrations, images and gradients come along as transparent pictures you can move and resize.</p>
     <pre><span class="p">$</span> fslides gslides                    <span class="c"># build + upload to Google Drive as Google Slides</span>
@@ -80,11 +95,14 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
       <tr><td><code>fslides-clean-deck</code></td><td>make a deck crisper: better titles, fewer words, no decorative motion</td></tr>
       <tr><td><code>fslides-verify</code></td><td>look at slides at all five densities, count words, catch overlaps</td></tr>
       <tr><td><code>fslides-live-demo</code></td><td>build a slide that calls a real API on stage, with a safe fallback</td></tr>
+      <tr><td><code>fslides-research</code></td><td>research a topic with Exa and write slides from cited facts</td></tr>
+      <tr><td><code>fslides-sources</code></td><td>cite, fact-check and refresh the deck's numbers; answer questions live</td></tr>
+      <tr><td><code>fslides-tailor</code></td><td>tailor one deck to a company: audience brief and per-company values</td></tr>
     </table>
     <p>Examples: <em>"export this deck to Google Slides"</em>, <em>"my titles feel generic, tighten them"</em>, <em>"add a live demo slide that searches the web"</em>.</p>
 
     <h2 id="player">The player</h2>
-    <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>E</kbd> edit this slide · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>F</kbd> present fullscreen · <kbd>W</kbd> present in window.</p>
+    <p><code>fslides serve</code> opens your deck in the player. Keyboard: <kbd>←</kbd><kbd>→</kbd> navigate · <kbd>G</kbd> overview grid · <kbd>T</kbd> filmstrip · <kbd>E</kbd> edit this slide · <kbd>N</kbd> notes · <kbd>V</kbd> play narration · <kbd>M</kbd> record · <kbd>K</kbd> comments · <kbd>S</kbd> sources · <kbd>A</kbd> ask Exa · <kbd>F</kbd> present fullscreen · <kbd>W</kbd> present in window.</p>
     <p>Edits on disk live-reload the player. While the in-browser editor is open, that full-page refresh is skipped — the editor already updates its own preview on save. Disable live reload for a tab with <code>?noreload=1</code>, or deck-wide with <code>liveReload: false</code> in <code>fslides.config.js</code>.</p>
     <p>Speaker notes live in <code>notes.json</code> and are editable in the Notes panel — they ship with the deck and feed the teleprompter.</p>
 
@@ -114,6 +132,11 @@ html[data-density="1"] .visual { transform: scale(1.15); }   <span class="c">/* 
       <tr><td><code>fslides pdf</code> / <code>pptx</code> / <code>gif</code></td><td>Format exports (<code>pdf --density N</code>)</td></tr>
       <tr><td><code>fslides gslides</code></td><td>Editable deck uploaded to Google Slides (<a href="#gslides">details</a>)</td></tr>
       <tr><td><code>fslides pptx --editable</code></td><td>Editable PowerPoint: real text boxes, shapes, notes</td></tr>
+      <tr><td><code>fslides research "&lt;topic&gt;"</code></td><td>Cited research brief with Exa (<a href="#sources">details</a>)</td></tr>
+      <tr><td><code>fslides verify</code></td><td>Re-check cited claims live, fact-check uncited numbers (<code>--ci</code>)</td></tr>
+      <tr><td><code>fslides deepen [slide]</code></td><td>Cited density 4–5 candidates</td></tr>
+      <tr><td><code>fslides tailor --company X</code></td><td>Audience brief + <code>tailor.json</code> for <code>data-fill</code></td></tr>
+      <tr><td><code>fslides fresh</code></td><td>Newer sources since the last check</td></tr>
     </table>
 
     <h2 id="contributing">Contributing to a deck</h2>

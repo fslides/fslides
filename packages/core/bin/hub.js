@@ -5,6 +5,7 @@ const fs      = require('fs');
 const path    = require('path');
 const os      = require('os');
 const { execSync } = require('child_process');
+const { deckSources, loadTailor, safeJson } = require('./sources');
 
 const MIME = {
   '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
@@ -40,7 +41,7 @@ function resolveGithubRepo(url) {
 // Scans one level deep for directories containing fslides.config.js (or the
 // legacy fuckslides.config.js) or index.html.
 
-const SKIP_DIRS = new Set(['.git', 'node_modules', '.DS_Store', 'dist', 'build', '.cache']);
+const SKIP_DIRS = new Set(['.git', 'node_modules', '.DS_Store', 'dist', 'build', '.cache', '.fslides']);
 
 function findConfig(dirPath) {
   return ['fslides.config.js', 'fuckslides.config.js']
@@ -118,6 +119,8 @@ window.FUCKSLIDES_NAME      = ${JSON.stringify(config.name || 'presentation')};
 window.FUCKSLIDES_TITLE     = ${JSON.stringify(config.title || config.name || 'presentation')};
 window.FUCKSLIDES_DISABLED  = ${disabledJson};
 window.FUCKSLIDES_DENSITY   = ${JSON.stringify(config.density ?? null)};
+window.FUCKSLIDES_SOURCES   = ${safeJson(deckSources(dirPath))};
+window.FUCKSLIDES_TAILOR    = ${safeJson(loadTailor(dirPath))};
 window.FUCKSLIDES_HUB_URL   = ${JSON.stringify(hubUrl)};
 </script>${HUB_BTN_SCRIPT(hubUrl)}`;
 

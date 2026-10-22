@@ -5,6 +5,7 @@ const { PDFDocument } = require('pdf-lib');
 const path = require('path');
 const fs   = require('fs');
 const os   = require('os');
+const { citeRuntime, deckSources, loadTailor } = require('./sources');
 
 const GLOBAL_INJECT = `
   document.getAnimations().forEach(a => { try { a.finish(); } catch(e) {} });
@@ -51,6 +52,7 @@ module.exports = async function exportPdf(config, opts = {}) {
   console.log('\nLaunching browser…\n');
   const browser  = await launchBrowser();
   const pdfPaths = [];
+  const cite = { code: citeRuntime(), sources: deckSources(cwd), tailor: loadTailor(cwd) };
 
   for (let i = 0; i < config.slides.length; i++) {
     const file    = config.slides[i];
@@ -74,6 +76,12 @@ module.exports = async function exportPdf(config, opts = {}) {
         const st = document.createElement('style'); st.textContent = r.join(',') + '{display:none!important}'; h.appendChild(st); return true; };
       if (!apply()) new MutationObserver((_, o) => { if (apply()) o.disconnect(); }).observe(document, { childList: true });
     }, dlev);
+    if (cite.code) await page.evaluateOnNewDocument(({ code, sources, tailor }) => {
+      // file:// slides can't load /js/fuckslides.js — run its citation +
+      // fill block so markers and level-5 footnotes land in the PDF
+      window.FUCKSLIDES_SOURCES = sources; window.FUCKSLIDES_TAILOR = tailor;
+      document.addEventListener('DOMContentLoaded', () => { try { (0, eval)(code); } catch (_) {} });
+    }, cite);
 
     try {
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });

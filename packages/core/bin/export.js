@@ -2,6 +2,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { deckSources, loadTailor, applyFills } = require('./sources');
 
 const MIME_MAP = {
   '.svg':  'image/svg+xml',
@@ -66,11 +67,12 @@ module.exports = async function exportPresentation(config, outputPath) {
   const fsJs = fs.existsSync(fsJsPath) ? fs.readFileSync(fsJsPath, 'utf8') : '';
 
   // Read all slide HTML and inline their local assets
+  const tailor = loadTailor(cwd);
   const slideContents = {};
   for (const slide of config.slides) {
     const p = path.join(slidesDir, slide);
     if (fs.existsSync(p)) {
-      const raw = fs.readFileSync(p, 'utf8');
+      const raw = applyFills(fs.readFileSync(p, 'utf8'), tailor);
       let content = inlineAssets(inlineIframes(raw, slidesDir), slidesDir);
 
       // Inline <link rel="stylesheet" href="..."> → <style> blocks.
@@ -120,6 +122,8 @@ window.FUCKSLIDES_TITLE     = ${safeJson(config.title || config.name || 'present
 window.FUCKSLIDES_DISABLED  = ${safeJson(config.disabled || [])};
 window.FUCKSLIDES_DENSITY    = ${safeJson(config.density ?? null)};
 window.FUCKSLIDES_EXPORT    = true;
+window.FUCKSLIDES_SOURCES   = ${safeJson(deckSources(cwd))};
+window.FUCKSLIDES_TAILOR    = ${safeJson(tailor)};
 window.FUCKSLIDES_CONTENTS  = ${safeJson(slideContents)};
 </script>`;
 

@@ -12,6 +12,7 @@
 const fs   = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { loadSources, loadTailor, applyFills, safeJson } = require('./sources');
 
 const AUDIO_EXTS = ['.webm', '.m4a', '.mp3', '.ogg', '.wav', '.mp4'];
 const SKIP_DIRS  = new Set(['node_modules', '.git', '.github']);
@@ -55,7 +56,7 @@ function copyTree(src, dest, outDirAbs, stats) {
       if (entry.name.endsWith('.html')) {
         // slides reference /js/fuckslides.js absolutely, which 404s when the
         // deck is served from a subpath — rewrite to a relative reference
-        const html = fs.readFileSync(s, 'utf8')
+        const html = applyFills(fs.readFileSync(s, 'utf8'), stats.tailor)
           .replace(/src=["']\/js\/fuckslides\.js["']/g, 'src="js/fuckslides.js"');
         fs.writeFileSync(d, html, 'utf8');
       } else {
@@ -81,7 +82,8 @@ module.exports = function build(config, outArg) {
   fs.rmSync(outDir, { recursive: true, force: true });
 
   // 1. copy slides + assets (+ recordings) with relative-path fixes
-  const stats = { files: 0 };
+  const tailor = loadTailor(cwd);
+  const stats = { files: 0, tailor };
   copyTree(slidesDir, outDir, outDir, stats);
 
   // 2. slide runtime for the rewritten relative reference
@@ -107,6 +109,8 @@ window.FUCKSLIDES_REPO       = ${JSON.stringify(repo)};
 window.FUCKSLIDES_GATEWAY    = ${JSON.stringify(config.gateway || null)};
 window.FUCKSLIDES_NAV        = ${JSON.stringify(config.nav || [])};
 window.FUCKSLIDES_SELECTION  = ${JSON.stringify(config.selection !== false)};
+window.FUCKSLIDES_SOURCES    = ${safeJson(loadSources(cwd))};
+window.FUCKSLIDES_TAILOR     = ${safeJson(tailor)};
 </script>`;
 
   const fsJs = fs.readFileSync(path.join(pkgDir, 'js', 'fuckslides.js'), 'utf8');

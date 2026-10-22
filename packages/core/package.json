@@ -1,6 +1,6 @@
 {
   "name": "fslides",
-  "version": "0.7.3",
+  "version": "0.8.0",
   "description": "A no-bullshit HTML presentation framework",
   "bin": {
     "fslides": "bin/cli.js"
@@ -9,6 +9,7 @@
   "files": [
     "bin/",
     "player.html",
+    "presenter.html",
     "logo.png",
     "js/",
     "template/",

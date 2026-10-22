@@ -51,6 +51,31 @@ with the deck into builds, single-file exports, hosted decks, PDFs and editable 
   animations such as `.in1` lock `transform`, so `transform` moves fight them.
 - Slide scripts can react: `addEventListener('fslides:density', e => e.detail.level)`.
 
+## Filling levels 4 and 5 with sourced detail
+
+Levels 4 and 5 are where viewers who want more go. Fill them with real, cited detail,
+not padding:
+
+```bash
+fslides deepen 04-context-bill          # one slide (≈ $0.012 with the user's EXA_API_KEY)
+fslides deepen 04-context-bill 09-impact
+fslides deepen --all --dry-run           # every slide: show calls and cost first
+```
+
+Each run writes `research/deepen/<slide>.json` with `level4` (supporting context, one
+sentence each) and `level5` (methodology, caveats, definitions) candidates. Each candidate
+has a `cite` id that is already in `sources.json`. Pick one to three per level that add
+something the slide does not say, and add them with their citation:
+
+```html
+<p class="sub" data-d="4" data-cite="s12">Context windows grew 4× between 2023 and 2025.</p>
+<p class="fine" data-d="5" data-cite="s13">Survey of 1,100 IT leaders, Q2 2025.</p>
+```
+
+Level 5 also prints the slide's footnotes automatically, for every `data-cite` on the
+slide. Leave room at the bottom (about 40px), or hide them with `<html data-footnotes="off">`.
+Then run `fslides verify` and check the slide at 4 and 5 with the `fslides-verify` strip.
+
 ## Checking
 
 Force a level to look at it: `?density=N` on the slide URL, or `fslides pdf --density N`.

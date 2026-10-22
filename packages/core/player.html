@@ -541,6 +541,55 @@
       display: flex; align-items: center; justify-content: center;
       font-family: 'Inter', -apple-system, sans-serif;
     }
+    /* ── Sources (sources.json + Exa) ── */
+    #sources-panel {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 320px;
+      background: rgba(10,12,18,0.98); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.10); z-index: 8880;
+      transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.2,0,0.2,1);
+      display: flex; flex-direction: column; font-family: 'Inter', -apple-system, sans-serif;
+    }
+    #sources-panel.open { transform: translateY(0); }
+    .src-tabs { display: flex; gap: 4px; margin-left: 0.4rem; }
+    .src-tab { white-space: nowrap; background: none; border: 1px solid transparent; border-radius: 5px; padding: 2px 8px; color: rgba(255,255,255,0.4); font: 600 0.88rem/1.2 'SF Mono', 'Fira Code', monospace; text-transform: none; letter-spacing: 0; cursor: pointer; }
+    .src-tab.on { color: #38BDF8; border-color: rgba(56,189,248,0.35); background: rgba(56,189,248,0.08); }
+    .src-status { margin-left: auto; font: 500 0.88rem/1.2 'SF Mono', 'Fira Code', monospace; text-transform: none; letter-spacing: 0; color: rgba(255,255,255,0.4); }
+    .src-status b { color: #f59e0b; font-weight: 600; }
+    #sources-body { flex: 1; min-height: 0; display: flex; }
+    #sources-list { flex: 1; min-width: 0; overflow-y: auto; padding: 6px 1.1rem 16px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+    .src-item { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .src-num { flex-shrink: 0; width: 26px; font: 600 0.88rem/1.4 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.35); }
+    .src-main { flex: 1; min-width: 0; }
+    .src-meta { font: 500 0.88rem/1.4 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .src-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    .src-title { color: rgba(255,255,255,0.88); font-size: 0.85rem; font-weight: 600; text-decoration: none; display: block; margin: 2px 0 3px; }
+    .src-title:hover { color: #38BDF8; }
+    .src-quote { font-size: 0.78rem; line-height: 1.5; color: rgba(255,255,255,0.55); border-left: 2px solid rgba(255,255,255,0.12); padding-left: 8px; }
+    .src-issue { font-size: 0.76rem; color: #f59e0b; margin-top: 3px; }
+    .src-empty { padding: 24px 0; text-align: center; font-size: 0.78rem; color: rgba(255,255,255,0.3); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; }
+    .src-empty code { font-family: 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.55); }
+    #ask-pane { width: 420px; flex-shrink: 0; border-left: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; padding: 10px 1rem 14px; gap: 8px; }
+    #ask-pane[hidden] { display: none; }
+    .ask-row { display: flex; gap: 6px; }
+    #ask-input { flex: 1; min-width: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 7px 10px; color: #fff; font: 0.85rem/1.3 'Inter', -apple-system, sans-serif; outline: none; }
+    #ask-input:focus { border-color: rgba(56,189,248,0.6); }
+    .ask-btn { background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.4); color: #38BDF8; border-radius: 6px; padding: 0 12px; font: 600 0.88rem/1 'SF Mono', 'Fira Code', monospace; cursor: pointer; white-space: nowrap; }
+    .ask-btn:hover { background: rgba(56,189,248,0.22); }
+    .ask-btn:disabled { opacity: 0.4; cursor: default; }
+    #ask-out { flex: 1; min-height: 0; overflow-y: auto; font-size: 0.82rem; line-height: 1.55; color: rgba(255,255,255,0.78); white-space: pre-wrap; scrollbar-width: thin; }
+    #ask-out .ask-cites { margin-top: 8px; font: 500 0.88rem/1.5 'SF Mono', 'Fira Code', monospace; white-space: normal; }
+    #ask-out .ask-cites a { color: rgba(255,255,255,0.5); text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #ask-out .ask-cites a:hover { color: #38BDF8; }
+    .ask-hint { font: 500 0.88rem/1.4 'SF Mono', 'Fira Code', monospace; color: rgba(255,255,255,0.3); }
+    .ov-verify { margin-left: 6px; min-width: 16px; height: 16px; border-radius: 8px; padding: 0 5px; font: 700 10px/16px 'Inter', -apple-system, sans-serif; color: #0d0f14; background: #f59e0b; flex-shrink: 0; }
+    .ov-verify.bad { background: #ef4444; color: #fff; }
+    #fresh-banner { position: fixed; top: 54px; left: 50%; transform: translateX(-50%); z-index: 8870; display: none; align-items: center; gap: 10px;
+      background: rgba(10,12,18,0.95); border: 1px solid rgba(56,189,248,0.35); color: rgba(255,255,255,0.8); border-radius: 8px; padding: 6px 8px 6px 12px;
+      font: 500 0.88rem/1.3 'SF Mono', 'Fira Code', monospace; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+    #fresh-banner.show { display: flex; }
+    #fresh-banner b { color: #38BDF8; }
+    #fresh-banner button { background: none; border: 0; color: rgba(255,255,255,0.45); cursor: pointer; font-size: 0.95rem; padding: 0 4px; }
+    body.windowed-presenting #fresh-banner, body:fullscreen #fresh-banner { display: none !important; }
     /* Teleprompter: the slide's speaker notes, readable while recording */
     .voice-notes {
       flex: 1; min-height: 0; overflow-y: auto;
@@ -887,6 +936,24 @@
   <div id="comments-list"></div>
 </div>
 
+<div id="sources-panel">
+  <div class="comments-header">
+    <span>Sources</span>
+    <span class="src-tabs"><button class="src-tab on" data-scope="slide">this slide</button><button class="src-tab" data-scope="deck">deck</button></span>
+    <span class="src-status" id="src-status"></span>
+  </div>
+  <div id="sources-body">
+    <div id="sources-list"></div>
+    <div id="ask-pane" hidden>
+      <div class="ask-row"><input id="ask-input" placeholder="Ask Exa — a question from the room…" autocomplete="off"><button class="ask-btn" id="ask-go">Ask</button></div>
+      <div id="ask-out"><span class="ask-hint">Answered live from the web with citations, via your EXA_API_KEY on this machine.</span></div>
+      <div class="ask-row"><button class="ask-btn" id="ask-slide" disabled>+ Backup slide after this one</button></div>
+    </div>
+  </div>
+</div>
+
+<div id="fresh-banner"><span id="fresh-text"></span><button id="fresh-close" aria-label="Dismiss">×</button></div>
+
 <div id="video-bubble">
   <video id="bubble-video" playsinline></video>
   <div class="bubble-paused-hint">▶</div>
@@ -912,6 +979,8 @@
         <h4>work</h4>
         <div class="sc-row">speaker notes<span class="keys"><kbd class="sck">N</kbd></span></div>
         <div class="sc-row">comments<span class="keys"><kbd class="sck">K</kbd></span></div>
+        <div class="sc-row">sources & citations<span class="keys"><kbd class="sck">S</kbd></span></div>
+        <div class="sc-row">ask Exa (local key)<span class="keys"><kbd class="sck">A</kbd></span></div>
         <div class="sc-row">edit this slide<span class="keys"><kbd class="sck">E</kbd></span></div>
         <div class="sc-row">comment on anything<span class="keys"><kbd class="sck">right-click</kbd></span></div>
       </div>
@@ -980,6 +1049,11 @@
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10a1.5 1.5 0 0 1-1.5 1.5H6l-3.5 3v-3H3.5A1.5 1.5 0 0 1 2 10V3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5V10z"/></svg>
     <span class="nav-label">Comments</span>
     <span class="comment-count" id="comment-count" style="display:none"></span>
+  </button>
+  <button class="nav-btn" id="btn-sources" data-tip="Sources & citations — S · Ask Exa — A" style="display:none; position:relative;">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2.5h7l3 3v8h-10z"/><path d="M10 2.5v3h3M5.5 8.5h5M5.5 11h3.5"/></svg>
+    <span class="nav-label">Sources</span>
+    <span class="comment-count" id="sources-count" style="display:none"></span>
   </button>
   <div class="nav-sep"></div>
   <button class="nav-btn buoy" id="btn-help" data-tip="Help — every shortcut · H">
@@ -1261,6 +1335,7 @@ function go(newIdx) {
     if (notesOpen) loadNotesForSlide();
     voiceOnSlideChange();
     commentsOnSlideChange();
+    sourcesOnSlideChange();
     broadcastPresenterState();
   };
 
@@ -1390,6 +1465,15 @@ function buildThumbEl(slide, i) {
   const lbl = document.createElement('div');
   lbl.className = 'ov-thumb-label';
   lbl.innerHTML = `<span class="ov-thumb-name">${label}</span><span class="ov-thumb-num">${i + 1}</span><button class="ov-btn-disable" title="Toggle skip">⊘</button>`;
+  const vb = verifyBadge(slide);
+  if (vb) lbl.querySelector('.ov-thumb-name').after(vb);
+  const fr0 = window.FUCKSLIDES_FRESH;
+  if (fr0 && fr0.slides && fr0.slides.includes(slide)) {
+    const nb = document.createElement('span');
+    nb.className = 'ov-verify'; nb.style.background = '#38BDF8'; nb.textContent = 'new';
+    nb.title = 'Newer sources found — research/fresh.md';
+    lbl.querySelector('.ov-thumb-name').after(nb);
+  }
 
   if (disabled.has(slide)) thumb.classList.add('disabled');
 
@@ -1731,6 +1815,8 @@ function handleKey(key) {
   if (key === 'n' || key === 'N') { toggleNotes(); return; }
   if (key === 'v' || key === 'V') { voiceToggle(); return; }
   if (key === 'k' || key === 'K') { toggleComments(); return; }
+  if (key === 's' || key === 'S') { toggleSources(); return; }
+  if ((key === 'a' || key === 'A') && EXA_LIVE) { openSources(true); return; }
   if (key === 'm' || key === 'M') {
     if (btnRecord.style.display !== 'none') { voiceOpen ? closeVoicePanel() : openVoicePanel(); }
     return;
@@ -1750,6 +1836,7 @@ function handleKey(key) {
     if (selection.length) { clearSelection(); return; }
     if (voiceOpen) { closeVoicePanel(); return; }
     if (commentsOpen) { closeComments(); return; }
+    if (sourcesOpen) { closeSources(); return; }
     if (ovOpen) { closeOverview(); return; } if (fsOpen) { closeFilmstrip(); return; }
     if (windowPresent) { exitPresentWindow(); return; }
   }
@@ -2961,6 +3048,7 @@ async function refreshComments(force) {
 }
 
 function openComments() {
+  if (sourcesOpen) closeSources();
   if (notesOpen) closeNotes();
   if (voiceOpen) closeVoicePanel();
   commentsOpen = true;
@@ -2975,6 +3063,158 @@ function closeComments() {
   btnComments.classList.remove('active');
 }
 function toggleComments() { commentsOpen ? closeComments() : openComments(); }
+
+// ── Sources: sources.json citations, verify status, live Ask (serve + key) ──
+const SOURCES   = window.FUCKSLIDES_SOURCES || {};
+const EXA_LIVE  = !!window.FUCKSLIDES_EXA && !window.FUCKSLIDES_EXPORT;
+const sourcesPanel = document.getElementById('sources-panel');
+const btnSources   = document.getElementById('btn-sources');
+const sourcesList  = document.getElementById('sources-list');
+const askPane = document.getElementById('ask-pane'), askInput = document.getElementById('ask-input');
+const askOut  = document.getElementById('ask-out'), askGo = document.getElementById('ask-go'), askSlide = document.getElementById('ask-slide');
+const SRC_STATUS = { ok: ['#22c55e', 'verified'], stale: ['#f59e0b', 'stale'], changed: ['#f59e0b', 'number not found on page'], broken: ['#ef4444', 'unreachable'] };
+const MONTHS3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let sourcesOpen = false, sourcesScope = 'slide', lastAnswer = null;
+
+if (Object.keys(SOURCES).length || EXA_LIVE) btnSources.style.display = '';
+if (EXA_LIVE) askPane.hidden = false;
+
+function escS(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function srcWhen(d) { const m = /^(\d{4})-(\d{2})/.exec(d || ''); return m ? MONTHS3[+m[2] - 1] + ' ' + m[1] : ''; }
+
+// cite ids in slide order, read from the live slide (same-origin iframe)
+function slideCiteIds() {
+  try {
+    const doc = frame.contentDocument;
+    const ids = [];
+    doc.querySelectorAll('[data-cite]').forEach(el => el.dataset.cite.split(/[\s,]+/).filter(Boolean).forEach(id => { if (!ids.includes(id)) ids.push(id); }));
+    return ids;
+  } catch (_) { return []; }
+}
+
+function verifyIssues(slide) {
+  const v = window.FUCKSLIDES_VERIFY && window.FUCKSLIDES_VERIFY.slides && window.FUCKSLIDES_VERIFY.slides[slide];
+  if (!v) return null;
+  const n = (v.stale || 0) + (v.changed || 0) + (v.broken || 0) + (v.unsupported || 0);
+  return n ? { n, bad: !!(v.broken || v.changed), v } : null;
+}
+function verifyBadge(slide) {
+  const is = verifyIssues(slide);
+  if (!is) return null;
+  const b = document.createElement('span');
+  b.className = 'ov-verify' + (is.bad ? ' bad' : '');
+  b.textContent = is.n;
+  b.title = ['stale', 'changed', 'broken', 'unsupported'].filter(k => is.v[k]).map(k => is.v[k] + ' ' + k).join(' · ') + ' — fslides verify';
+  return b;
+}
+
+function renderSources() {
+  const slide = slides[idx];
+  const ids = sourcesScope === 'slide' ? slideCiteIds() : Object.keys(SOURCES);
+  const vs = window.FUCKSLIDES_VERIFY;
+  const issues = verifyIssues(slide);
+  document.getElementById('src-status').innerHTML = vs
+    ? `verified ${escS(String(vs.at || '').slice(0, 10))}${issues && sourcesScope === 'slide' ? ` · <b>${issues.n} to fix on this slide</b>` : ''}`
+    : (Object.keys(SOURCES).length ? 'not verified yet — fslides verify' : '');
+  if (!ids.length) {
+    sourcesList.innerHTML = sourcesScope === 'slide'
+      ? `<div class="src-empty">No citations on this slide.<br>Mark a claim with <code>data-cite="s1"</code> — ids live in <code>sources.json</code>.</div>`
+      : `<div class="src-empty">No sources yet. <code>fslides research "topic"</code> collects them with Exa.</div>`;
+    return;
+  }
+  const notes = (vs && vs.claims && vs.claims[slide]) || [];
+  sourcesList.innerHTML = ids.map((id, i) => {
+    const s = SOURCES[id];
+    if (!s) return `<div class="src-item"><span class="src-num">${i + 1}</span><div class="src-main"><div class="src-meta">${escS(id)}</div><div class="src-issue">not in sources.json</div></div></div>`;
+    const st = s.status && SRC_STATUS[s.status];
+    return `<div class="src-item"><span class="src-num">${sourcesScope === 'slide' ? i + 1 : escS(id)}</span><div class="src-main">
+      <div class="src-meta">${escS(s.publisher || '')}${s.published ? ' · ' + srcWhen(s.published) : ''}${st ? ` · <span class="src-dot" style="background:${st[0]}"></span>${st[1]}${s.checked ? ' ' + escS(s.checked) : ''}` : ''}</div>
+      <a class="src-title" href="${escS(s.url)}" target="_blank" rel="noopener">${escS(s.title || s.url)}</a>
+      ${s.quote ? `<div class="src-quote">${escS(s.quote.length > 320 ? s.quote.slice(0, 317) + '…' : s.quote)}</div>` : ''}
+    </div></div>`;
+  }).join('') + notes.map(n => `<div class="src-item"><span class="src-num">!</span><div class="src-main"><div class="src-issue">${escS(n)}</div></div></div>`).join('');
+}
+
+function openSources(focusAsk) {
+  if (commentsOpen) closeComments();
+  if (notesOpen) closeNotes();
+  if (voiceOpen) closeVoicePanel();
+  sourcesOpen = true;
+  sourcesPanel.classList.add('open');
+  btnSources.classList.add('active');
+  renderSources();
+  if (focusAsk && EXA_LIVE) setTimeout(() => askInput.focus(), 60);
+}
+function closeSources() {
+  sourcesOpen = false;
+  sourcesPanel.classList.remove('open');
+  btnSources.classList.remove('active');
+  askInput.blur();
+}
+function toggleSources() { sourcesOpen ? closeSources() : openSources(); }
+btnSources.addEventListener('click', () => toggleSources());
+sourcesPanel.querySelectorAll('.src-tab').forEach(t => t.addEventListener('click', () => {
+  sourcesScope = t.dataset.scope;
+  sourcesPanel.querySelectorAll('.src-tab').forEach(x => x.classList.toggle('on', x === t));
+  renderSources();
+}));
+function sourcesOnSlideChange() {
+  const n = verifyIssues(slides[idx]);
+  const cnt = document.getElementById('sources-count');
+  cnt.style.display = n ? '' : 'none';
+  if (n) { cnt.textContent = n.n; cnt.style.background = n.bad ? '#ef4444' : '#f59e0b'; }
+  // the slide DOM isn't there until the frame loads
+  if (sourcesOpen) setTimeout(renderSources, 250);
+}
+
+// live Ask — the key stays in `fslides serve`; the browser only sees answers
+async function askExa(q) {
+  q = (q || askInput.value).trim();
+  if (!q) return;
+  askGo.disabled = true; askSlide.disabled = true;
+  askOut.innerHTML = '<span class="ask-hint">asking Exa…</span>';
+  try {
+    const r = await fetch('/api/exa/answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: q, slide: slides[idx] }) });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || r.status);
+    lastAnswer = { query: q, answer: d.answer, citations: d.citations || [] };
+    askOut.innerHTML = escS(d.answer) + (lastAnswer.citations.length
+      ? '<div class="ask-cites">' + lastAnswer.citations.slice(0, 6).map((c, i) => `<a href="${escS(c.url)}" target="_blank" rel="noopener">[${i + 1}] ${escS(c.title || c.url)}</a>`).join('') + '</div>' : '');
+    askSlide.disabled = false;
+    try { if (presenterChannel) presenterChannel.postMessage({ type: 'answer', ...lastAnswer }); } catch (_) {}
+  } catch (e) {
+    askOut.innerHTML = `<span class="ask-hint">Ask failed: ${escS(e.message)}</span>`;
+  } finally { askGo.disabled = false; }
+}
+async function makeBackupSlide(ans) {
+  ans = ans || lastAnswer;
+  if (!ans) return;
+  askSlide.disabled = true;
+  try {
+    const r = await fetch('/api/exa/backup-slide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...ans, after: slides[idx] }) });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || r.status);
+    showToast(`Backup slide ${d.file} added after this one, skipped — reload, then enable it in the overview`);
+  } catch (e) { showToast('Backup slide failed: ' + e.message); askSlide.disabled = false; }
+}
+askGo.addEventListener('click', () => askExa());
+askSlide.addEventListener('click', () => makeBackupSlide());
+askInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); askExa(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeSources(); }
+});
+
+// fslides fresh: newer sources found since the deck's facts were checked
+(function freshBanner() {
+  const f = window.FUCKSLIDES_FRESH;
+  if (!f || !f.count) return;
+  const key = 'fs-fresh-seen-' + (window.FUCKSLIDES_NAME || '') + '-' + f.at;
+  try { if (localStorage.getItem(key)) return; } catch (_) {}
+  document.getElementById('fresh-text').innerHTML = `<b>${f.count}</b> newer source${f.count === 1 ? '' : 's'} since this deck was checked${f.slides.length ? ' · ' + f.slides.length + ' slide' + (f.slides.length === 1 ? '' : 's') : ''} — research/fresh.md`;
+  const el = document.getElementById('fresh-banner');
+  el.classList.add('show');
+  document.getElementById('fresh-close').addEventListener('click', () => { el.classList.remove('show'); try { localStorage.setItem(key, '1'); } catch (_) {} });
+})();
 
 function commentsOnSlideChange() {
   if (!REPO) return;

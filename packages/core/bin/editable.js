@@ -14,6 +14,7 @@ const path = require('path');
 const fs   = require('fs');
 const os   = require('os');
 const { execSync } = require('child_process');
+const { citeRuntime, deckSources, loadTailor } = require('./sources');
 
 const WIDTH = 1280, HEIGHT = 720;
 const PX = 1 / 96;          // px → inches (LAYOUT_WIDE is 13.333 × 7.5 in = 1280 × 720 px)
@@ -232,6 +233,7 @@ async function buildEditable(config, opts = {}) {
   const notesFile = path.join(cwd, 'notes.json');
   const notes     = fs.existsSync(notesFile) ? JSON.parse(fs.readFileSync(notesFile, 'utf8')) : {};
   const dlev      = densityScript(config, opts.density);
+  const cite      = { code: citeRuntime(), sources: deckSources(cwd), tailor: loadTailor(cwd) };
   const files     = config.slides.filter(f => !disabled.has(f));
 
   const launch = { headless: true };
@@ -259,6 +261,10 @@ async function buildEditable(config, opts = {}) {
         const st = document.createElement('style'); st.textContent = r.join(',') + '{display:none!important}'; h.appendChild(st); return true; };
       if (!apply()) new MutationObserver((_, o) => { if (apply()) o.disconnect(); }).observe(document, { childList: true });
     }, dlev);
+    if (cite.code) await page.evaluateOnNewDocument(({ code, sources, tailor }) => {
+      window.FUCKSLIDES_SOURCES = sources; window.FUCKSLIDES_TAILOR = tailor;
+      document.addEventListener('DOMContentLoaded', () => { try { (0, eval)(code); } catch (_) {} });
+    }, cite);
     try {
       await page.goto(`file://${path.join(slidesDir, file)}`, { waitUntil: 'load', timeout: 20000 });
       await page.evaluate('document.fonts && document.fonts.ready');

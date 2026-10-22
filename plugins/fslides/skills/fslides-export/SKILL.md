@@ -56,3 +56,12 @@ and every painted element is rebuilt as a native object:
 
 Unless the config has `density: false`, every slide exports at its own saved level. To export an
 exec version, run with `--density 2`; for a full read, `--density 5`.
+
+## Citations and tailored values
+
+Every export carries the deck's citations from `sources.json`: superscript markers on
+`data-cite` elements, and at density 5 the footnotes along the bottom of each slide.
+`pdf --density 5` is the leave-behind with full sources. `tailor.json` values
+(`data-fill`) are baked into `export`, `build`, `pdf` and the editable exports, so run
+`fslides tailor --company X` before exporting a version for one audience. Run
+`fslides verify` first, since exports freeze whatever the slides say.

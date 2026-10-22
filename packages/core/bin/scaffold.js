@@ -82,7 +82,7 @@ module.exports = function scaffold(name, opts = {}) {
     devDependencies: { fslides: '^' + version },
   }, null, 2) + '\n', 'utf8');
 
-  fs.writeFileSync(path.join(dir, '.gitignore'), 'node_modules/\n_site/\n.DS_Store\n', 'utf8');
+  fs.writeFileSync(path.join(dir, '.gitignore'), 'node_modules/\n_site/\n.DS_Store\n.fslides/\n', 'utf8');
 
   // Git LFS for narration recordings, when available — re-recorded takes go
   // to LFS storage instead of accumulating in every clone's history

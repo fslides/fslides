@@ -60,7 +60,10 @@ cd <deck-name> && npm install && fslides serve
 - Unless the user has a design system, default to: dark background (#0d0f14),
   one accent color, Inter + JetBrains Mono, staggered fade-up reveals.
 - Don't rebuild what the player provides (navigation, overview, notes,
-  narration playback, comments) — slides contain only their own content.
+  narration playback, comments, citations and footnotes). Slides contain only their own content.
+- Every figure needs a source: from the user, or from `fslides research` (Exa). Cite it
+  with `data-cite="sN"` (ids in `sources.json`) and run `fslides verify` before calling
+  the deck done. Never invent a number or a source.
 - Recordings in `slides/recordings/` are user-created narration: never delete
   or overwrite them without explicit confirmation.
 
@@ -76,3 +79,6 @@ Reach for the focused skill when the task matches:
 | Crisper titles, fewer words, no decorative motion | `fslides-clean-deck` |
 | Look at slides at all five densities, count words | `fslides-verify` |
 | A slide that calls a real API on stage | `fslides-live-demo` |
+| Research a topic, get cited facts to write from | `fslides-research` |
+| Cite, fact-check and refresh the deck's numbers; live Q&A | `fslides-sources` |
+| One deck tailored per company or audience | `fslides-tailor` |

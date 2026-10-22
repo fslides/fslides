@@ -234,11 +234,15 @@ async function serveDeck(request, url, env, owner) {
     (key === 'index.html' && !(config.slides || []).includes('index.html'));
 
   if (isPlayer) {
-    const notesPath = deckSubPath ? deckSubPath + '/notes.json' : 'notes.json';
-    const nf = await fetchFile(owner, repo, notesPath, 60, viewerToken);
-    let notes = '{}';
-    if (nf.resp.ok) { const t = await nf.resp.text(); try { JSON.parse(t); notes = t; } catch (_) {} }
-    const html = renderPlayer(owner, repo, config, notes, deckSubPath);
+    // notes / citation registry / audience fills — all optional, all JSON
+    const deckJson = async (name) => {
+      const f = await fetchFile(owner, repo, deckSubPath ? deckSubPath + '/' + name : name, 60, viewerToken);
+      if (!f.resp.ok) return '{}';
+      const t = await f.resp.text();
+      try { JSON.parse(t); return t.replace(/<\/(script)/gi, '<\\/$1'); } catch (_) { return '{}'; }
+    };
+    const [notes, sources, tailor] = await Promise.all(['notes.json', 'sources.json', 'tailor.json'].map(deckJson));
+    const html = renderPlayer(owner, repo, config, notes, deckSubPath, { sources, tailor });
     if (request.method === 'HEAD') return new Response(null, { headers: { 'Content-Type': TYPES.html, 'X-Robots-Tag': 'noindex' } });
     return new Response(html, { headers: { 'Content-Type': TYPES.html, 'Cache-Control': cc('public, max-age=60'), 'X-Robots-Tag': 'noindex' } });
   }
@@ -539,7 +543,7 @@ async function loadConfig(owner, repo, token, deckSubPath) {
   }
 }
 
-function renderPlayer(owner, repo, config, notes, deckPath) {
+function renderPlayer(owner, repo, config, notes, deckPath, extra = {}) {
   const name = config.name || repo;
   const snippet = `<script>
 window.FUCKSLIDES_SLIDES     = ${JSON.stringify(config.slides || [])};
@@ -555,6 +559,8 @@ window.FUCKSLIDES_DECKPATH   = ${JSON.stringify(deckPath || '')};
 window.FUCKSLIDES_GATEWAY    = ${JSON.stringify(config.gateway || 'https://api.fslides.dev')};
 window.FUCKSLIDES_NAV        = ${JSON.stringify(config.nav || [])};
 window.FUCKSLIDES_SELECTION  = ${JSON.stringify(config.selection !== false)};
+window.FUCKSLIDES_SOURCES    = ${extra.sources || '{}'};
+window.FUCKSLIDES_TAILOR     = ${extra.tailor || '{}'};
 </script>`;
   return PLAYER
     .replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(config.title || name)}</title>`)

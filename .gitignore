@@ -3,3 +3,4 @@ node_modules/
 *.gif
 tmp/
 .DS_Store
+.fslides/
