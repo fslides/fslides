@@ -11,13 +11,14 @@ description: >-
 
 # Content density in fslides
 
-One deck, five levels of detail. Opt in once in `fslides.config.js`:
+One deck, five levels of detail. The player shows a density dial (keys `-` / `+`) in
+every deck. Set the starting level in `fslides.config.js`, or turn it off with `density: false`:
 
 ```js
 density: { default: 3 },
 ```
 
-The player then shows a density dial (keys `-` / `+`). Run `fslides serve` and turning
+Run `fslides serve` and turning
 the dial **rewrites that slide's `<html data-density="N">`**, so the chosen level travels
 with the deck into builds, single-file exports, hosted decks, PDFs and editable exports.
 

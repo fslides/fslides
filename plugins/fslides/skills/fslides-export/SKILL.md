@@ -54,5 +54,5 @@ and every painted element is rebuilt as a native object:
 
 ## Picking the density
 
-If the config has `density`, every slide exports at its own saved level. To export an
+Unless the config has `density: false`, every slide exports at its own saved level. To export an
 exec version, run with `--density 2`; for a full read, `--density 5`.
